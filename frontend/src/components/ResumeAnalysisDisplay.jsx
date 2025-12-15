@@ -2,14 +2,14 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, CheckCircle, XCircle } from "lucide-react"; // Install lucide-react if needed
+import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 
 const ResumeAnalysisDisplay = ({ data }) => {
   // Determine color based on score
   const getScoreColor = (score) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 50) return "text-yellow-600";
-    return "text-red-600";
+    if (score >= 80) return "text-green-600 dark:text-green-400";
+    if (score >= 50) return "text-yellow-600 dark:text-yellow-400";
+    return "text-red-600 dark:text-red-400";
   };
 
   return (
@@ -33,7 +33,7 @@ const ResumeAnalysisDisplay = ({ data }) => {
         {/* Present Skills */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
+            <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
               <CheckCircle size={20} /> Detected Skills
             </CardTitle>
           </CardHeader>
@@ -42,7 +42,7 @@ const ResumeAnalysisDisplay = ({ data }) => {
               <Badge
                 key={index}
                 variant="secondary"
-                className="bg-green-100 text-green-800 hover:bg-green-200"
+                className="bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
               >
                 {skill}
               </Badge>
@@ -53,7 +53,7 @@ const ResumeAnalysisDisplay = ({ data }) => {
         {/* Missing Keywords (ATS Killers) */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
               <XCircle size={20} /> Missing Keywords
             </CardTitle>
           </CardHeader>
@@ -62,7 +62,7 @@ const ResumeAnalysisDisplay = ({ data }) => {
               <Badge
                 key={index}
                 variant="outline"
-                className="border-red-200 text-red-700"
+                className="border-red-200 text-red-700 dark:border-red-800 dark:text-red-400"
               >
                 {keyword}
               </Badge>
@@ -81,11 +81,11 @@ const ResumeAnalysisDisplay = ({ data }) => {
         <CardContent className="space-y-4">
           {/* Formatting Issues */}
           {data.formatting_issues.length > 0 && (
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <h4 className="font-semibold text-red-800 mb-2">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100 dark:bg-red-900/20 dark:border-red-900/50">
+              <h4 className="font-semibold text-red-800 mb-2 dark:text-red-300">
                 Formatting Errors:
               </h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-red-700">
+              <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-400">
                 {data.formatting_issues.map((issue, i) => (
                   <li key={i}>{issue}</li>
                 ))}
@@ -95,14 +95,14 @@ const ResumeAnalysisDisplay = ({ data }) => {
 
           {/* Improvement Tips */}
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-800">Steps to Improve:</h4>
+            <h4 className="font-semibold text-foreground">Steps to Improve:</h4>
             {data.actionable_feedback.map((tip, i) => (
               <div
                 key={i}
-                className="flex gap-3 items-start p-3 bg-gray-50 rounded-md"
+                className="flex gap-3 items-start p-3 bg-gray-50 rounded-md dark:bg-muted/50"
               >
                 <span className="font-bold text-primary mt-1">{i + 1}.</span>
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-gray-700 leading-relaxed dark:text-muted-foreground">
                   {/* Simple cleanup for the markdown bold stars ** */}
                   {tip.replace(/\*\*/g, "")}
                 </p>
