@@ -12,12 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { AuthLoader } from "@/components/ui/auth-loader";
+import { useAuthStore } from "../store/Auth.store";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isLoggingIn } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,17 +29,10 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // TODO: Implement actual login logic here
-    console.log("Login data:", formData);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Logged in successfully!");
+    const success = await login(formData);
+    if (success) {
       navigate("/analyze");
-    }, 1500);
+    }
   };
 
   return (
@@ -86,16 +79,9 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-white text-black hover:bg-neutral-200"
-                disabled={isLoading}
+                disabled={isLoggingIn}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
+                {isLoggingIn ? <AuthLoader /> : "Sign In"}
               </Button>
             </form>
           </CardContent>

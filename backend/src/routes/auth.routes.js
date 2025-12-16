@@ -13,5 +13,9 @@ authRouter.post("/register", handleRegister);
 authRouter.post("/login", handleLogin);
 authRouter.post("/logout", verifyJWT, handleLogout);
 authRouter.post("/updatepassword", verifyJWT, handleUpdatePassword);
-
+authRouter.get("/check", verifyJWT, (req, res) => {
+  return res
+    .status(200)
+    .json({ success: true, message: "Token is valid", user: req.user });
+});
 export default authRouter;

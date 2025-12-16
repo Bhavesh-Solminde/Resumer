@@ -22,7 +22,6 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
   if (!req.user || !req.user._id) {
     throw new ApiError(401, "Unauthorized: User not authenticated");
   }
-  const user = req.user;
 
   // Extract text from PDF
   let resumeText = "";
@@ -57,28 +56,36 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
     `;
 
   try {
-    // Generate response from Gemini AI
-    const result = await model.generateContent(prompt);
+    // Parallel Execution: Start Gemini API call AND Cloud Upload simultaneously
+    const geminiPromise = model.generateContent(prompt);
+    const cloudinaryPromise = cloudinaryUpload(req.file.buffer);
 
-    // Handle response based on SDK version (assuming standard response structure)
+    // Await Results: Wait for both to finish
+    const [geminiResult, cloudinaryUrl] = await Promise.all([
+      geminiPromise,
+      cloudinaryPromise,
+    ]);
+
+    // Handle Gemini response
     let responseText = "";
-    if (result.response && typeof result.response.text === "function") {
-      responseText = result.response.text();
-    } else if (typeof result.text === "function") {
-      responseText = result.text();
-    } else if (
-      result.response &&
-      result.response.candidates &&
-      result.response.candidates.length > 0
+    if (
+      geminiResult.response &&
+      typeof geminiResult.response.text === "function"
     ) {
-      // Fallback for raw response structure
-      responseText = result.response.candidates[0].content.parts[0].text;
+      responseText = geminiResult.response.text();
+    } else if (typeof geminiResult.text === "function") {
+      responseText = geminiResult.text();
+    } else if (
+      geminiResult.response &&
+      geminiResult.response.candidates &&
+      geminiResult.response.candidates.length > 0
+    ) {
+      responseText = geminiResult.response.candidates[0].content.parts[0].text;
     } else {
       throw new Error("Unexpected response format from Gemini AI");
     }
 
     // Clean & Parse JSON
-    // Gemini sometimes wraps response in \`\`\`json ... \`\`\`. We remove that.
     const cleanJson = responseText
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -86,9 +93,7 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
 
     const analysisData = JSON.parse(cleanJson);
 
-    // Upload resume to Cloudinary
-    const cloudinaryUrl = await cloudinaryUpload(req.file.buffer);
-
+    // Save to DB: Create a history record
     const resumeScan = await ResumeScan.create({
       originalName: req.file.originalname,
       pdfUrl: cloudinaryUrl,
@@ -102,7 +107,7 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
       { $push: { resumeHistory: resumeScan._id } }
     );
 
-    // Send response
+    // Send Response
     return res.status(200).json(
       new ApiResponse(200, "Resume analyzed successfully", {
         ...analysisData,
@@ -110,7 +115,7 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
       })
     );
   } catch (error) {
-    console.error("Request to AI failed:", error);
+    console.error("Request to AI or Cloudinary failed:", error);
     throw new ApiError(
       500,
       error.message || "An error occurred while analyzing the resume"

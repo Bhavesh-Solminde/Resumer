@@ -72,14 +72,20 @@ export const handleRegister = asyncHandler(async (req, res) => {
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
-  const options = {
+  const Accessoptions = {
     httpOnly: true,
     secure: ENV.NODE_ENV === "production",
+    maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
+  };
+  const Refreshoptions = {
+    httpOnly: true,
+    secure: ENV.NODE_ENV === "production",
+    maxAge: 10 * 24 * 60 * 60 * 1000, // 7 days
   };
   return res
     .status(201)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, Accessoptions)
+    .cookie("refreshToken", refreshToken, Refreshoptions)
     .json(new ApiResponse(201, createdUser, "User Registered successfully"));
 });
 
@@ -114,14 +120,20 @@ export const handleLogin = asyncHandler(async (req, res) => {
 
   const loggedInUser = await User.findById(user._id).select("-password");
 
-  const options = {
+  const Accessoptions = {
     httpOnly: true,
     secure: ENV.NODE_ENV === "production",
+    maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
+  };
+  const Refreshoptions = {
+    httpOnly: true,
+    secure: ENV.NODE_ENV === "production",
+    maxAge: 10 * 24 * 60 * 60 * 1000, // 7 days
   };
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, Accessoptions)
+    .cookie("refreshToken", refreshToken, Refreshoptions)
     .json(
       new ApiResponse(
         200,
@@ -140,15 +152,20 @@ export const handleLogout = asyncHandler(async (req, res) => {
   user.refreshToken = undefined;
   await user.save({ validateBeforeSave: false });
 
-  const options = {
+  const Accessoptions = {
     httpOnly: true,
     secure: ENV.NODE_ENV === "production",
+    maxAge: 1 * 24 * 60 * 60 * 1000, // 7 days
   };
-
+  const Refreshoptions = {
+    httpOnly: true,
+    secure: ENV.NODE_ENV === "production",
+    maxAge: 10 * 24 * 60 * 60 * 1000, // 7 days
+  };
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", Accessoptions)
+    .clearCookie("refreshToken", Refreshoptions)
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 

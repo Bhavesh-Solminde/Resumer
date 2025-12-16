@@ -7,8 +7,8 @@ const resumeRouter = Router();
 
 resumeRouter.post(
   "/analyze",
-  upload.single({ name: "resume" }),
   verifyJWT,
+  upload.single("resume"),
   handleAnalyzeResume
 );
 // resumeRouter.get("/analyze", handleGetAnalysisResult); // Commented out as it was imported from wrong file and might not exist yet

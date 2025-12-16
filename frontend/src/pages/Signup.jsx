@@ -12,14 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { AuthLoader } from "@/components/ui/auth-loader";
+import { useAuthStore } from "../store/Auth.store";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { signup, isSigningUp } = useAuthStore();
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
   });
@@ -30,17 +30,10 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // TODO: Implement actual signup logic here
-    console.log("Signup data:", formData);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Account created successfully!");
+    const success = await signup(formData);
+    if (success) {
       navigate("/analyze");
-    }, 1500);
+    }
   };
 
   return (
@@ -58,16 +51,16 @@ const Signup = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-neutral-300">
+                <Label htmlFor="fullName" className="text-neutral-300">
                   Full Name
                 </Label>
                 <Input
-                  id="name"
+                  id="fullName"
                   type="text"
                   placeholder="John Doe"
                   required
                   className="bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600 focus-visible:ring-neutral-700"
-                  value={formData.name}
+                  value={formData.fullName}
                   onChange={handleChange}
                 />
               </div>
@@ -101,16 +94,9 @@ const Signup = () => {
               <Button
                 type="submit"
                 className="w-full bg-white text-black hover:bg-neutral-200"
-                disabled={isLoading}
+                disabled={isSigningUp}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
-                  </>
-                ) : (
-                  "Sign Up"
-                )}
+                {isSigningUp ? <AuthLoader /> : "Sign Up"}
               </Button>
             </form>
           </CardContent>
