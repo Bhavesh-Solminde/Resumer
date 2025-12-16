@@ -5,6 +5,8 @@ import { Toaster } from "react-hot-toast";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 import LandingPage from "./pages/LandingPage.jsx";
+import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
 import Analyze from "./pages/Analyze.jsx";
 import Optimize from "./pages/Optimize.jsx";
 import ResumeBuilder from "./pages/ResumeBuilder.jsx";
@@ -16,6 +18,8 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route element={<DashboardLayout />}>
           <Route path="/analyze" element={<Analyze />} />
           <Route path="/optimize" element={<Optimize />} />

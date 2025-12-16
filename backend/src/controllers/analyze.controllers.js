@@ -1,30 +1,44 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import ENV from "../env.js";
 import pdf from "pdf-parse/lib/pdf-parse.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import cloudinaryUpload from "../lib/cloudinary.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import User from "../models/user.model.js";
+import ResumeScan from "../models/resumeScan.model.js";
 
 //Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
-const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" }); // Flash is fast & cheap
+const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-export const handleAnalyzeResume = async (req, res) => {
+export const handleAnalyzeResume = asyncHandler(async (req, res) => {
+  // Ensure file is present
+  if (!req.file) {
+    throw new ApiError(400, "No file uploaded");
+  }
+
+  //isUser authenticated?
+  if (!req.user || !req.user._id) {
+    throw new ApiError(401, "Unauthorized: User not authenticated");
+  }
+  const user = req.user;
+
+  // Extract text from PDF
+  let resumeText = "";
   try {
-    // Ensure file is present
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    // Extract text from PDF
     const pdfData = await pdf(req.file.buffer);
-    const resumeText = pdfData.text;
+    resumeText = pdfData.text;
+  } catch (error) {
+    throw new ApiError(400, "Failed to parse PDF file");
+  }
 
-    // Ensure text extraction was successful
-    if (!resumeText) {
-      return res
-        .status(400)
-        .json({ message: "Could not extract text from PDF" });
-    }
+  // Ensure text extraction was successful
+  if (!resumeText || resumeText.trim().length === 0) {
+    throw new ApiError(400, "Could not extract text from PDF");
+  }
 
-    const prompt = `
+  const prompt = `
       Act as an expert Technical Recruiter and Resume Optimizer.
       Analyze the following resume text.
       
@@ -42,6 +56,7 @@ export const handleAnalyzeResume = async (req, res) => {
       ${resumeText}
     `;
 
+  try {
     // Generate response from Gemini AI
     const result = await model.generateContent(prompt);
 
@@ -59,13 +74,11 @@ export const handleAnalyzeResume = async (req, res) => {
       // Fallback for raw response structure
       responseText = result.response.candidates[0].content.parts[0].text;
     } else {
-      // Try to inspect the result object if possible, or throw
-      console.log("Gemini Result:", JSON.stringify(result, null, 2));
       throw new Error("Unexpected response format from Gemini AI");
     }
 
     // Clean & Parse JSON
-    // Gemini sometimes wraps response in ```json ... ```. We remove that.
+    // Gemini sometimes wraps response in \`\`\`json ... \`\`\`. We remove that.
     const cleanJson = responseText
       .replace(/```json/g, "")
       .replace(/```/g, "")
@@ -73,15 +86,34 @@ export const handleAnalyzeResume = async (req, res) => {
 
     const analysisData = JSON.parse(cleanJson);
 
-    //send response
-    return res.status(200).json({
-      success: true,
-      data: analysisData,
+    // Upload resume to Cloudinary
+    const cloudinaryUrl = await cloudinaryUpload(req.file.buffer);
+
+    const resumeScan = await ResumeScan.create({
+      originalName: req.file.originalname,
+      pdfUrl: cloudinaryUrl,
+      owner: req.user._id,
+      atsScore: analysisData.score,
+      analysisResult: analysisData,
     });
+
+    await User.updateOne(
+      { _id: req.user._id },
+      { $push: { resumeHistory: resumeScan._id } }
+    );
+
+    // Send response
+    return res.status(200).json(
+      new ApiResponse(200, "Resume analyzed successfully", {
+        ...analysisData,
+        resumeUrl: cloudinaryUrl,
+      })
+    );
   } catch (error) {
-    console.error("Request to ai failed:", error);
-    return res
-      .status(500)
-      .json({ message: "Internal Server Error", error: error.message });
+    console.error("Request to AI failed:", error);
+    throw new ApiError(
+      500,
+      error.message || "An error occurred while analyzing the resume"
+    );
   }
-};
+});

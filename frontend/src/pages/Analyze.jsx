@@ -131,6 +131,7 @@ const Analyze = () => {
       {/* Results Section */}
       {analysisResult && (
         <div className="space-y-8">
+          <p>{analysisResult.resumeText}</p>
           <ResumeAnalysisDisplay data={analysisResult.data} />
 
           {/* Optimization Actions */}
