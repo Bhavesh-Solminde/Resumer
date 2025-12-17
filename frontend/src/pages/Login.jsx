@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BackgroundBeams } from "../components/ui/background-beams";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { StarsBackground } from "@/components/ui/stars-background";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,7 +104,8 @@ const Login = () => {
           </CardFooter>
         </Card>
       </div>
-      <BackgroundBeams />
+      <ShootingStars />
+      <StarsBackground />
     </div>
   );
 };
