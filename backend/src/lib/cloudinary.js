@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import ENV from "../env.js";
 import streamifier from "streamifier";
 
-export const cloudinaryUpload = async (fileBuffer) => {
+const cloudinaryUpload = async (fileBuffer) => {
   try {
     // We wrap the stream logic in a Promise so we can 'await' it
     const uploadResult = await new Promise((resolve, reject) => {
@@ -37,3 +37,5 @@ cloudinary.config({
   api_key: ENV.CLOUDINARY_API_KEY,
   api_secret: ENV.CLOUDINARY_API_SECRET,
 });
+
+export default cloudinaryUpload;

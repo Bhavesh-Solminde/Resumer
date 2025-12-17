@@ -1,12 +1,19 @@
 import React from "react";
-import { Moon, Sun, LogOut, User } from "lucide-react";
+import { Moon, Sun, LogOut, User, Loader2 } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/Auth.store";
 
 const Header = () => {
   const { setTheme, theme } = useTheme();
   const navigate = useNavigate();
+  const { logout, isLoggingOut } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,8 +54,14 @@ const Header = () => {
               size="icon"
               className="text-muted-foreground hover:text-destructive"
               title="Logout"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
             >
-              <LogOut className="h-5 w-5" />
+              {isLoggingOut ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <LogOut className="h-5 w-5" />
+              )}
             </Button>
           </div>
         </div>

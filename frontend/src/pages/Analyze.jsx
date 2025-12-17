@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Sparkles, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 
 const Analyze = () => {
   const [selectedFile, setSelectedFile] = React.useState(null);
@@ -36,7 +37,8 @@ const Analyze = () => {
         },
       });
       setAnalysisResult(response.data);
-      setIsLoading(false);
+      // Keep loader for a moment to show 100%
+      setTimeout(() => setIsLoading(false), 500);
       toast.success("Resume analyzed successfully!");
     } catch (error) {
       console.error("Error analyzing resume:", error);
@@ -47,6 +49,7 @@ const Analyze = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-8 animate-in fade-in duration-500 pb-24">
+      <MultiStepLoader loading={isLoading} />
       {/* Header Section */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Resume Analyzer</h1>
@@ -131,6 +134,7 @@ const Analyze = () => {
       {/* Results Section */}
       {analysisResult && (
         <div className="space-y-8">
+          <p>{analysisResult.resumeText}</p>
           <ResumeAnalysisDisplay data={analysisResult.data} />
 
           {/* Optimization Actions */}
