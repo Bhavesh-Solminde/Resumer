@@ -96,6 +96,7 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
       atsScore: analysisData.score,
       analysisResult: analysisData,
     });
+    console.log(analysisData);
 
     await User.updateOne(
       { _id: req.user._id },

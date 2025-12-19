@@ -274,5 +274,27 @@ export const handleGoogleCallback = asyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, Accessoptions)
     .cookie("refreshToken", refreshToken, Refreshoptions)
-    .redirect("http://localhost:5173/analyze");
+    .redirect("http://localhost:5173/resume/analyze");
+});
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { fullName } = req.body;
+
+  if (!fullName || fullName.trim() === "") {
+    throw new ApiError(400, "Full Name is required");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        fullName,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Profile updated successfully"));
 });

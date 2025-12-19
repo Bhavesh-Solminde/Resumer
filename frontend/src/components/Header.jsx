@@ -8,11 +8,11 @@ import { useAuthStore } from "../store/Auth.store";
 const Header = () => {
   const { setTheme, theme } = useTheme();
   const navigate = useNavigate();
-  const { logout, isLoggingOut } = useAuthStore();
+  const { logout, isLoggingOut, authUser } = useAuthStore();
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   return (
@@ -47,7 +47,9 @@ const Header = () => {
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 <User className="h-5 w-5" />
               </div>
-              <span className="hidden md:inline-block">Profile</span>
+              <span className="hidden md:inline-block">
+                {authUser?.fullName || "Profile"}
+              </span>
             </Button>
             <Button
               variant="ghost"

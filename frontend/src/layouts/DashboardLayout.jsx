@@ -12,21 +12,21 @@ const DashboardLayout = () => {
       icon: (
         <FileText className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/analyze",
+      href: "/resume/analyze",
     },
     {
       title: "Optimize",
       icon: (
         <Zap className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/optimize",
+      href: "/resume/optimize",
     },
     {
       title: "Build",
       icon: (
         <PenTool className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/build",
+      href: "/resume/build",
     },
     {
       title: "Recruiter",

@@ -11,9 +11,9 @@ export const useHistoryStore = create((set, get) => ({
       if (!res) {
         toast.error("Backend not responding");
       }
-      set({ userResumeHistory: res?.data });
+      set({ userResumeHistory: res.data.data });
       return true;
-    } catch {
+    } catch (error) {
       toast.error(
         error.response?.data?.message || "failed to fetch the resume history"
       );

@@ -6,6 +6,7 @@ import {
   handleUpdatePassword,
   refreshAccessToken,
   handleGoogleCallback,
+  updateProfile,
 } from "../controllers/auth.controllers.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import passport from "passport";
@@ -16,6 +17,7 @@ authRouter.post("/register", handleRegister);
 authRouter.post("/login", handleLogin);
 authRouter.post("/logout", verifyJWT, handleLogout);
 authRouter.post("/updatepassword", verifyJWT, handleUpdatePassword);
+authRouter.put("/updateprofile", verifyJWT, updateProfile);
 authRouter.get("/check", verifyJWT, (req, res) => {
   return res
     .status(200)
@@ -37,7 +39,7 @@ authRouter.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "http://localhost:5173/login?error=google_failed",
+    failureRedirect: "http://localhost:5173/auth/login?error=google_failed",
   }),
   handleGoogleCallback
 );
@@ -50,7 +52,7 @@ authRouter.get(
 authRouter.get(
   "/github/callback",
   passport.authenticate("github", {
-    failureRedirect: "/login?error=github_failed",
+    failureRedirect: "http://localhost:5173/auth/login?error=github_failed",
     session: false,
   }),
   handleGoogleCallback // Reusing the same logic!

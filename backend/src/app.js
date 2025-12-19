@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import passport from "passport"; // Import passport
 import authRouter from "./routes/auth.routes.js";
 import resumeRouter from "./routes/resume.routes.js";
+import profileRouter from "./routes/profile.routes.js";
 import ENV from "./env.js";
 import "./passport/google.strategy.js"; // Execute the config file
 import "./passport/github.strategy.js"; // Execute the config file
@@ -23,6 +24,6 @@ app.use(passport.initialize());
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/resume", resumeRouter);
-
+app.use("/api/v1/profile", profileRouter);
 
 export default app;

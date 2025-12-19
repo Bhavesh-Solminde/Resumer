@@ -1,19 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/Auth.store";
 import { FullScreenAuthLoader } from "@/components/ui/auth-loader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import DashboardLayout from "./layouts/DashboardLayout";
-import LandingPage from "./pages/LandingPage.jsx";
-import Login from "./pages/Login.jsx";
-import Signup from "./pages/Signup.jsx";
-import Analyze from "./pages/Analyze.jsx";
-import Optimize from "./pages/Optimize.jsx";
-import ResumeBuilder from "./pages/ResumeBuilder.jsx";
-import Recruiter from "./pages/Recruiter.jsx";
-import Profile from "./pages/Profile.jsx";
+
+// Lazy load pages for better performance
+const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
+const Login = lazy(() => import("./pages/Login.jsx"));
+const Signup = lazy(() => import("./pages/Signup.jsx"));
+const Analyze = lazy(() => import("./pages/Analyze.jsx"));
+const Optimize = lazy(() => import("./pages/Optimize.jsx"));
+const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder.jsx"));
+const Recruiter = lazy(() => import("./pages/Recruiter.jsx"));
+const Profile = lazy(() => import("./pages/Profile.jsx"));
+const NotFound = lazy(() => import("./pages/NotFound.jsx"));
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -27,37 +31,51 @@ function App() {
   }
 
   return (
-    <>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            authUser ? <Navigate to="/analyze" replace /> : <LandingPage />
-          }
-        />
-        <Route
-          path="/login"
-          element={!authUser ? <Login /> : <Navigate to="/analyze" replace />}
-        />
-        <Route
-          path="/signup"
-          element={!authUser ? <Signup /> : <Navigate to="/analyze" replace />}
-        />
-        <Route
-          element={
-            authUser ? <DashboardLayout /> : <Navigate to="/login" replace />
-          }
-        >
-          <Route path="/analyze" element={<Analyze />} />
-          <Route path="/optimize" element={<Optimize />} />
-          <Route path="/build" element={<ResumeBuilder />} />
-          <Route path="/recruiter" element={<Recruiter />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+    <ErrorBoundary>
+      <Suspense fallback={<FullScreenAuthLoader />}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              authUser ? (
+                <Navigate to="/resume/analyze" replace />
+              ) : (
+                <LandingPage />
+              )
+            }
+          />
+          <Route
+            path="/auth/login"
+            element={
+              !authUser ? <Login /> : <Navigate to="/resume/analyze" replace />
+            }
+          />
+          <Route
+            path="/auth/signup"
+            element={
+              !authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
+            }
+          />
+          <Route
+            element={
+              authUser ? (
+                <DashboardLayout />
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
+          >
+            <Route path="/resume/analyze" element={<Analyze />} />
+            <Route path="/resume/optimize" element={<Optimize />} />
+            <Route path="/resume/build" element={<ResumeBuilder />} />
+            <Route path="/recruiter" element={<Recruiter />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
       <Toaster />
-    </>
+    </ErrorBoundary>
   );
 }
 
