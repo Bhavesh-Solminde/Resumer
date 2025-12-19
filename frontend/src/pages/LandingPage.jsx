@@ -83,7 +83,7 @@ const LandingPage = () => {
         >
           <Button
             size="lg"
-            onClick={() => navigate("/analyze")}
+            onClick={() => navigate("/auth/signup")}
             className="text-lg px-8 py-6 rounded-full"
           >
             Get Started Free
@@ -148,7 +148,7 @@ const LandingPage = () => {
           </p>
           <Button
             size="lg"
-            onClick={() => navigate("/analyze")}
+            onClick={() => navigate("/auth/signup")}
             className="mt-8 text-lg px-8 py-6 rounded-full bg-neutral-100 text-neutral-950 hover:bg-neutral-200"
           >
             Analyze My Resume Now

@@ -35,7 +35,7 @@ const Signup = () => {
     e.preventDefault();
     const success = await signup(formData);
     if (success) {
-      navigate("/analyze");
+      navigate("/resume/analyze");
     }
   };
 
@@ -111,7 +111,7 @@ const Signup = () => {
             <div className="text-sm text-center text-neutral-400">
               Already have an account?{" "}
               <Link
-                to="/login"
+                to="/auth/login"
                 className="text-white hover:underline font-medium"
               >
                 Sign in

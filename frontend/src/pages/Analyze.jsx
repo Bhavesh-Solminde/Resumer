@@ -154,7 +154,7 @@ const Analyze = () => {
                 size="lg"
                 variant="secondary"
                 className="flex-1 gap-2"
-                onClick={() => navigate("/optimize")}
+                onClick={() => navigate("/resume/optimize")}
               >
                 <Sparkles size={18} />
                 General Optimization
@@ -162,7 +162,7 @@ const Analyze = () => {
               <Button
                 size="lg"
                 className="flex-1 gap-2"
-                onClick={() => navigate("/optimize")}
+                onClick={() => navigate("/resume/optimize")}
               >
                 <Briefcase size={18} />
                 Optimize for Job Description

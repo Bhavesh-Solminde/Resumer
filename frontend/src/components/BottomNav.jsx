@@ -4,9 +4,9 @@ import { FileText, Zap, PenTool, Users, User } from "lucide-react";
 
 const BottomNav = () => {
   const navItems = [
-    { to: "/analyze", icon: FileText, label: "Analyze" },
-    { to: "/optimize", icon: Zap, label: "Optimize" },
-    { to: "/build", icon: PenTool, label: "Build" },
+    { to: "/resume/analyze", icon: FileText, label: "Analyze" },
+    { to: "/resume/optimize", icon: Zap, label: "Optimize" },
+    { to: "/resume/build", icon: PenTool, label: "Build" },
     { to: "/recruiter", icon: Users, label: "Recruiter" },
     { to: "/profile", icon: User, label: "Profile" },
   ];
