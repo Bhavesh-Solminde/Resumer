@@ -3,14 +3,14 @@ import { handleAnalyzeResume } from "../controllers/analyze.controllers.js";
 import upload from "../middlewares/memory.middleware.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
 
-const resumeRouter = Router();
+const analyzeRouter = Router();
 
-resumeRouter.post(
+analyzeRouter.post(
   "/analyze",
   verifyJWT,
   upload.single("resume"),
   handleAnalyzeResume
 );
-// resumeRouter.get("/analyze", handleGetAnalysisResult); // Commented out as it was imported from wrong file and might not exist yet
+// analyzeRouter.get("/analyze", handleGetAnalysisResult); // Commented out as it was imported from wrong file and might not exist yet
 
-export default resumeRouter;
+export default analyzeRouter;

@@ -7,13 +7,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Briefcase } from "lucide-react";
+import { Sparkles, Briefcase, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useResumeStore } from "../../store/Resume.store";
 
 const ResumeAnalysisDisplay = lazy(() => import("../ResumeAnalysisDisplay"));
 
 const AnalysisResults = memo(({ analysisResult, lastScan }) => {
   const navigate = useNavigate();
+  const { resetAnalysis } = useResumeStore();
 
   if (!analysisResult) return null;
 
@@ -48,23 +50,33 @@ const AnalysisResults = memo(({ analysisResult, lastScan }) => {
             Take your resume to the next level with our AI optimization tools.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row gap-4">
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="flex-1 gap-2"
+              onClick={() => navigate("/resume/optimize")}
+            >
+              <Sparkles size={18} />
+              General Optimization
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1 gap-2"
+              onClick={() => navigate("/resume/optimize")}
+            >
+              <Briefcase size={18} />
+              Optimize for Job Description
+            </Button>
+          </div>
           <Button
-            size="lg"
-            variant="secondary"
-            className="flex-1 gap-2"
-            onClick={() => navigate("/resume/optimize")}
+            variant="ghost"
+            className="w-full gap-2 text-muted-foreground hover:text-primary"
+            onClick={resetAnalysis}
           >
-            <Sparkles size={18} />
-            General Optimization
-          </Button>
-          <Button
-            size="lg"
-            className="flex-1 gap-2"
-            onClick={() => navigate("/resume/optimize")}
-          >
-            <Briefcase size={18} />
-            Optimize for Job Description
+            <RotateCcw size={16} />
+            Scan Another Resume
           </Button>
         </CardContent>
       </Card>
