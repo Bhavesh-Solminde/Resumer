@@ -70,6 +70,7 @@ const ResumeHistoryGrid = ({ userResumeHistory, setSelectedScan }) => {
                   <img
                     src={item.thumbnail}
                     alt="Resume Thumbnail"
+                    loading="lazy"
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                   />
                 ) : (

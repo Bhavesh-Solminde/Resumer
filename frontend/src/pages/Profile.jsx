@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useAuthStore } from "../store/Auth.store";
 import { useHistoryStore } from "../store/History.store.js";
 import { motion } from "framer-motion";
@@ -9,7 +9,10 @@ import UserProfileCard from "../components/profile/UserProfileCard";
 import EditProfileCard from "../components/profile/EditProfileCard";
 import SecurityCard from "../components/profile/SecurityCard";
 import ResumeHistoryGrid from "../components/profile/ResumeHistoryGrid";
-import AnalysisDialog from "../components/profile/AnalysisDialog";
+
+const AnalysisDialog = lazy(() =>
+  import("../components/profile/AnalysisDialog")
+);
 
 const Profile = () => {
   const { authUser, logout, updateProfile, updatePassword } = useAuthStore();
@@ -122,10 +125,14 @@ const Profile = () => {
       </motion.div>
 
       {/* Analysis Details Dialog */}
-      <AnalysisDialog
-        selectedScan={selectedScan}
-        setSelectedScan={setSelectedScan}
-      />
+      {selectedScan && (
+        <Suspense fallback={null}>
+          <AnalysisDialog
+            selectedScan={selectedScan}
+            setSelectedScan={setSelectedScan}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
