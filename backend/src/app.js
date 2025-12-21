@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression"; // Import compression
 import passport from "passport"; // Import passport
 import authRouter from "./routes/auth.routes.js";
 import resumeRouter from "./routes/resume.routes.js";
@@ -11,6 +12,7 @@ import "./passport/github.strategy.js"; // Execute the config file
 
 const app = express();
 
+app.use(compression()); // Compress all responses
 app.use(
   cors({
     origin: ENV.CORS_ORIGIN,

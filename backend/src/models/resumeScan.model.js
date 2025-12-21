@@ -32,5 +32,8 @@ const ResumeScanSchema = new Mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound index for faster history queries (filtering by owner, sorting by date)
+ResumeScanSchema.index({ owner: 1, createdAt: -1 });
+
 const ResumeScan = Mongoose.model("ResumeScan", ResumeScanSchema);
 export default ResumeScan;

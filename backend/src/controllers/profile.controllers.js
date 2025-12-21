@@ -5,7 +5,9 @@ import ResumeScan from "../models/resumeScan.model.js";
 import User from "../models/user.model.js";
 
 export const ResumeScanHistory = asyncHandler(async (req, res) => {
-  const history = await ResumeScan.find({ owner: req?.user._id });
+  const history = await ResumeScan.find({ owner: req?.user._id }).sort({
+    createdAt: -1,
+  });
   if (!history) {
     throw new ApiError(404, "History not found");
   }

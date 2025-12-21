@@ -1,10 +1,10 @@
-import React from "react";
+import React, { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, CheckCircle, XCircle } from "lucide-react";
 
-const ResumeAnalysisDisplay = ({ data }) => {
+const ResumeAnalysisDisplay = memo(({ data }) => {
   // Determine color based on score
   const getScoreColor = (score) => {
     if (score >= 80) return "text-green-600 dark:text-green-400";
@@ -113,6 +113,6 @@ const ResumeAnalysisDisplay = ({ data }) => {
       </Card>
     </div>
   );
-};
+});
 
 export default ResumeAnalysisDisplay;
