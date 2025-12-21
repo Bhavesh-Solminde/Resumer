@@ -1,11 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { useHistoryStore } from "../store/History.store";
 import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 
 // Import new components
 import AnalyzeHeader from "../components/analyze/AnalyzeHeader";
+import { useResumeStore } from "../store/Resume.store.js";
 
 const UploadResumeCard = lazy(() =>
   import("../components/analyze/UploadResumeCard")
@@ -19,8 +19,12 @@ const AnalysisResults = lazy(() =>
 
 const Analyze = () => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState(null);
+  const {
+    isAnalyzing,
+    analysisResult,
+    handleResumeAnalysis: analyzeResume,
+  } = useResumeStore();
+
   const { resumeScanHistory, userResumeHistory, isLoadingHistory } =
     useHistoryStore();
   const [showUpload, setShowUpload] = useState(false);
@@ -32,34 +36,9 @@ const Analyze = () => {
 
   const lastScan = userResumeHistory?.[0];
 
-  const handleResumeAnalysis = async (event) => {
+  const handleResumeAnalysisSubmit = async (event) => {
     event.preventDefault();
-    if (!selectedFile) {
-      toast.error("Please select a file first!");
-      return;
-    }
-
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append("resume", selectedFile);
-    try {
-      const response = await axiosInstance.post("/resume/analyze", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      setAnalysisResult(response?.data);
-      // Keep loader for a moment to show 100%
-      setTimeout(() => setIsLoading(false), 500);
-      toast.success("Resume analyzed successfully!");
-    } catch (error) {
-      console.error("Error analyzing resume:", error);
-      setIsLoading(false);
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to analyze resume. Please try again."
-      );
-    }
+    await analyzeResume(selectedFile);
   };
 
   if (isLoadingHistory) {
@@ -72,7 +51,7 @@ const Analyze = () => {
 
   return (
     <div className="container mx-auto p-6 max-w-5xl space-y-8 animate-in fade-in duration-500 pb-24">
-      <MultiStepLoader loading={isLoading} />
+      <MultiStepLoader loading={isAnalyzing} />
 
       <AnalyzeHeader />
 
@@ -91,10 +70,10 @@ const Analyze = () => {
           lastScan={lastScan}
           showUpload={showUpload}
           setShowUpload={setShowUpload}
-          handleResumeAnalysis={handleResumeAnalysis}
+          handleResumeAnalysis={handleResumeAnalysisSubmit}
           selectedFile={selectedFile}
           setSelectedFile={setSelectedFile}
-          isLoading={isLoading}
+          isLoading={isAnalyzing}
         />
 
         <AnalysisResults analysisResult={analysisResult} lastScan={lastScan} />

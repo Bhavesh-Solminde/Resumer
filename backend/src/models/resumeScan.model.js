@@ -28,6 +28,14 @@ const ResumeScanSchema = new Mongoose.Schema(
       type: Object, // This allows flexibility for the JSON structure
       required: true,
     },
+    gOptimized: {
+      type: String,
+      default: "",
+    },
+    jdOptimized: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );
