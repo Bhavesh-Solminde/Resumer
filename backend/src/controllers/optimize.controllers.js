@@ -10,7 +10,7 @@ import cloudinaryUpload from "../lib/cloudinary.js";
 
 //Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
-const model = ai.getGenerativeModel({ model: "gemini-pro" });
+const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 export const uploadToCloudinaryMiddleware = asyncHandler(
   async (req, res, next) => {
@@ -269,7 +269,10 @@ export const saveResumeScan = asyncHandler(async (req, res) => {
   if (req.file && req.cloudinaryResult) {
     pdfUrl = req.cloudinaryResult.secure_url;
     originalName = req.file.originalname;
-    thumbnail = req.cloudinaryResult.thumbnail_url || null;
+    // Use Cloudinary's thumbnail_url if available (eager transform), otherwise generate a jpg URL from the pdf URL
+    thumbnail =
+      req.cloudinaryResult.thumbnail_url ||
+      (pdfUrl ? pdfUrl.replace(/\.pdf$/i, ".jpg") : null);
   } else {
     // 4. Existing Resume (Fetch from DB)
     const lastScan = await ResumeScan.findOne({ owner: userId }).sort({

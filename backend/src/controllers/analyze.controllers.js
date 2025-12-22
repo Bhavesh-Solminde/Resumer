@@ -10,11 +10,7 @@ import ResumeScan from "../models/resumeScan.model.js";
 
 //Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
-<<<<<<< HEAD
 const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-=======
-const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
->>>>>>> 324d1a05658a89f8b6207e5893bb98a2c0045fd6
 
 export const handleAnalyzeResume = asyncHandler(async (req, res) => {
   // Ensure file is present
@@ -40,7 +36,7 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
   if (!resumeText || resumeText.trim().length === 0) {
     throw new ApiError(400, "Could not extract text from PDF");
   }
-  console.log(resumeText);
+  // console.log("Resume text extracted successfully (length: " + resumeText.length + ")");
 
   const prompt = `
       Act as an expert Technical Recruiter and Resume Optimizer.
