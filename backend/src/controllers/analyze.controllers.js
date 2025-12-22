@@ -10,7 +10,7 @@ import ResumeScan from "../models/resumeScan.model.js";
 
 //Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
-const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 export const handleAnalyzeResume = asyncHandler(async (req, res) => {
   // Ensure file is present
@@ -61,10 +61,12 @@ export const handleAnalyzeResume = asyncHandler(async (req, res) => {
     const cloudinaryPromise = cloudinaryUpload(req.file?.buffer);
 
     // Await Results: Wait for both to finish
-    const [geminiResult, cloudinaryUrl] = await Promise.all([
+    const [geminiResult, cloudinaryResult] = await Promise.all([
       geminiPromise,
       cloudinaryPromise,
     ]);
+
+    const cloudinaryUrl = cloudinaryResult.secure_url;
 
     // Handle Gemini response
     let responseText = "";

@@ -24,8 +24,8 @@ const cloudinaryUpload = async (fileBuffer) => {
       streamifier.createReadStream(fileBuffer).pipe(uploadStream);
     });
 
-    // Now we can simply return the URL
-    return uploadResult.secure_url;
+    // Now we can simply return the full result object
+    return uploadResult;
   } catch (error) {
     console.error("Cloudinary Upload Error:", error);
     throw error; // Re-throw so the Controller knows it failed
