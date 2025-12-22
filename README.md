@@ -131,3 +131,4 @@ Create `frontend/.env` with:
 - Add e2e tests for upload/analysis flows.
 - Add rate limiting and better retry for Gemini calls.
 - Add richer history UI (filters, pagination) and export options.
+- Manage History Properly in UI.
