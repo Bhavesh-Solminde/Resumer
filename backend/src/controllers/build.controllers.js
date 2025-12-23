@@ -1,5 +1,5 @@
-import asyncHandler from "../utils/asyncHandler";
-import ApiError from "../utils/ApiError";
-import ApiResponse from "../utils/ApiResponse";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
 export const storeBuiltResume = asyncHandler((req, res) => {});
 export const fetchBuildHistory = asyncHandler((req, res) => {});

@@ -6,7 +6,6 @@ import {
 } from "../controllers/build.controllers.js";
 const buildRouter = Router();
 
-import verifyJWT from "../middlewares/auth.middleware.js";
 buildRouter.post("/build", verifyJWT, storeBuiltResume);
 
 buildRouter.post("/build/history", verifyJWT, fetchBuildHistory);
