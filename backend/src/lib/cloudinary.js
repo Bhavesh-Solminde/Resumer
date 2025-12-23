@@ -9,7 +9,8 @@ const cloudinaryUpload = async (fileBuffer) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: "Resumer",
-          resource_type: "auto",
+          resource_type: "raw",
+          access_mode: "public",
         },
         (error, result) => {
           if (error) {
