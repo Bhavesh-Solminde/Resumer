@@ -4,19 +4,25 @@ import {
   storeBuiltResume,
   fetchBuildHistory,
   fetchResumeById,
+  updateBuiltResume, // <--- ADDED THIS (You need it to save changes)
   deleteResume,
 } from "../controllers/build.controllers.js";
+
 const buildRouter = Router();
 
+// Create New
 buildRouter.post("/build", verifyJWT, storeBuiltResume);
 
-//send only the thumbnail, title and id
+// Save/Update Existing (CRITICAL: Do not forget this)
+buildRouter.put("/build/:id", verifyJWT, updateBuiltResume);
+
+// History List (Metadata only)
 buildRouter.get("/build/history", verifyJWT, fetchBuildHistory);
 
-//fetch the specific built resume thru id and pass it
-buildRouter.get("build/:id", verifyJWT, fetchResumeById);
+// Get Specific Resume (Full Data)
+buildRouter.get("/build/:id", verifyJWT, fetchResumeById);
 
-//delete the specific built resume thru id
-buildRouter.delete("build/:id", verifyJWT, deleteResume);
+// Delete
+buildRouter.delete("/build/:id", verifyJWT, deleteResume);
 
 export default buildRouter;
