@@ -16,9 +16,7 @@ export const useHistoryStore = create((set, get) => ({
     set({ isLoadingHistory: true });
     try {
       const res = await axiosInstance.get(`/profile/history`);
-      if (!res) {
-        toast.error("server error");
-      }
+
       set({ userResumeHistory: res.data.data });
       return true;
     } catch (error) {
@@ -35,7 +33,7 @@ export const useHistoryStore = create((set, get) => ({
   fetchScanDetails: async (id) => {
     // If we already have this scan loaded, don't re-fetch (Optional cache optimization)
     const currentScan = get().selectedScan;
-    if (currentScan && currentScan._id === id) return;
+    if (currentScan && currentScan._id === id) return true;
 
     set({ isLoadingDetails: true, selectedScan: null }); // Clear previous details while loading
     try {

@@ -3,7 +3,7 @@ import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Calendar, TrendingUp } from "lucide-react";
 
-const ResumeHistoryGrid = ({ userResumeHistory, onScanClick }) => {
+const ResumeHistoryGrid = ({ userResumeHistory, onScanClick, isLoading }) => {
   return (
     <BentoGrid className="max-w-4xl mx-auto">
       {(userResumeHistory || []).map((item, i) => (

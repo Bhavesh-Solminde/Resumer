@@ -106,9 +106,6 @@ const ResumeBuildSchema = new mongoose.Schema(
         languages: [{ type: String }], // e.g., ["Java", "Python"]
         frameworks: [{ type: String }], // e.g., ["React", "Node.js"]
         tools: [{ type: String }], // e.g., ["Git", "Docker"]
-        // Using Mixed allows you to add categories dynamically if needed
-        type: Map,
-        of: [String],
         default: { languages: [], frameworks: [], tools: [] },
       },
     },
@@ -137,4 +134,4 @@ const ResumeBuildSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const ResumeBuild = mongoose.model("resumeBuild", ResumeBuildSchema);
+export default ResumeBuild = mongoose.model("resumeBuild", ResumeBuildSchema);

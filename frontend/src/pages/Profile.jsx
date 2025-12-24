@@ -83,7 +83,14 @@ const Profile = () => {
   };
 
   // --- NEW HANDLER: CLICKING A HISTORY ITEM ---
+  const clearTimeoutRef = useRef(null);
+
   const handleScanClick = async (scanId) => {
+    // Cancel any pending clear operation
+    if (clearTimeoutRef.current) {
+      clearTimeout(clearTimeoutRef.current);
+      clearTimeoutRef.current = null;
+    }
     setIsDialogOpen(true); // 1. Open Modal immediately (it will show loading)
     await fetchScanDetails(scanId); // 2. Trigger heavy fetch
   };
@@ -92,8 +99,10 @@ const Profile = () => {
   const handleCloseDialog = (open) => {
     if (!open) {
       setIsDialogOpen(false);
-      // Optional: clear data to save memory, or keep it for caching
-      setTimeout(() => clearSelectedScan(), 300);
+      clearTimeoutRef.current = setTimeout(() => {
+        clearSelectedScan();
+        clearTimeoutRef.current = null;
+      }, 300);
     }
   };
 

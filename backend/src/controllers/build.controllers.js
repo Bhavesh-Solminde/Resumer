@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { ResumeBuild } from "../models/resumeBuild.model.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import ResumeBuild from "../models/resumeBuild.model.js";
 
 // 1. CREATE NEW DRAFT (Blank or with Initial Data)
 export const storeBuiltResume = asyncHandler(async (req, res) => {
@@ -62,8 +62,15 @@ export const fetchResumeById = asyncHandler(async (req, res) => {
 // 4. UPDATE (The Auto-Save Endpoint)
 export const updateBuiltResume = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
-  // Expects: { content: { ... }, title: "..." }
+  const { content, title, templateId, thumbnail, layout } = req.body;
+
+  // Only allow specific fields to be updated (whitelist approach)
+  const updates = {};
+  if (content !== undefined) updates.content = content;
+  if (title !== undefined) updates.title = title;
+  if (templateId !== undefined) updates.templateId = templateId;
+  if (thumbnail !== undefined) updates.thumbnail = thumbnail;
+  if (layout !== undefined) updates.layout = layout;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(400, "Invalid Resume ID");

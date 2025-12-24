@@ -10,7 +10,7 @@ import ENV from "./env.js";
 import "./passport/google.strategy.js"; // Execute the config file
 import "./passport/github.strategy.js"; // Execute the config file
 import optimizeRouter from "./routes/optimize.routes.js";
-// import buildRouter from "./routes/build.routes.js";
+import buildRouter from "./routes/build.routes.js";
 
 const app = express();
 
@@ -30,6 +30,6 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/resume", analyzeRouter);
 app.use("/api/v1/profile", profileRouter);
 app.use("/api/v1/resume", optimizeRouter);
-// app.use("/api/v1/resume", buildRouter);
+app.use("/api/v1/resume", buildRouter);
 
 export default app;
