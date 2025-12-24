@@ -3,14 +3,22 @@ import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Calendar, TrendingUp } from "lucide-react";
 
-const ResumeHistoryGrid = ({ userResumeHistory, setSelectedScan }) => {
+const ResumeHistoryGrid = ({ userResumeHistory, onScanClick }) => {
   return (
     <BentoGrid className="max-w-4xl mx-auto">
       {(userResumeHistory || []).map((item, i) => (
         <div
           key={item._id}
-          onClick={() => setSelectedScan(item)}
-          className="cursor-pointer"
+          // 1. CRITICAL: Pass the ID explicitly and Log it for debugging
+          onClick={() => {
+            console.log("Card Clicked, ID:", item._id);
+            if (item._id) onScanClick(item._id);
+            else console.error("Error: Item has no ID", item);
+          }}
+          // 2. CRITICAL: Move the col-span logic to the WRAPPER, not the inner item
+          className={`cursor-pointer group relative rounded-xl transition-all duration-200 hover:shadow-lg ${
+            i === 0 || i === 3 ? "md:col-span-2" : ""
+          }`}
         >
           <BentoGridItem
             title={
@@ -78,7 +86,7 @@ const ResumeHistoryGrid = ({ userResumeHistory, setSelectedScan }) => {
                 )}
               </div>
             }
-            className={i === 0 || i === 3 ? "md:col-span-2" : ""}
+            // Remove the className from here, it's now on the wrapper
             icon={<FileText className="h-4 w-4 text-muted-foreground" />}
           />
         </div>

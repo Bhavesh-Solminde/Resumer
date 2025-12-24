@@ -111,9 +111,6 @@ const ResumeBuildSchema = new mongoose.Schema(
         of: [String],
         default: { languages: [], frameworks: [], tools: [] },
       },
-
-      // Custom Sections (Optional scalability)
-      certifications: [{ type: String }],
     },
     // 4. HISTORY TRACKING
     sourceScanId: {
