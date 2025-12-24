@@ -8,6 +8,6 @@ const buildRouter = Router();
 
 buildRouter.post("/build", verifyJWT, storeBuiltResume);
 
-buildRouter.post("/build/history", verifyJWT, fetchBuildHistory);
+buildRouter.get("/build/history", verifyJWT, fetchBuildHistory);
 
 export default buildRouter;
