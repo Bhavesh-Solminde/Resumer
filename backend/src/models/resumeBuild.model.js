@@ -133,5 +133,5 @@ const ResumeBuildSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-export default ResumeBuild = mongoose.model("resumeBuild", ResumeBuildSchema);
+const ResumeBuild = mongoose.model("resumeBuild", ResumeBuildSchema);
+export default ResumeBuild;

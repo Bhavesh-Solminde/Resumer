@@ -62,7 +62,7 @@ export const fetchResumeById = asyncHandler(async (req, res) => {
 // 4. UPDATE (The Auto-Save Endpoint)
 export const updateBuiltResume = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { content, title, templateId, thumbnail, layout } = req.body;
+  const { content, title, templateId, thumbnail, layout } = req.body.data;
 
   // Only allow specific fields to be updated (whitelist approach)
   const updates = {};
