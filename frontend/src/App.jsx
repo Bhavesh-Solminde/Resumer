@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import "./App.css";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom"; // Added Outlet
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/Auth.store";
 import { FullScreenAuthLoader } from "@/components/ui/auth-loader";
@@ -8,7 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 
-// Lazy load pages for better performance
+// Lazy load pages
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
 const Login = lazy(() => import("./pages/Login.jsx"));
 const Signup = lazy(() => import("./pages/Signup.jsx"));
@@ -18,6 +18,13 @@ const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder.jsx"));
 const Recruiter = lazy(() => import("./pages/Recruiter.jsx"));
 const Profile = lazy(() => import("./pages/Profile.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
+
+// Helper Component: Protects routes without forcing the Dashboard Layout
+const ProtectedRoute = () => {
+  const { authUser } = useAuthStore();
+  if (!authUser) return <Navigate to="/auth/login" replace />;
+  return <Outlet />; // Renders the child route (ResumeBuilder)
+};
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -34,6 +41,7 @@ function App() {
     <ErrorBoundary>
       <Suspense fallback={<FullScreenAuthLoader />}>
         <Routes>
+          {/* --- PUBLIC ROUTES --- */}
           <Route
             path="/"
             element={
@@ -56,6 +64,8 @@ function App() {
               !authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
             }
           />
+
+          {/* --- DASHBOARD ROUTES (Sidebar + Navbar) --- */}
           <Route
             element={
               authUser ? (
@@ -67,10 +77,18 @@ function App() {
           >
             <Route path="/resume/analyze" element={<Analyze />} />
             <Route path="/resume/optimize" element={<Optimize />} />
-            <Route path="/resume/build" element={<ResumeBuilder />} />
             <Route path="/recruiter" element={<Recruiter />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
+
+          {/* --- BUILDER ROUTES (Full Screen - No Sidebar) --- */}
+          {/* We use ProtectedRoute wrapper so it's secure but Layout-free */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/resume/build" element={<ResumeBuilder />} />
+            <Route path="/resume/build/:id" element={<ResumeBuilder />} />
+          </Route>
+
+          {/* --- 404 --- */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
