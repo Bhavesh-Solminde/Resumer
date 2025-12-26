@@ -107,27 +107,30 @@ export const useBuildStore = create((set, get) => ({
       const currentId = get().resumeId;
       if (!currentId) return;
 
+      // Get the latest formData at save time, not from closure
+      const currentData = get().formData;
+
       // TRANSFORM: Frontend -> Backend
       const backendPayload = {
         content: {
           personalInfo: {
-            fullName: newData.name,
-            email: newData.contact.email,
-            phone: newData.contact.phone,
-            address: newData.contact.location,
-            website: newData.contact.website,
-            linkedin: newData.contact.linkedin,
-            github: newData.contact.github,
+            fullName: currentData.name,
+            email: currentData.contact.email,
+            phone: currentData.contact.phone,
+            address: currentData.contact.location,
+            website: currentData.contact.website,
+            linkedin: currentData.contact.linkedin,
+            github: currentData.contact.github,
           },
-          education: newData.education,
+          education: currentData.education,
           // Convert Strings back to Arrays
           skills: {
-            languages: stringToArray(newData.skills.Languages),
-            frameworks: stringToArray(newData.skills.Frameworks),
-            tools: stringToArray(newData.skills.Tools),
-            databases: stringToArray(newData.skills.Databases),
+            languages: stringToArray(currentData.skills.Languages),
+            frameworks: stringToArray(currentData.skills.Frameworks),
+            tools: stringToArray(currentData.skills.Tools),
+            databases: stringToArray(currentData.skills.Databases),
           },
-          projects: newData.projects,
+          projects: currentData.projects,
         },
       };
 

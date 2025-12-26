@@ -26,7 +26,7 @@ import { Toaster } from "react-hot-toast";
 // Lazy load builder components
 const ResumeForm = lazy(() => import("../components/builder/ResumeForm"));
 const ResumePreview = lazy(() => import("../components/builder/ResumePreview"));
-const PDFUploader = lazy(() => import("../components/builder/PDFUploader"));
+const PdfUploader = lazy(() => import("../components/builder/PDFUploader"));
 
 const ResumeBuilder = () => {
   const { id } = useParams();
@@ -171,7 +171,7 @@ const ResumeBuilder = () => {
               }
             >
               <div className="bg-card rounded-xl shadow-sm border border-border p-4 transition-all hover:shadow-md">
-                <PDFUploader onTextExtracted={handleTextExtracted} />
+                <PdfUploader onTextExtracted={handleTextExtracted} />
               </div>
             </Suspense>
 

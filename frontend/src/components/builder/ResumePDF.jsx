@@ -137,14 +137,26 @@ const ResumePDF = ({ data }) => {
           {/* Contact Row 1: Email | Phone | Location */}
           <View style={styles.contactRow}>
             {data.contact?.email && (
-              <Link src={`mailto:${data.contact.email}`} style={styles.link}>
-                {data.contact.email}
-              </Link>
+              <>
+                <Link src={`mailto:${data.contact.email}`} style={styles.link}>
+                  {data.contact.email}
+                </Link>
+                {(data.contact?.phone || data.contact?.location) && (
+                  <Text style={styles.separator}>|</Text>
+                )}
+              </>
             )}
-            <Text style={styles.separator}>|</Text>
-            <Text style={styles.contactText}>{data.contact?.phone}</Text>
-            <Text style={styles.separator}>|</Text>
-            <Text style={styles.contactText}>{data.contact?.location}</Text>
+            {data.contact?.phone && (
+              <>
+                <Text style={styles.contactText}>{data.contact.phone}</Text>
+                {data.contact?.location && (
+                  <Text style={styles.separator}>|</Text>
+                )}
+              </>
+            )}
+            {data.contact?.location && (
+              <Text style={styles.contactText}>{data.contact.location}</Text>
+            )}
           </View>
 
           {/* Contact Row 2: Website | LinkedIn | GitHub */}

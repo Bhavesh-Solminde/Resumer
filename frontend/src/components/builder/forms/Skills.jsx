@@ -7,7 +7,7 @@ const Skills = ({ skills, onUpdate, formData }) => {
   const handleChange = (category, value) => {
     onUpdate({
       ...formData,
-      skills: { ...skills, [category]: value },
+      skills: { ...formData.skills, [category]: value },
     });
   };
 
@@ -17,7 +17,7 @@ const Skills = ({ skills, onUpdate, formData }) => {
         <Wrench className="h-5 w-5" /> Technical Skills
       </h3>
       <div className="space-y-4">
-        {Object.entries(skills).map(([category, value]) => (
+        {Object.entries(formData.skills).map(([category, value]) => (
           <div key={category} className="space-y-1">
             <Label className="capitalize">{category}</Label>
             <Input

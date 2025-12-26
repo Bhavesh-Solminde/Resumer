@@ -3,9 +3,10 @@ import { Upload, Loader2, Check, FileText } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
 
 // Worker Setup
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
+import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
-const PDFUploader = ({ onTextExtracted }) => {
+const PdfUploader = ({ onTextExtracted }) => {
   const [isParsing, setIsParsing] = useState(false);
   const [fileName, setFileName] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -19,6 +20,10 @@ const PDFUploader = ({ onTextExtracted }) => {
     setIsSuccess(false);
 
     const fileReader = new FileReader();
+    fileReader.onerror = () => {
+      console.error("Error reading file");
+      setIsParsing(false);
+    };
     fileReader.onload = async function () {
       const typedarray = new Uint8Array(this.result);
       try {
@@ -80,4 +85,4 @@ const PDFUploader = ({ onTextExtracted }) => {
   );
 };
 
-export default PDFUploader;
+export default PdfUploader;
