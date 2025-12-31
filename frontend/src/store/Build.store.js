@@ -1,151 +1,497 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios";
-import { toast } from "react-hot-toast";
+import { v4 as uuidv4 } from "uuid";
 
-// --- HELPERS: TRANSFORM DATA FORMATS ---
-
-// Convert Backend Array ["A", "B"] -> Frontend String "A, B"
-const arrayToString = (arr) => {
-  if (Array.isArray(arr)) return arr.join(", ");
-  return "";
+// Default section templates
+const defaultSections = {
+  header: {
+    id: "header",
+    type: "header",
+    locked: true,
+    data: {
+      fullName: "Your Name",
+      title: "Professional Title",
+      email: "email@example.com",
+      phone: "+1 234 567 890",
+      location: "City, Country",
+      linkedin: "",
+      website: "",
+    },
+  },
+  summary: {
+    id: "summary",
+    type: "summary",
+    data: {
+      content:
+        "A brief professional summary highlighting your key qualifications, experience, and career objectives.",
+    },
+  },
+  experience: {
+    id: "experience",
+    type: "experience",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          title: "Job Title",
+          company: "Company Name",
+          location: "City, Country",
+          startDate: "MM/YYYY",
+          endDate: "Present",
+          description:
+            "Describe your responsibilities and achievements in this role.",
+          bullets: [],
+        },
+      ],
+    },
+  },
+  education: {
+    id: "education",
+    type: "education",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          degree: "Degree Name",
+          institution: "University/College Name",
+          location: "City, Country",
+          startDate: "MM/YYYY",
+          endDate: "MM/YYYY",
+          gpa: "",
+          description: "",
+        },
+      ],
+    },
+  },
+  skills: {
+    id: "skills",
+    type: "skills",
+    data: {
+      title: "Skills",
+      items: ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5"],
+    },
+  },
+  projects: {
+    id: "projects",
+    type: "projects",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          name: "Project Name",
+          subtitle: "Project Type",
+          date: "MM/YYYY",
+          description: "Brief description of the project and your role.",
+          bullets: [],
+          link: "",
+        },
+      ],
+    },
+  },
 };
 
-// Convert Frontend String "A, B" -> Backend Array ["A", "B"]
-const stringToArray = (str) => {
-  if (!str) return [];
-  return str
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+// Additional section templates for "Add Section"
+const additionalSectionTemplates = {
+  certifications: {
+    type: "certifications",
+    label: "Certifications",
+    icon: "Award",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          name: "Certification Name",
+          issuer: "Issuing Organization",
+          date: "MM/YYYY",
+          credentialId: "",
+        },
+      ],
+    },
+  },
+  languages: {
+    type: "languages",
+    label: "Languages",
+    icon: "Globe",
+    data: {
+      items: [
+        { id: uuidv4(), language: "English", proficiency: "Native" },
+        { id: uuidv4(), language: "Spanish", proficiency: "Intermediate" },
+      ],
+    },
+  },
+  volunteering: {
+    type: "volunteering",
+    label: "Volunteering",
+    icon: "Heart",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          role: "Volunteer Role",
+          organization: "Organization Name",
+          date: "MM/YYYY - MM/YYYY",
+          description: "Description of your volunteer work.",
+        },
+      ],
+    },
+  },
+  awards: {
+    type: "awards",
+    label: "Awards",
+    icon: "Trophy",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          title: "Award Title",
+          issuer: "Issuing Organization",
+          date: "MM/YYYY",
+          description: "",
+        },
+      ],
+    },
+  },
+  interests: {
+    type: "interests",
+    label: "Interests",
+    icon: "Sparkles",
+    data: {
+      items: ["Interest 1", "Interest 2", "Interest 3"],
+    },
+  },
+  references: {
+    type: "references",
+    label: "References",
+    icon: "Users",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          name: "Reference Name",
+          title: "Title",
+          company: "Company",
+          email: "email@example.com",
+          phone: "",
+        },
+      ],
+    },
+  },
+  publications: {
+    type: "publications",
+    label: "Publications",
+    icon: "BookOpen",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          title: "Publication Title",
+          publisher: "Publisher",
+          date: "MM/YYYY",
+          link: "",
+        },
+      ],
+    },
+  },
+  courses: {
+    type: "courses",
+    label: "Training / Courses",
+    icon: "GraduationCap",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          name: "Course Name",
+          provider: "Provider",
+          date: "MM/YYYY",
+        },
+      ],
+    },
+  },
+  socialLinks: {
+    type: "socialLinks",
+    label: "Find Me Online",
+    icon: "Link",
+    data: {
+      items: [
+        { id: uuidv4(), platform: "LinkedIn", url: "" },
+        { id: uuidv4(), platform: "GitHub", url: "" },
+        { id: uuidv4(), platform: "Portfolio", url: "" },
+      ],
+    },
+  },
+  strengths: {
+    type: "strengths",
+    label: "Strengths",
+    icon: "Zap",
+    data: {
+      items: ["Strength 1", "Strength 2", "Strength 3", "Strength 4"],
+    },
+  },
+  custom: {
+    type: "custom",
+    label: "Custom Section",
+    icon: "Plus",
+    data: {
+      title: "Custom Section",
+      content: "Add your custom content here.",
+    },
+  },
 };
+
+// Template layouts
+const templates = {
+  modern: {
+    id: "modern",
+    name: "Modern",
+    preview: "/templates/modern.png",
+    layout: "single-column",
+    headerStyle: "centered",
+  },
+  professional: {
+    id: "professional",
+    name: "Professional",
+    preview: "/templates/professional.png",
+    layout: "single-column",
+    headerStyle: "left-aligned",
+  },
+  elegant: {
+    id: "elegant",
+    name: "Elegant",
+    preview: "/templates/elegant.png",
+    layout: "single-column",
+    headerStyle: "left-aligned",
+  },
+  minimal: {
+    id: "minimal",
+    name: "Minimal",
+    preview: "/templates/minimal.png",
+    layout: "single-column",
+    headerStyle: "left-aligned",
+  },
+};
+
+// Default theme settings
+const defaultTheme = {
+  primaryColor: "#1e3a5f",
+  accentColor: "#3b82f6",
+  fontFamily: "Inter",
+  fontSize: "medium",
+  pageMargins: 2,
+  sectionSpacing: 2,
+  lineHeight: 1.5,
+  background: "plain",
+};
+
+// Initial resume state
+const initialResumeData = {
+  sections: [
+    { ...defaultSections.header },
+    { ...defaultSections.summary, id: uuidv4() },
+    { ...defaultSections.experience, id: uuidv4() },
+    { ...defaultSections.education, id: uuidv4() },
+    { ...defaultSections.skills, id: uuidv4() },
+    { ...defaultSections.projects, id: uuidv4() },
+  ],
+  sectionOrder: [],
+  template: "modern",
+  theme: { ...defaultTheme },
+};
+
+// Initialize section order from sections
+initialResumeData.sectionOrder = initialResumeData.sections.map((s) => s.id);
+
+const MAX_HISTORY = 50;
 
 export const useBuildStore = create((set, get) => ({
-  isSaving: false,
-  isFetching: true,
-  resumeId: null,
+  // Resume Data
+  resumeData: JSON.parse(JSON.stringify(initialResumeData)),
 
-  // FLAT FRONTEND STRUCTURE
-  formData: {
-    name: "",
-    contact: {
-      email: "",
-      phone: "",
-      location: "",
-      website: "",
-      linkedin: "",
-      github: "",
-    },
-    education: [],
-    skills: { Languages: "", Frameworks: "", Tools: "", Databases: "" },
-    projects: [],
+  // History for undo/redo
+  history: [],
+  historyIndex: -1,
+
+  // UI State
+  activePanel: null, // 'addSection' | 'rearrange' | 'templates' | 'design' | null
+  selectedSectionId: null,
+  isLoading: false,
+
+  // Available templates and section templates
+  templates,
+  sectionTemplates: additionalSectionTemplates,
+
+  // Save state to history
+  saveToHistory: () => {
+    const { resumeData, history, historyIndex } = get();
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(resumeData)));
+
+    if (newHistory.length > MAX_HISTORY) {
+      newHistory.shift();
+    }
+
+    set({
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    });
   },
 
-  // --- ACTIONS ---
-
-  // 1. INITIALIZE (Load or Create)
-  initializeEditor: async (id = null) => {
-    set({ isFetching: true });
-    try {
-      if (id) {
-        // A. LOAD EXISTING
-        const res = await axiosInstance.get(`/resume/build/${id}`); // Corrected route
-        const content = res.data.data.content || {};
-        const personal = content.personalInfo || {};
-        const skills = content.skills || {};
-
-        // TRANSFORM: Backend -> Frontend
-        const flatData = {
-          name: personal.fullName || "",
-          contact: {
-            email: personal.email || "",
-            phone: personal.phone || "",
-            location: personal.address || "", // Mapped from 'address'
-            website: personal.website || "",
-            linkedin: personal.linkedin || "",
-            github: personal.github || "",
-          },
-          education: content.education || [],
-          // Convert Arrays to Strings for the Form
-          skills: {
-            Languages: arrayToString(skills.languages),
-            Frameworks: arrayToString(skills.frameworks),
-            Tools: arrayToString(skills.tools),
-            Databases: arrayToString(skills.databases), // If you have this
-          },
-          projects: content.projects || [],
-        };
-
-        set({ formData: flatData, resumeId: id });
-      } else {
-        // B. CREATE NEW
-        const res = await axiosInstance.post("/resume/build", {
-          title: "Untitled Resume",
-        });
-        set({ resumeId: res.data.data._id });
-        // Keep default formData
-      }
-    } catch (error) {
-      toast.error("Failed to load editor");
-      console.error(error);
-    } finally {
-      set({ isFetching: false });
+  // Undo action
+  undo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex > 0) {
+      set({
+        historyIndex: historyIndex - 1,
+        resumeData: JSON.parse(JSON.stringify(history[historyIndex - 1])),
+      });
     }
   },
 
-  // 2. UPDATE + AUTO-SAVE
-  updateResumeState: (newData) => {
-    // A. Update UI Instantly
-    set({ formData: newData, isSaving: true });
+  // Redo action
+  redo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex < history.length - 1) {
+      set({
+        historyIndex: historyIndex + 1,
+        resumeData: JSON.parse(JSON.stringify(history[historyIndex + 1])),
+      });
+    }
+  },
 
-    // B. Backup to LocalStorage
-    localStorage.setItem("resume-draft", JSON.stringify(newData));
+  // Check if can undo/redo
+  canUndo: () => get().historyIndex > 0,
+  canRedo: () => get().historyIndex < get().history.length - 1,
 
-    // C. Debounce Save
-    if (get().saveTimeoutId) clearTimeout(get().saveTimeoutId);
+  // Add a new section
+  addSection: (sectionType) => {
+    const { resumeData, saveToHistory, sectionTemplates } = get();
+    saveToHistory();
 
-    const timeoutId = setTimeout(async () => {
-      const currentId = get().resumeId;
-      if (!currentId) return;
+    const template = sectionTemplates[sectionType];
+    if (!template) return;
 
-      // Get the latest formData at save time, not from closure
-      const currentData = get().formData;
+    const newSection = {
+      id: uuidv4(),
+      type: template.type,
+      data: JSON.parse(JSON.stringify(template.data)),
+    };
 
-      // TRANSFORM: Frontend -> Backend
-      const backendPayload = {
-        content: {
-          personalInfo: {
-            fullName: currentData.name,
-            email: currentData.contact.email,
-            phone: currentData.contact.phone,
-            address: currentData.contact.location,
-            website: currentData.contact.website,
-            linkedin: currentData.contact.linkedin,
-            github: currentData.contact.github,
-          },
-          education: currentData.education,
-          // Convert Strings back to Arrays
-          skills: {
-            languages: stringToArray(currentData.skills.Languages),
-            frameworks: stringToArray(currentData.skills.Frameworks),
-            tools: stringToArray(currentData.skills.Tools),
-            databases: stringToArray(currentData.skills.Databases),
-          },
-          projects: currentData.projects,
-        },
-      };
+    set({
+      resumeData: {
+        ...resumeData,
+        sections: [...resumeData.sections, newSection],
+        sectionOrder: [...resumeData.sectionOrder, newSection.id],
+      },
+    });
+  },
 
-      try {
-        // NOTE: Based on your screenshot, if your backend expects { data: { ... } },
-        // change this line. But usually, req.body is standard.
-        await axiosInstance.put(`/resume/build/${currentId}`, backendPayload);
-        set({ isSaving: false });
-        console.log("Auto-saved");
-      } catch (error) {
-        console.error("Auto-save failed", error);
-        set({ isSaving: false });
-      }
-    }, 2000); // 2 seconds delay
+  // Remove a section
+  removeSection: (sectionId) => {
+    const { resumeData, saveToHistory } = get();
+    const section = resumeData.sections.find((s) => s.id === sectionId);
+    if (section?.locked) return; // Can't remove locked sections
 
-    set({ saveTimeoutId: timeoutId });
+    saveToHistory();
+
+    set({
+      resumeData: {
+        ...resumeData,
+        sections: resumeData.sections.filter((s) => s.id !== sectionId),
+        sectionOrder: resumeData.sectionOrder.filter((id) => id !== sectionId),
+      },
+    });
+  },
+
+  // Reorder sections
+  reorderSections: (newOrder) => {
+    const { resumeData, saveToHistory } = get();
+    saveToHistory();
+
+    // Reorder sections array based on new order
+    const reorderedSections = newOrder.map((id) =>
+      resumeData.sections.find((s) => s.id === id)
+    );
+
+    set({
+      resumeData: {
+        ...resumeData,
+        sections: reorderedSections,
+        sectionOrder: newOrder,
+      },
+    });
+  },
+
+  // Update section data
+  updateSectionData: (sectionId, newData) => {
+    const { resumeData, saveToHistory } = get();
+    saveToHistory();
+
+    set({
+      resumeData: {
+        ...resumeData,
+        sections: resumeData.sections.map((section) =>
+          section.id === sectionId
+            ? { ...section, data: { ...section.data, ...newData } }
+            : section
+        ),
+      },
+    });
+  },
+
+  // Update theme settings
+  updateTheme: (themeUpdates) => {
+    const { resumeData, saveToHistory } = get();
+    saveToHistory();
+
+    set({
+      resumeData: {
+        ...resumeData,
+        theme: { ...resumeData.theme, ...themeUpdates },
+      },
+    });
+  },
+
+  // Change template
+  changeTemplate: (templateId) => {
+    const { resumeData, saveToHistory, templates } = get();
+    if (!templates[templateId]) return;
+
+    saveToHistory();
+
+    set({
+      resumeData: {
+        ...resumeData,
+        template: templateId,
+      },
+    });
+  },
+
+  // Set active panel
+  setActivePanel: (panel) => {
+    set({ activePanel: panel });
+  },
+
+  // Set selected section
+  setSelectedSection: (sectionId) => {
+    set({ selectedSectionId: sectionId });
+  },
+
+  // Reset to default
+  resetResume: () => {
+    const { saveToHistory } = get();
+    saveToHistory();
+
+    set({
+      resumeData: JSON.parse(JSON.stringify(initialResumeData)),
+    });
+  },
+
+  // Initialize history with current state
+  initializeHistory: () => {
+    const { resumeData } = get();
+    set({
+      history: [JSON.parse(JSON.stringify(resumeData))],
+      historyIndex: 0,
+    });
   },
 }));
+
+export default useBuildStore;

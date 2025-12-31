@@ -15,9 +15,26 @@ import buildRouter from "./routes/build.routes.js";
 const app = express();
 
 app.use(compression()); // Compress all responses
+
+// CORS configuration - support multiple origins for development
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  ENV.CORS_ORIGIN,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: ENV.CORS_ORIGIN,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
