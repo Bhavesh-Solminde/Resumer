@@ -34,14 +34,14 @@ export const EditableText = ({
     }
   };
 
-  if (isEditing || multiline) {
+  if (isEditing) {
     return multiline ? (
       <textarea
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        autoFocus={isEditing}
+        autoFocus
         placeholder={placeholder}
         className={cn(
           "w-full bg-transparent border-none outline-none resize-none focus:ring-1 focus:ring-primary/50 rounded px-1",
@@ -251,9 +251,27 @@ export const ExperienceSection = ({ section, themeColor }) => {
                   <EditableText
                     value={`${item.startDate} - ${item.endDate}`}
                     onChange={(v) => {
-                      const [start, end] = v.split(" - ");
-                      updateItem(item.id, "startDate", start || "");
-                      updateItem(item.id, "endDate", end || "Present");
+                      // Regex to split on common date separators: " - ", "-", "–", "—", " to "
+                      const separatorRegex = /\s*(?:–|—|-|\bto\b)\s*/i;
+                      const parts = v
+                        .split(separatorRegex)
+                        .map((p) => p.trim());
+
+                      let parsedStart = "";
+                      let parsedEnd = "Present";
+
+                      if (parts.length >= 2) {
+                        // Two or more parts: first is start, second is end
+                        parsedStart = parts[0] || "";
+                        parsedEnd = parts[1] || "Present";
+                      } else if (parts.length === 1 && parts[0]) {
+                        // Single token: treat as start date
+                        parsedStart = parts[0];
+                        parsedEnd = "Present";
+                      }
+
+                      updateItem(item.id, "startDate", parsedStart);
+                      updateItem(item.id, "endDate", parsedEnd);
                     }}
                     placeholder="MM/YYYY - Present"
                   />
@@ -323,9 +341,25 @@ export const EducationSection = ({ section, themeColor }) => {
                 <EditableText
                   value={`${item.startDate} - ${item.endDate}`}
                   onChange={(v) => {
-                    const [start, end] = v.split(" - ");
-                    updateItem(item.id, "startDate", start || "");
-                    updateItem(item.id, "endDate", end || "");
+                    // Regex to split on common date separators: " - ", "-", "–", "—", " to "
+                    const separatorRegex = /\s*(?:–|—|-|\bto\b)\s*/i;
+                    const parts = v
+                      .split(separatorRegex, 2)
+                      .map((p) => p.trim());
+
+                    let parsedStart = "";
+                    let parsedEnd = "";
+
+                    if (parts.length >= 2) {
+                      parsedStart = parts[0] || "";
+                      parsedEnd = parts[1] || "";
+                    } else if (parts.length === 1 && parts[0]) {
+                      parsedStart = parts[0];
+                      parsedEnd = "";
+                    }
+
+                    updateItem(item.id, "startDate", parsedStart);
+                    updateItem(item.id, "endDate", parsedEnd);
                   }}
                   placeholder="MM/YYYY - MM/YYYY"
                 />

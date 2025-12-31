@@ -59,7 +59,7 @@ const ResumeEditor = () => {
         {/* A4 Page Container */}
         <div
           className={cn(
-            "bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
+            "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
             "min-h-[297mm] w-full max-w-[210mm]",
             marginMap[theme.pageMargins] || "px-10",
             "py-8",
