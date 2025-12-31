@@ -1,18 +1,5 @@
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
-} from "@react-pdf/renderer";
-
-// Register fonts (using default for now, can extend later)
-// Font.register({
-//   family: 'Inter',
-//   src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2',
-// });
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 
 // Create styles
 const createStyles = (theme) =>
@@ -154,8 +141,11 @@ const PDFSummary = ({ data, styles }) => (
 const PDFExperience = ({ data, styles }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>Experience</Text>
-    {data.items?.map((item, index) => (
-      <View key={index} style={styles.experienceItem}>
+    {data.items?.map((item) => (
+      <View
+        key={item.id || `${item.title}-${item.company}`}
+        style={styles.experienceItem}
+      >
         <View style={styles.experienceHeader}>
           <View>
             <Text style={styles.experienceTitle}>{item.title}</Text>

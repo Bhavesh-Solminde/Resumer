@@ -115,9 +115,16 @@ const RearrangeModal = () => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
+    // Early guard: return if over is null or over.id is falsy
+    if (!over || !over.id) return;
+
+    if (active.id !== over.id) {
       const oldIndex = resumeData.sectionOrder.indexOf(active.id);
       const newIndex = resumeData.sectionOrder.indexOf(over.id);
+
+      // Ensure indices are valid before calling arrayMove
+      if (oldIndex === -1 || newIndex === -1) return;
+
       const newOrder = arrayMove(resumeData.sectionOrder, oldIndex, newIndex);
       reorderSections(newOrder);
     }

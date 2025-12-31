@@ -18,9 +18,13 @@ const BuilderHeader = ({ onExportPDF }) => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
-  const handleShare = () => {
-    // Future: Implement share functionality
-    navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      // Could add toast notification here for user feedback
+    } catch (err) {
+      console.error("Failed to copy URL to clipboard:", err);
+    }
   };
 
   return (

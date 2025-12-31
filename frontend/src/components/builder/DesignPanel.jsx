@@ -161,12 +161,17 @@ const DesignPanel = () => {
               min="0"
               max="2"
               step="1"
-              value={["small", "medium", "large"].indexOf(theme.fontSize)}
+              value={Math.max(
+                0,
+                ["small", "medium", "large"].indexOf(theme.fontSize) !== -1
+                  ? ["small", "medium", "large"].indexOf(theme.fontSize)
+                  : 1
+              )}
               onChange={(e) =>
                 updateTheme({
-                  fontSize: ["small", "medium", "large"][
-                    parseInt(e.target.value)
-                  ],
+                  fontSize:
+                    ["small", "medium", "large"][parseInt(e.target.value)] ||
+                    "medium",
                 })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"

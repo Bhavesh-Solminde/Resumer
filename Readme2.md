@@ -104,7 +104,7 @@ Resumer is a modern full-stack application that helps job seekers analyze, optim
 
 ## 📂 Project Structure
 
-```
+```text
 Resumer/
 ├── frontend/
 │   ├── src/

@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 
-// Default section templates
-const defaultSections = {
+// Factory function for default section templates
+const createDefaultSections = () => ({
   header: {
     id: "header",
     type: "header",
@@ -87,10 +87,10 @@ const defaultSections = {
       ],
     },
   },
-};
+});
 
-// Additional section templates for "Add Section"
-const additionalSectionTemplates = {
+// Factory function for additional section templates
+const createSectionTemplates = () => ({
   certifications: {
     type: "certifications",
     label: "Certifications",
@@ -235,7 +235,7 @@ const additionalSectionTemplates = {
       content: "Add your custom content here.",
     },
   },
-};
+});
 
 // Template layouts
 const templates = {
@@ -281,29 +281,30 @@ const defaultTheme = {
   background: "plain",
 };
 
-// Initial resume state
-const initialResumeData = {
-  sections: [
+// Factory function for initial resume state
+const createInitialResumeData = () => {
+  const defaultSections = createDefaultSections();
+  const sections = [
     { ...defaultSections.header },
     { ...defaultSections.summary, id: uuidv4() },
     { ...defaultSections.experience, id: uuidv4() },
     { ...defaultSections.education, id: uuidv4() },
     { ...defaultSections.skills, id: uuidv4() },
     { ...defaultSections.projects, id: uuidv4() },
-  ],
-  sectionOrder: [],
-  template: "modern",
-  theme: { ...defaultTheme },
+  ];
+  return {
+    sections,
+    sectionOrder: sections.map((s) => s.id),
+    template: "modern",
+    theme: { ...defaultTheme },
+  };
 };
-
-// Initialize section order from sections
-initialResumeData.sectionOrder = initialResumeData.sections.map((s) => s.id);
 
 const MAX_HISTORY = 50;
 
 export const useBuildStore = create((set, get) => ({
   // Resume Data
-  resumeData: JSON.parse(JSON.stringify(initialResumeData)),
+  resumeData: createInitialResumeData(),
 
   // History for undo/redo
   history: [],
@@ -316,7 +317,7 @@ export const useBuildStore = create((set, get) => ({
 
   // Available templates and section templates
   templates,
-  sectionTemplates: additionalSectionTemplates,
+  sectionTemplates: createSectionTemplates(),
 
   // Save state to history
   saveToHistory: () => {
@@ -362,10 +363,12 @@ export const useBuildStore = create((set, get) => ({
 
   // Add a new section
   addSection: (sectionType) => {
-    const { resumeData, saveToHistory, sectionTemplates } = get();
+    const { resumeData, saveToHistory } = get();
     saveToHistory();
 
-    const template = sectionTemplates[sectionType];
+    // Get fresh template with new UUIDs
+    const freshTemplates = createSectionTemplates();
+    const template = freshTemplates[sectionType];
     if (!template) return;
 
     const newSection = {
@@ -480,7 +483,8 @@ export const useBuildStore = create((set, get) => ({
     saveToHistory();
 
     set({
-      resumeData: JSON.parse(JSON.stringify(initialResumeData)),
+      resumeData: createInitialResumeData(),
+      sectionTemplates: createSectionTemplates(),
     });
   },
 

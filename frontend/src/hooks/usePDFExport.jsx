@@ -28,9 +28,14 @@ export const usePDFExport = () => {
         const headerSection = resumeData.sections.find(
           (section) => section.type === "header"
         );
-        const firstName =
-          headerSection?.data?.fullName?.split(" ")[0] || "Resume";
-        const fileName = `resume_${firstName}_${
+        const rawName = headerSection?.data?.fullName?.split(" ")[0] || "";
+        // Sanitize: remove filesystem-invalid characters, trim, and truncate
+        const sanitizedName =
+          rawName
+            .replace(/[/\\:*?"<>|\x00-\x1f]/g, "")
+            .trim()
+            .slice(0, 50) || "Resume";
+        const fileName = `resume_${sanitizedName}_${
           new Date().toISOString().split("T")[0]
         }.pdf`;
 
