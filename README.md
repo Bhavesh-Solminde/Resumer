@@ -132,6 +132,14 @@ Create `frontend/.env` with:
 - Add rate limiting and better retry for Gemini calls.
 - Add richer history UI (filters, pagination) and export options.
 - Manage History Properly in UI.
-- also use inbuilt cloudinary tumbnail creter to create thumbnail for history
+- Also use inbuilt Cloudinary thumbnail creator to create thumbnails for history.
 - how to add the optimize resume to the builder page to get the new resume with optimized content
 - use @dnd-kit/core to add drag and drop feature to the resume builder page
+- Build out the Resume Builder page (currently a placeholder).
+
+## Changelog
+
+### December 30, 2025
+
+- **Builder Page Reset**: Cleaned up the Resume Builder page to a minimal placeholder. Removed all complex builder components (`frontend/src/components/builder/*`), the `Build.store.js` store, and associated logic. The page now displays a simple "Builder Page" heading, ready for future development.
+- **Navigation Preserved**: The "Build" route (`/resume/build`) and navigation items in `DashboardLayout` and `BottomNav` remain functional, pointing to the cleaned placeholder page.
