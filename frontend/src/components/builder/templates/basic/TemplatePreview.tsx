@@ -1,0 +1,62 @@
+/**
+ * Template Preview for Basic template
+ */
+
+import React from "react";
+
+const TemplatePreview: React.FC = () => {
+  return (
+    <div className="w-full h-full bg-white p-3 text-[6px] font-sans">
+      {/* Header */}
+      <div className="text-center mb-2 pb-2 border-b-2 border-teal-600">
+        <div className="text-[10px] font-bold text-teal-700">John Smith</div>
+        <div className="text-gray-600 text-[5px]">Software Developer</div>
+        <div className="text-gray-500 text-[4px] mt-0.5">
+          email@example.com | (555) 123-4567 | New York
+        </div>
+      </div>
+
+      {/* Objective */}
+      <div className="mb-2">
+        <div className="text-[7px] font-bold text-teal-700 mb-0.5">
+          OBJECTIVE
+        </div>
+        <div className="text-gray-600 text-[5px]">
+          Motivated software developer seeking opportunities...
+        </div>
+      </div>
+
+      {/* Education */}
+      <div className="mb-2">
+        <div className="text-[7px] font-bold text-teal-700 mb-0.5">
+          EDUCATION
+        </div>
+        <div className="flex justify-between">
+          <span className="font-semibold">State University</span>
+          <span className="text-gray-500">2018 - 2022</span>
+        </div>
+        <div className="text-gray-600">B.S. Computer Science</div>
+      </div>
+
+      {/* Experience */}
+      <div className="mb-2">
+        <div className="text-[7px] font-bold text-teal-700 mb-0.5">
+          EXPERIENCE
+        </div>
+        <div className="flex justify-between">
+          <span className="font-semibold">Junior Developer</span>
+          <span className="text-gray-500">2022 - Present</span>
+        </div>
+        <div className="text-gray-600">Tech Corp</div>
+      </div>
+
+      {/* Skills */}
+      <div>
+        <div className="text-[7px] font-bold text-teal-700 mb-0.5">SKILLS</div>
+        <div className="text-gray-600">JavaScript, React, Node.js, Python</div>
+      </div>
+    </div>
+  );
+};
+
+export default TemplatePreview;

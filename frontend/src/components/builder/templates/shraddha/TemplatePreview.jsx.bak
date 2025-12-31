@@ -1,0 +1,66 @@
+/**
+ * Template Preview for Shraddha template
+ * Shown in template selection modal
+ */
+
+export default function TemplatePreview() {
+  return (
+    <div className="w-full h-full bg-white p-3 text-[6px] font-sans">
+      {/* Header */}
+      <div className="text-center mb-2">
+        <div className="text-[10px] font-bold text-gray-900">
+          Shraddha Khapra
+        </div>
+        <div className="text-gray-600 text-[5px]">Software Engineer</div>
+        <div className="text-gray-500 text-[4px] mt-0.5">
+          email@example.com | +91 98765 43210 | Mumbai
+        </div>
+      </div>
+
+      {/* Education */}
+      <div className="mb-2">
+        <div className="text-[7px] font-bold text-blue-600 border-b border-blue-600 pb-0.5 mb-1">
+          EDUCATION
+        </div>
+        <div className="flex justify-between">
+          <span className="font-semibold">IIT Mumbai</span>
+          <span className="text-gray-500">2016 - 2020</span>
+        </div>
+        <div className="text-gray-600">B.Tech Computer Science</div>
+      </div>
+
+      {/* Experience */}
+      <div className="mb-2">
+        <div className="text-[7px] font-bold text-blue-600 border-b border-blue-600 pb-0.5 mb-1">
+          EXPERIENCE
+        </div>
+        <div className="flex justify-between">
+          <span className="font-semibold">Software Engineer</span>
+          <span className="text-gray-500">2020 - Present</span>
+        </div>
+        <div className="text-gray-600">Tech Solutions Pvt. Ltd.</div>
+        <ul className="list-disc ml-2 mt-0.5 text-gray-600">
+          <li>Developed React applications</li>
+          <li>Built RESTful APIs</li>
+        </ul>
+      </div>
+
+      {/* Skills */}
+      <div>
+        <div className="text-[7px] font-bold text-blue-600 border-b border-blue-600 pb-0.5 mb-1">
+          SKILLS
+        </div>
+        <div className="flex flex-wrap gap-0.5">
+          {["React", "Node.js", "TypeScript", "Python"].map((skill) => (
+            <span
+              key={skill}
+              className="bg-gray-100 px-1 py-0.5 rounded text-gray-700"
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

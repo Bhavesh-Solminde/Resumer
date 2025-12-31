@@ -1,0 +1,85 @@
+import React, { useState, useEffect, lazy, Suspense } from "react";
+import toast from "react-hot-toast";
+import { useHistoryStore } from "../store/History.store";
+import { MultiStepLoader } from "../components/ui/multi-step-loader";
+
+// Import new components
+import AnalyzeHeader from "../components/analyze/AnalyzeHeader";
+import { useResumeStore } from "../store/Resume.store.js";
+
+const UploadResumeCard = lazy(() =>
+  import("../components/analyze/UploadResumeCard")
+);
+const PreviousScanCard = lazy(() =>
+  import("../components/analyze/PreviousScanCard")
+);
+const AnalysisResults = lazy(() =>
+  import("../components/analyze/AnalysisResults")
+);
+
+const Analyze = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const {
+    isAnalyzing,
+    analysisResult,
+    handleResumeAnalysis: analyzeResume,
+  } = useResumeStore();
+
+  const { resumeScanHistory, userResumeHistory, isLoadingHistory } =
+    useHistoryStore();
+  const [showUpload, setShowUpload] = useState(false);
+  const [showFullHistory, setShowFullHistory] = useState(false);
+
+  useEffect(() => {
+    resumeScanHistory();
+  }, [resumeScanHistory]);
+
+  const lastScan = userResumeHistory?.[0];
+
+  const handleResumeAnalysisSubmit = async (event) => {
+    event.preventDefault();
+    await analyzeResume(selectedFile);
+  };
+
+  if (isLoadingHistory) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6 max-w-5xl space-y-8 animate-in fade-in duration-500 pb-24">
+      <MultiStepLoader loading={isAnalyzing} />
+
+      <AnalyzeHeader />
+
+      <Suspense fallback={null}>
+        <PreviousScanCard
+          lastScan={lastScan}
+          showUpload={showUpload}
+          setShowUpload={setShowUpload}
+          showFullHistory={showFullHistory}
+          setShowFullHistory={setShowFullHistory}
+          analysisResult={analysisResult}
+        />
+
+        <UploadResumeCard
+          analysisResult={analysisResult}
+          lastScan={lastScan}
+          showUpload={showUpload}
+          setShowUpload={setShowUpload}
+          handleResumeAnalysis={handleResumeAnalysisSubmit}
+          selectedFile={selectedFile}
+          setSelectedFile={setSelectedFile}
+          isLoading={isAnalyzing}
+        />
+
+        <AnalysisResults analysisResult={analysisResult} lastScan={lastScan} />
+      </Suspense>
+    </div>
+  );
+};
+
+export default Analyze;

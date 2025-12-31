@@ -1,0 +1,130 @@
+import React from "react";
+import {
+  Plus,
+  Type,
+  Calendar,
+  Trash2,
+  Settings,
+  GripVertical,
+} from "lucide-react";
+import { cn } from "../../../lib/utils";
+
+type ToolbarPosition = "top" | "right" | "left";
+
+interface ItemToolbarProps {
+  onAddEntry?: () => void;
+  onToggleText?: () => void;
+  onOpenCalendar?: () => void;
+  onDelete?: () => void;
+  onSettings?: () => void;
+  onDragStart?: () => void;
+  showAddEntry?: boolean;
+  showToggleText?: boolean;
+  showCalendar?: boolean;
+  showDelete?: boolean;
+  showSettings?: boolean;
+  showDragHandle?: boolean;
+  className?: string;
+  position?: ToolbarPosition;
+}
+
+const positionClasses: Record<ToolbarPosition, string> = {
+  top: "left-1/2 -translate-x-1/2 -top-8 flex-row",
+  right: "right-0 top-1/2 -translate-y-1/2 translate-x-full flex-col pl-2",
+  left: "left-0 top-1/2 -translate-y-1/2 -translate-x-full flex-col pr-2",
+};
+
+const ItemToolbar: React.FC<ItemToolbarProps> = ({
+  onAddEntry,
+  onToggleText,
+  onOpenCalendar,
+  onDelete,
+  onSettings,
+  onDragStart,
+  showAddEntry = true,
+  showToggleText = false,
+  showCalendar = true,
+  showDelete = true,
+  showSettings = false,
+  showDragHandle = true,
+  className = "",
+  position = "top",
+}) => {
+  return (
+    <div
+      className={cn(
+        "absolute flex gap-0.5 bg-white border border-gray-200 rounded-lg shadow-md p-1 z-40",
+        positionClasses[position],
+        className
+      )}
+    >
+      {/* Drag Handle */}
+      {showDragHandle && (
+        <button
+          onMouseDown={onDragStart}
+          className="p-1.5 rounded hover:bg-gray-100 cursor-grab active:cursor-grabbing"
+          title="Drag to reorder"
+        >
+          <GripVertical className="w-3.5 h-3.5 text-gray-500" />
+        </button>
+      )}
+
+      {/* Add Entry */}
+      {showAddEntry && (
+        <button
+          onClick={onAddEntry}
+          className="p-1.5 rounded hover:bg-blue-50"
+          title="Add new entry"
+        >
+          <Plus className="w-3.5 h-3.5 text-blue-600" />
+        </button>
+      )}
+
+      {/* Toggle Text / Bullet */}
+      {showToggleText && (
+        <button
+          onClick={onToggleText}
+          className="p-1.5 rounded hover:bg-gray-100"
+          title="Toggle text format"
+        >
+          <Type className="w-3.5 h-3.5 text-gray-600" />
+        </button>
+      )}
+
+      {/* Calendar / Date Picker */}
+      {showCalendar && (
+        <button
+          onClick={onOpenCalendar}
+          className="p-1.5 rounded hover:bg-gray-100"
+          title="Edit dates"
+        >
+          <Calendar className="w-3.5 h-3.5 text-gray-600" />
+        </button>
+      )}
+
+      {/* Settings */}
+      {showSettings && (
+        <button
+          onClick={onSettings}
+          className="p-1.5 rounded hover:bg-gray-100"
+          title="Item settings"
+        >
+          <Settings className="w-3.5 h-3.5 text-gray-600" />
+        </button>
+      )}
+
+      {/* Delete */}
+      {showDelete && (
+        <button
+          onClick={onDelete}
+          className="p-1.5 rounded hover:bg-red-50"
+          title="Delete"
+        >
+          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default ItemToolbar;

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -36,9 +37,12 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "uuid": "^13.0.0",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "zundo": "^2.3.0",
+    "@resumer/shared-types": "workspace:*"
   },
   "devDependencies": {
+    "typescript": "^5.7.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^25.0.2",
     "@types/react": "^18.3.12",

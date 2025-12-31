@@ -6,9 +6,9 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+} from "../../components/ui/dialog";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { ExternalLink, Download, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 

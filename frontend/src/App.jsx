@@ -3,21 +3,21 @@ import "./App.css";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/Auth.store";
-import { FullScreenAuthLoader } from "@/components/ui/auth-loader";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { FullScreenAuthLoader } from "./components/ui/auth-loader";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import DashboardLayout from "./layouts/DashboardLayout";
 
 // Lazy load pages
-const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
-const Login = lazy(() => import("./pages/Login.jsx"));
-const Signup = lazy(() => import("./pages/Signup.jsx"));
-const Analyze = lazy(() => import("./pages/Analyze.jsx"));
-const Optimize = lazy(() => import("./pages/Optimize.jsx"));
-const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder.jsx"));
-const Recruiter = lazy(() => import("./pages/Recruiter.jsx"));
-const Profile = lazy(() => import("./pages/Profile.jsx"));
-const NotFound = lazy(() => import("./pages/NotFound.jsx"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Analyze = lazy(() => import("./pages/Analyze"));
+const Optimize = lazy(() => import("./pages/Optimize"));
+const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
+const Recruiter = lazy(() => import("./pages/Recruiter"));
+const Profile = lazy(() => import("./pages/Profile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const ProtectedRoute = () => {
   const { authUser } = useAuthStore();
