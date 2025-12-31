@@ -5,8 +5,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
 import { Sparkles, Briefcase, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useResumeStore } from "../../store/Resume.store";

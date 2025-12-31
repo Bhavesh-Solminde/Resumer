@@ -26,14 +26,16 @@ Always follow these architectural and stylistic rules strictly.
 
 - **Styling Engine:** Tailwind CSS v4.
 - **Component Libraries:**
-  - **Shadcn UI:** Reusable atoms (Buttons, Inputs). Place in `@/components/ui`.
-  - **Aceternity UI:** Complex animations (Hero, Bento Grid). Place in `@/components/ui` or `@/components/aceternity`.
-  - **Utils:** Always use the `cn()` utility for class merging: `import { cn } from "@/lib/utils"`.
+  - **Shadcn UI:** Reusable atoms (Buttons, Inputs). Place in `src/components/ui`.
+  - **Aceternity UI:** Complex animations (Hero, Bento Grid). Place in `src/components/ui` or `src/components/aceternity`.
+  - **Utils:** Always use the `cn()` utility for class merging: `import { cn } from "../lib/utils"` (use relative paths).
 - **Icons:** Use `lucide-react`.
+- **Imports:** Use **relative paths only**. Do NOT use `@/` alias (e.g., use `../ui/button` not `@/components/ui/button`).
 
 ### Architecture & Routing
 
 - **Routing:** Use `react-router-dom` v7.
+- **Dev Server:** Frontend always runs on `localhost:5173`. Do NOT use other ports.
 - **Directories:**
   - `src/components/ui`: Shadcn/Aceternity base components.
   - `src/pages`: Full page views.

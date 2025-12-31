@@ -1,0 +1,97 @@
+/**
+ * Template Registry
+ * Central registration point for all resume templates
+ * Each template provides its own section components
+ */
+
+// Template imports
+import shraddhaTemplate from "./shraddha";
+import basicTemplate from "./basic";
+import modernTemplate from "./modern";
+
+// Re-export ConfirmDialog for convenience
+export { default as ConfirmDialog } from "../shared/ConfirmDialog";
+
+// Template registry map
+const templates = {
+  shraddha: shraddhaTemplate,
+  basic: basicTemplate,
+  modern: modernTemplate,
+};
+
+// Default template
+export const DEFAULT_TEMPLATE = "shraddha";
+
+/**
+ * Get template configuration by ID
+ * @param {string} templateId - Template identifier
+ * @returns {object} Template configuration
+ */
+export function getTemplate(templateId) {
+  return templates[templateId] || templates[DEFAULT_TEMPLATE];
+}
+
+/**
+ * Get section component for a specific template and section type
+ * @param {string} templateId - Template identifier
+ * @param {string} sectionType - Section type (header, education, etc.)
+ * @returns {React.Component} Section component
+ */
+export function getSectionComponent(templateId, sectionType) {
+  const template = getTemplate(templateId);
+  return template.sections[sectionType] || null;
+}
+
+/**
+ * Get all available templates with metadata
+ * @returns {Array} Array of template metadata objects
+ */
+export function getAllTemplates() {
+  return Object.entries(templates).map(([id, template]) => ({
+    id,
+    name: template.name,
+    description: template.description,
+    preview: template.preview,
+    themeColor: template.themeColor,
+  }));
+}
+
+/**
+ * Get template metadata by ID
+ * @param {string} templateId - Template identifier
+ * @returns {object} Template metadata
+ */
+export function getTemplateMetadata(templateId) {
+  const template = getTemplate(templateId);
+  return {
+    id: templateId,
+    name: template.name,
+    description: template.description,
+    themeColor: template.themeColor,
+    fontFamily: template.fontFamily,
+    sections: Object.keys(template.sections),
+  };
+}
+
+/**
+ * Check if a template supports a specific section type
+ * @param {string} templateId - Template identifier
+ * @param {string} sectionType - Section type
+ * @returns {boolean}
+ */
+export function templateSupportsSection(templateId, sectionType) {
+  const template = getTemplate(templateId);
+  return sectionType in template.sections;
+}
+
+/**
+ * Get sample data for a template
+ * @param {string} templateId - Template identifier
+ * @returns {object} Sample resume data
+ */
+export function getTemplateSampleData(templateId) {
+  const template = getTemplate(templateId);
+  return template.sampleData || {};
+}
+
+export default templates;

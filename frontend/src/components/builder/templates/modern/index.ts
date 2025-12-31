@@ -1,0 +1,41 @@
+/**
+ * Modern Template
+ * Contemporary design with left sidebar
+ */
+
+import HeaderSection from "./sections/HeaderSection";
+import EducationSection from "./sections/EducationSection";
+import ExperienceSection from "./sections/ExperienceSection";
+import ProjectsSection from "./sections/ProjectsSection";
+import SkillsSection from "./sections/SkillsSection";
+import SummarySection from "./sections/SummarySection";
+import AchievementsSection from "./sections/AchievementsSection";
+
+import TemplatePreview from "./TemplatePreview";
+import { sampleData } from "./sampleData";
+import type { Template } from "../index";
+
+const modernTemplate: Template = {
+  id: "modern",
+  name: "Modern",
+  description: "Contemporary resume with sidebar layout",
+  themeColor: "#6366f1",
+  fontFamily: "'Inter', sans-serif",
+  preview: TemplatePreview,
+
+  sections: {
+    header: HeaderSection,
+    education: EducationSection,
+    experience: ExperienceSection,
+    projects: ProjectsSection,
+    skills: SkillsSection,
+    technicalSkills: SkillsSection,
+    summary: SummarySection,
+    objective: SummarySection,
+    achievements: AchievementsSection,
+  },
+
+  sampleData,
+};
+
+export default modernTemplate;

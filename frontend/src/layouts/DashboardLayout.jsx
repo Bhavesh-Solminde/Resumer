@@ -1,6 +1,6 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { FloatingDock } from "@/components/ui/floating-dock";
+import { FloatingDock } from "../components/ui/floating-dock";
 import Header from "../components/Header";
 import BottomNav from "../components/BottomNav";
 import { FileText, Zap, PenTool, Users, User } from "lucide-react";

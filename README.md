@@ -134,7 +134,6 @@ Create `frontend/.env` with:
 - Manage History Properly in UI.
 - Also use inbuilt Cloudinary thumbnail creator to create thumbnails for history.
 - how to add the optimize resume to the builder page to get the new resume with optimized content
-- use @dnd-kit/core to add drag-and-drop feature to the resume builder page
 - Build out the Resume Builder page (currently a placeholder).
 
 ## Changelog

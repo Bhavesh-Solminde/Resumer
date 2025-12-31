@@ -1,6 +1,6 @@
 import React from "react";
-import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { Badge } from "@/components/ui/badge";
+import { BentoGrid, BentoGridItem } from "../../components/ui/bento-grid";
+import { Badge } from "../../components/ui/badge";
 import { FileText, Calendar, TrendingUp } from "lucide-react";
 
 const ResumeHistoryGrid = ({ userResumeHistory, onScanClick, isLoading }) => {
