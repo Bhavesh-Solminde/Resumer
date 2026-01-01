@@ -41,8 +41,8 @@ Always follow these architectural and stylistic rules strictly.
   - `src/pages`: Full page views.
   - `src/layouts`: Layout wrappers (Navbar/Footer).
 - **Naming:**
-  - Components: PascalCase (`ResumeAnalysis.jsx`).
-  - Hooks: camelCase (`useResumeScore.js`).
+  - Components: PascalCase (`ResumeAnalysis.tsx`).
+  - Hooks: camelCase (`useResumeScore.ts`).
 
 ---
 
