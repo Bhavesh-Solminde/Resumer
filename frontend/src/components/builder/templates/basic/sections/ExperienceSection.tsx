@@ -9,11 +9,7 @@ import {
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
-
-interface DateValue {
-  month: number;
-  year: number;
-}
+import { formatDate, DateValue } from "../../../../../lib/dateUtils";
 
 interface ExperienceItem {
   id: string;
@@ -25,7 +21,7 @@ interface ExperienceItem {
   bullets?: string[];
 }
 
-interface SectionSettings {
+interface ExperienceSectionSettings {
   showCompany?: boolean;
   showLocation?: boolean;
   showPeriod?: boolean;
@@ -35,7 +31,7 @@ interface SectionSettings {
 interface ExperienceSectionProps {
   data?: ExperienceItem[];
   sectionId?: string;
-  settings?: SectionSettings;
+  settings?: ExperienceSectionSettings;
 }
 
 interface ConfirmDialogState {
@@ -51,7 +47,7 @@ interface ConfirmDialogState {
  */
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
-  sectionId,
+  sectionId = "",
   settings = {},
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
@@ -62,7 +58,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
 
-  const sectionSettings: Required<SectionSettings> = {
+  const sectionSettings: Required<ExperienceSectionSettings> = {
     showCompany: true,
     showLocation: true,
     showPeriod: true,
@@ -128,47 +124,6 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
-  };
-
-  const formatDate = (date: DateValue | string | null | undefined): string => {
-    if (!date) return "";
-    if (date === "Present") return "Present";
-
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    if (
-      typeof date === "object" &&
-      date.month !== undefined &&
-      date.year !== undefined
-    ) {
-      return `${months[date.month]} ${date.year}`;
-    }
-
-    if (typeof date === "string") {
-      if (months.some((m) => date.startsWith(m))) return date;
-      const parts = date.split("/");
-      if (parts.length === 2) {
-        const monthNum = parseInt(parts[0], 10) - 1;
-        if (monthNum >= 0 && monthNum < 12)
-          return `${months[monthNum]} ${parts[1]}`;
-      }
-      return date;
-    }
-
-    return "";
   };
 
   if (!data || data.length === 0) {
