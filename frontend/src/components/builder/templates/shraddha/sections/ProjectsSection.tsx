@@ -111,6 +111,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
+        ? { ...item, startDate: dates.from, endDate: dates.to }
         : item
     );
     updateSectionData(sectionId, { items: updatedData });

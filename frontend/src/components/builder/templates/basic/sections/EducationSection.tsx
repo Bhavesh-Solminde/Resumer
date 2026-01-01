@@ -134,7 +134,16 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   const formatDate = (date: DateValue | string | null | undefined): string => {
     if (!date) return "";
     if (date === "Present") return "Present";
+    if (typeof date === "string") return date;
+    if ("month" in date && "year" in date) {
+      return `${date.month}/${date.year}`;
+    }
+    return "";
+  };
 
+  if (data.length === 0) {
+    return (
+      <div className="p-4">
         <EmptyState
           title="No education added"
           description="Click to add your educational background"
