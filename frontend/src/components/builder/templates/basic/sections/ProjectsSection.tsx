@@ -5,9 +5,15 @@ import {
   ItemToolbar,
   BulletEditor,
   EmptyState,
+  MonthYearPicker,
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
+
+interface DateValue {
+  month: number;
+  year: number;
+}
 
 interface ProjectItem {
   id: string;
@@ -16,12 +22,15 @@ interface ProjectItem {
   technologies?: string[];
   link?: string;
   bullets?: string[];
+  startDate?: DateValue | string | null;
+  endDate?: DateValue | string | null;
 }
 
 interface SectionSettings {
   showTechnologies?: boolean;
   showLink?: boolean;
   showBullets?: boolean;
+  showPeriod?: boolean;
 }
 
 interface ProjectsSectionProps {
@@ -43,19 +52,20 @@ interface ConfirmDialogState {
  */
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   data = [],
+  sectionId = "projects",
   settings = {},
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
-    | ((dialog: ConfirmDialogState) => void)
-    | undefined;
+  const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+  const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
 
   const sectionSettings: Required<SectionSettings> = {
     showTechnologies: true,
     showLink: true,
     showBullets: true,
+    showPeriod: true,
     ...settings,
   };
 
@@ -67,7 +77,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
-    updateSectionData("projects", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAddItem = () => {
@@ -78,24 +88,78 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       technologies: [],
       link: "",
       bullets: [""],
+      startDate: null,
+      endDate: null,
     };
-    updateSectionData("projects", [...data, newItem]);
+    updateSectionData(sectionId, { items: [...data, newItem] });
   };
 
   const handleDeleteItem = (itemId: string) => {
     setConfirmDialog?.({
-      isOpen: true,
       title: "Delete Project",
       message: "Are you sure you want to delete this project?",
       onConfirm: () => {
-        updateSectionData(
-          "projects",
-          data.filter((item) => item.id !== itemId)
-        );
-        setConfirmDialog?.({ isOpen: false });
+        updateSectionData(sectionId, {
+          items: data.filter((item) => item.id !== itemId),
+        });
+        setConfirmDialog?.(null);
       },
-      onCancel: () => setConfirmDialog?.({ isOpen: false }),
+      onCancel: () => setConfirmDialog?.(null),
     });
+  };
+
+  const handleDateChange = (
+    itemId: string,
+    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+  ) => {
+    const updatedData = data.map((item) =>
+      item.id === itemId
+        ? { ...item, startDate: dates.from, endDate: dates.to }
+        : item
+    );
+    updateSectionData(sectionId, { items: updatedData });
+    setCalendarOpen(null);
+  };
+
+  const formatDate = (date: DateValue | string | null | undefined): string => {
+    if (!date) return "";
+    if (date === "Present") return "Present";
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    if (
+      typeof date === "object" &&
+      date.month !== undefined &&
+      date.year !== undefined
+    ) {
+      return `${months[date.month]} ${date.year}`;
+    }
+
+    if (typeof date === "string") {
+      if (months.some((m) => date.startsWith(m))) return date;
+      const parts = date.split("/");
+      if (parts.length === 2) {
+        const monthNum = parseInt(parts[0], 10) - 1;
+        if (monthNum >= 0 && monthNum < 12)
+          return `${months[monthNum]} ${parts[1]}`;
+      }
+      return date;
+    }
+
+    return "";
   };
 
   const handleTechChange = (itemId: string, techString: string) => {
@@ -139,34 +203,61 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
             {hoveredItemId === item.id && (
               <ItemToolbar
                 position="left"
-                showCalendar={false}
                 onAddEntry={handleAddItem}
+                onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
               />
             )}
 
-            <div>
-              <div className="flex items-center gap-2">
-                <EditableText
-                  value={item.name || ""}
-                  onChange={(val) => handleFieldChange(item.id, "name", val)}
-                  placeholder="Project Name"
-                  className="font-semibold text-gray-900"
-                  as="h3"
+            {calendarOpen === item.id && (
+              <div className="absolute left-0 top-full z-50 mt-1">
+                <MonthYearPicker
+                  value={{
+                    from:
+                      typeof item.startDate === "object"
+                        ? item.startDate
+                        : null,
+                    to:
+                      typeof item.endDate === "object" ||
+                      item.endDate === "Present"
+                        ? (item.endDate as DateValue | "Present")
+                        : null,
+                  }}
+                  onChange={(dates) => handleDateChange(item.id, dates)}
+                  onClose={() => setCalendarOpen(null)}
                 />
-                {sectionSettings.showLink && item.link && (
-                  <a
-                    href={
-                      item.link.startsWith("http")
-                        ? item.link
-                        : `https://${item.link}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-teal-600 hover:text-teal-700"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+              </div>
+            )}
+
+            <div>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <EditableText
+                    value={item.name || ""}
+                    onChange={(val) => handleFieldChange(item.id, "name", val)}
+                    placeholder="Project Name"
+                    className="font-semibold text-gray-900"
+                    as="h3"
+                  />
+                  {sectionSettings.showLink && item.link && (
+                    <a
+                      href={
+                        item.link.startsWith("http")
+                          ? item.link
+                          : `https://${item.link}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-600 hover:text-teal-700"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+                {sectionSettings.showPeriod && (
+                  <div className="text-sm text-gray-500 whitespace-nowrap ml-2">
+                    {formatDate(item.startDate)} - {formatDate(item.endDate)}
+                  </div>
                 )}
               </div>
 

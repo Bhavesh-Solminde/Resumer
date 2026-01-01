@@ -162,11 +162,10 @@ const createDefaultSections = (): Section[] => {
 
   return [
     headerSection,
-    summarySection,
-    experienceSection,
     educationSection,
-    skillsSection,
     projectsSection,
+    skillsSection,
+    experienceSection,
   ];
 };
 

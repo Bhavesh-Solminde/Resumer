@@ -53,6 +53,7 @@ interface ConfirmDialogState {
  */
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
+  sectionId,
   settings = {},
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
@@ -73,20 +74,23 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   };
 
   const handleFieldChange = (itemId: string, field: string, value: string) => {
+    if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
+    if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, bullets } : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAddItem = () => {
+    if (!sectionId) return;
     const newItem: ExperienceItem = {
       id: `exp-${Date.now()}`,
       company: "",
@@ -96,19 +100,19 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
       endDate: null,
       bullets: [""],
     };
-    updateSectionData("experience", [...data, newItem]);
+    updateSectionData(sectionId, { items: [...data, newItem] });
   };
 
   const handleDeleteItem = (itemId: string) => {
+    if (!sectionId) return;
     setConfirmDialog?.({
       isOpen: true,
       title: "Delete Experience Entry",
       message: "Are you sure you want to delete this entry?",
       onConfirm: () => {
-        updateSectionData(
-          "experience",
-          data.filter((item) => item.id !== itemId)
-        );
+        updateSectionData(sectionId, {
+          items: data.filter((item) => item.id !== itemId),
+        });
         setConfirmDialog?.({ isOpen: false });
       },
       onCancel: () => setConfirmDialog?.({ isOpen: false }),
@@ -119,12 +123,13 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     itemId: string,
     dates: { from: DateValue | null; to: DateValue | "Present" | null }
   ) => {
+    if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
         : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
   };
 

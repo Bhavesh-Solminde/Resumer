@@ -51,14 +51,14 @@ export const createUISlice: StateCreator<
   BuildState & BuildActions,
   [],
   [],
-  UIState & UIActions
+  UIActions
 > = (set, get) => ({
-  // Initial state
-  activePanel: null,
-  selectedSectionId: null,
-  isLoading: false,
-  isExporting: false,
-  confirmDialog: defaultConfirmDialog,
+  // Initial state removed to prevent overriding Build.store.ts defaults
+  // activePanel: null,
+  // selectedSectionId: null,
+  // isLoading: false,
+  // isExporting: false,
+  // confirmDialog: defaultConfirmDialog,
 
   // Set active panel
   setActivePanel: (panel) => {

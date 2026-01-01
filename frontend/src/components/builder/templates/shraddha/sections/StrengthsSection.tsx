@@ -21,7 +21,10 @@ interface ConfirmDialogState {
  * Strengths Section for Shraddha template
  * Lists key strengths/soft skills
  */
-const StrengthsSection: React.FC<StrengthsSectionProps> = ({ data = [] }) => {
+const StrengthsSection: React.FC<StrengthsSectionProps> = ({
+  data = [],
+  sectionId = "strengths",
+}) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
     | ((dialog: ConfirmDialogState) => void)
@@ -32,11 +35,11 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({ data = [] }) => {
   const handleChange = (index: number, value: string) => {
     const updatedData = [...data];
     updatedData[index] = value;
-    updateSectionData("strengths", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAdd = () => {
-    updateSectionData("strengths", [...data, ""]);
+    updateSectionData(sectionId, { items: [...data, ""] });
   };
 
   const handleRemove = (index: number) => {
@@ -45,10 +48,9 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({ data = [] }) => {
       title: "Delete Strength",
       message: "Are you sure you want to delete this strength?",
       onConfirm: () => {
-        updateSectionData(
-          "strengths",
-          data.filter((_, i) => i !== index)
-        );
+        updateSectionData(sectionId, {
+          items: data.filter((_, i) => i !== index),
+        });
         setConfirmDialog?.({ isOpen: false });
       },
       onCancel: () => setConfirmDialog?.({ isOpen: false }),

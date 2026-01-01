@@ -291,12 +291,12 @@ export const createTemplatesSlice: StateCreator<
   BuildState & BuildActions,
   [],
   [],
-  TemplatesState & TemplatesActions
+  TemplatesActions
 > = (set, get) => ({
-  // Initial state
-  template: "basic",
-  registeredTemplates: defaultTemplates,
-  sectionTemplates: createSectionTemplates(),
+  // Initial state removed to prevent overriding Build.store.ts defaults
+  // template: "basic",
+  // registeredTemplates: defaultTemplates,
+  // sectionTemplates: createSectionTemplates(),
 
   // Change template
   changeTemplate: (templateId) => {

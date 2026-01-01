@@ -21,7 +21,10 @@ interface SkillsSectionProps {
 /**
  * Skills Section for Basic template
  */
-const SkillsSection: React.FC<SkillsSectionProps> = ({ data = {} }) => {
+const SkillsSection: React.FC<SkillsSectionProps> = ({
+  data = {},
+  sectionId = "skills",
+}) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
   const categories = data.categories || [];
@@ -29,7 +32,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({ data = {} }) => {
   const handleCategoryNameChange = (index: number, name: string) => {
     const newCategories = [...categories];
     newCategories[index] = { ...newCategories[index], name };
-    updateSectionData("skills", { ...data, categories: newCategories });
+    updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   const handleSkillsChange = (index: number, skillsString: string) => {
@@ -39,17 +42,17 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({ data = {} }) => {
       .filter(Boolean);
     const newCategories = [...categories];
     newCategories[index] = { ...newCategories[index], items };
-    updateSectionData("skills", { ...data, categories: newCategories });
+    updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   const handleAddCategory = () => {
     const newCategories = [...categories, { name: "New Category", items: [] }];
-    updateSectionData("skills", { ...data, categories: newCategories });
+    updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   const handleRemoveCategory = (index: number) => {
     const newCategories = categories.filter((_, i) => i !== index);
-    updateSectionData("skills", { ...data, categories: newCategories });
+    updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   if (!categories || categories.length === 0) {

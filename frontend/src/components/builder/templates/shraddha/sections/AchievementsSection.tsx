@@ -28,6 +28,7 @@ interface ConfirmDialogState {
  */
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
+  sectionId,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -37,31 +38,33 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   const handleFieldChange = (itemId: string, field: string, value: string) => {
+    if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
-    updateSectionData("achievements", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAddItem = () => {
+    if (!sectionId) return;
     const newItem: AchievementItem = {
       id: `ach-${Date.now()}`,
       title: "",
       description: "",
     };
-    updateSectionData("achievements", [...data, newItem]);
+    updateSectionData(sectionId, { items: [...data, newItem] });
   };
 
   const handleDeleteItem = (itemId: string) => {
+    if (!sectionId) return;
     setConfirmDialog?.({
       isOpen: true,
       title: "Delete Achievement",
       message: "Are you sure you want to delete this achievement?",
       onConfirm: () => {
-        updateSectionData(
-          "achievements",
-          data.filter((item) => item.id !== itemId)
-        );
+        updateSectionData(sectionId, {
+          items: data.filter((item) => item.id !== itemId),
+        });
         setConfirmDialog?.({ isOpen: false });
       },
       onCancel: () => setConfirmDialog?.({ isOpen: false }),

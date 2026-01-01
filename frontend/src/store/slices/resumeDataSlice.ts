@@ -102,12 +102,12 @@ export const createResumeDataSlice: StateCreator<
   BuildState & BuildActions,
   [],
   [],
-  ResumeDataState & ResumeDataActions
+  ResumeDataActions
 > = (set, get) => ({
-  // Initial state
-  sections: [],
-  sectionOrder: [],
-  sectionSettings: createDefaultSectionSettings(),
+  // Initial state removed to prevent overriding Build.store.ts defaults
+  // sections: [],
+  // sectionOrder: [],
+  // sectionSettings: createDefaultSectionSettings(),
 
   // Add a new section
   addSection: (sectionType) => {

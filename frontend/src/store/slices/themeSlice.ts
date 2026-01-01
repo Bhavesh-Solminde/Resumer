@@ -52,10 +52,10 @@ export const createThemeSlice: StateCreator<
   BuildState & BuildActions,
   [],
   [],
-  ThemeState & ThemeActions
+  ThemeActions
 > = (set, get) => ({
-  // Initial state
-  theme: { ...defaultTheme },
+  // Initial state removed to prevent overriding Build.store.ts defaults
+  // theme: { ...defaultTheme },
 
   // Update theme settings
   updateTheme: (themeUpdates) => {
