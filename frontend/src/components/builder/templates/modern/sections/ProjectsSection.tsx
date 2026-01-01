@@ -9,11 +9,7 @@ import {
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
-
-interface DateValue {
-  month: number;
-  year: number;
-}
+import { formatDate, DateValue } from "../../../../../lib/dateUtils";
 
 interface ProjectItem {
   id: string;
@@ -26,7 +22,7 @@ interface ProjectItem {
   endDate?: DateValue | string | null;
 }
 
-interface SectionSettings {
+interface ProjectsSectionSettings {
   showTechnologies?: boolean;
   showLink?: boolean;
   showBullets?: boolean;
@@ -36,7 +32,7 @@ interface SectionSettings {
 interface ProjectsSectionProps {
   data?: ProjectItem[];
   sectionId?: string;
-  settings?: SectionSettings;
+  settings?: ProjectsSectionSettings;
 }
 
 interface ConfirmDialogState {
@@ -61,7 +57,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
 
-  const sectionSettings: Required<SectionSettings> = {
+  const sectionSettings: Required<ProjectsSectionSettings> = {
     showTechnologies: true,
     showLink: true,
     showBullets: true,
@@ -119,47 +115,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
-  };
-
-  const formatDate = (date: DateValue | string | null | undefined): string => {
-    if (!date) return "";
-    if (date === "Present") return "Present";
-
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    if (
-      typeof date === "object" &&
-      date.month !== undefined &&
-      date.year !== undefined
-    ) {
-      return `${months[date.month]} ${date.year}`;
-    }
-
-    if (typeof date === "string") {
-      if (months.some((m) => date.startsWith(m))) return date;
-      const parts = date.split("/");
-      if (parts.length === 2) {
-        const monthNum = parseInt(parts[0], 10) - 1;
-        if (monthNum >= 0 && monthNum < 12)
-          return `${months[monthNum]} ${parts[1]}`;
-      }
-      return date;
-    }
-
-    return "";
   };
 
   const handleTechChange = (itemId: string, techString: string) => {

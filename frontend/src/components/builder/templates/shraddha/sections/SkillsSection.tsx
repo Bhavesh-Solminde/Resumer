@@ -23,21 +23,19 @@ interface SkillsSectionProps {
  */
 const SkillsSection: React.FC<SkillsSectionProps> = ({
   data = {},
-  sectionId,
+  sectionId = "skills",
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
   const categories = data.categories || [];
 
   const handleCategoryNameChange = (index: number, name: string) => {
-    if (!sectionId) return;
     const newCategories = [...categories];
     newCategories[index] = { ...newCategories[index], name };
     updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   const handleSkillsChange = (index: number, skillsString: string) => {
-    if (!sectionId) return;
     const items = skillsString
       .split(",")
       .map((s) => s.trim())
@@ -48,13 +46,11 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   };
 
   const handleAddCategory = () => {
-    if (!sectionId) return;
     const newCategories = [...categories, { name: "New Category", items: [] }];
     updateSectionData(sectionId, { ...data, categories: newCategories });
   };
 
   const handleRemoveCategory = (index: number) => {
-    if (!sectionId) return;
     const newCategories = categories.filter((_, i) => i !== index);
     updateSectionData(sectionId, { ...data, categories: newCategories });
   };

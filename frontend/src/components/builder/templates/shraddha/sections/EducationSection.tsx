@@ -10,11 +10,7 @@ import {
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
-
-interface DateValue {
-  month: number;
-  year: number;
-}
+import { formatDate, DateValue } from "../../../../../lib/dateUtils";
 
 interface EducationItem {
   id: string;
@@ -28,7 +24,7 @@ interface EducationItem {
   bullets?: string[];
 }
 
-interface SectionSettings {
+interface EducationSectionSettings {
   showGPA?: boolean;
   showInstitution?: boolean;
   showLocation?: boolean;
@@ -40,7 +36,7 @@ interface EducationSectionProps {
   data?: EducationItem[];
   sectionId?: string;
   sectionType?: string;
-  settings?: SectionSettings;
+  settings?: EducationSectionSettings;
 }
 
 interface ConfirmDialogState {
@@ -70,7 +66,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState<string | null>(null);
 
-  const sectionSettings: Required<SectionSettings> = {
+  const sectionSettings: Required<EducationSectionSettings> = {
     showGPA: true,
     showInstitution: true,
     showLocation: true,
@@ -149,47 +145,6 @@ const EducationSection: React.FC<EducationSectionProps> = ({
     if (!date) return "";
     if (date === "Present") return "Present";
 
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    if (
-      typeof date === "object" &&
-      date.month !== undefined &&
-      date.year !== undefined
-    ) {
-      return `${months[date.month]} ${date.year}`;
-    }
-
-    if (typeof date === "string") {
-      if (months.some((m) => date.startsWith(m))) return date;
-      const parts = date.split("/");
-      if (parts.length === 2) {
-        const monthNum = parseInt(parts[0], 10) - 1;
-        if (monthNum >= 0 && monthNum < 12)
-          return `${months[monthNum]} ${parts[1]}`;
-      }
-      return date;
-    }
-
-    return "";
-  };
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="mb-4">
-        <SectionHeader title="Education" />
         <EmptyState
           title="No education added"
           description="Click to add education"

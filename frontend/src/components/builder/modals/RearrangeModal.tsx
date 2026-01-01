@@ -148,10 +148,25 @@ const RearrangeModal: React.FC = () => {
   const typedSections = (sections || []) as Section[];
   const typedSectionOrder = (sectionOrder || []) as string[];
 
+  // Create a map for quick lookup
+  const sectionMap = new Map(typedSections.map((s) => [s.id, s]));
+
+  // Build ordered sections based on typedSectionOrder
+  const orderedSections = typedSectionOrder
+    .map((id) => sectionMap.get(id))
+    .filter((s): s is Section => !!s);
+
+  // Add any sections that might be missing from the order (fallback)
+  typedSections.forEach((s) => {
+    if (!typedSectionOrder.includes(s.id)) {
+      orderedSections.push(s);
+    }
+  });
+
   const sectionsPerPage = 6;
   const pages: Section[][] = [];
-  for (let i = 0; i < typedSections.length; i += sectionsPerPage) {
-    pages.push(typedSections.slice(i, i + sectionsPerPage));
+  for (let i = 0; i < orderedSections.length; i += sectionsPerPage) {
+    pages.push(orderedSections.slice(i, i + sectionsPerPage));
   }
 
   return (

@@ -28,7 +28,7 @@ interface ConfirmDialogState {
  */
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
-  sectionId,
+  sectionId = "achievements",
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -38,7 +38,6 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   const handleFieldChange = (itemId: string, field: string, value: string) => {
-    if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
@@ -46,7 +45,6 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   };
 
   const handleAddItem = () => {
-    if (!sectionId) return;
     const newItem: AchievementItem = {
       id: `ach-${Date.now()}`,
       title: "",
@@ -56,7 +54,6 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   };
 
   const handleDeleteItem = (itemId: string) => {
-    if (!sectionId) return;
     setConfirmDialog?.({
       isOpen: true,
       title: "Delete Achievement",
