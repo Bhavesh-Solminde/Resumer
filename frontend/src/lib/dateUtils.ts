@@ -29,7 +29,10 @@ export const formatDate = (
     date.month !== undefined &&
     date.year !== undefined
   ) {
-    return `${months[date.month]} ${date.year}`;
+    if (date.month >= 0 && date.month < 12) {
+      return `${months[date.month]} ${date.year}`;
+    }
+    return `${date.year}`;
   }
 
   if (typeof date === "string") {

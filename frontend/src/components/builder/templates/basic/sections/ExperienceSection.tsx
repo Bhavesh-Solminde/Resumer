@@ -47,7 +47,7 @@ interface ConfirmDialogState {
  */
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
-  sectionId = "",
+  sectionId = "experience",
   settings = {},
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
