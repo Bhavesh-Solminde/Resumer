@@ -20,12 +20,12 @@ export interface SectionData {
 }
 
 export interface TemplateSection {
-  data: any;
+  data: unknown;
   sectionId?: string;
   settings?: Record<string, boolean>;
 }
 
-export interface TemplateSectionComponent extends React.FC<TemplateSection> {}
+export type TemplateSectionComponent = React.FC<any>;
 
 export interface Template {
   id: string;
