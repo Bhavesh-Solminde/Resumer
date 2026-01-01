@@ -28,9 +28,9 @@ Always follow these architectural and stylistic rules strictly.
 - **Component Libraries:**
   - **Shadcn UI:** Reusable atoms (Buttons, Inputs). Place in `src/components/ui`.
   - **Aceternity UI:** Complex animations (Hero, Bento Grid). Place in `src/components/ui` or `src/components/aceternity`.
-  - **Utils:** Always use the `cn()` utility for class merging: `import { cn } from "../lib/utils"` (use relative paths).
+  - **Utils:** Always use the `cn()` utility for class merging: `import { cn } from "@/lib/utils"`.
 - **Icons:** Use `lucide-react`.
-- **Imports:** Use **relative paths only**. Do NOT use `@/` alias (e.g., use `../ui/button` not `@/components/ui/button`).
+- **Imports:** Use the `@/` path alias for imports (e.g., `@/components/ui/button`, `@/lib/utils`).
 
 ### Architecture & Routing
 
