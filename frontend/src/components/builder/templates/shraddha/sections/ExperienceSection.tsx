@@ -119,7 +119,6 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -128,16 +127,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   const formatDate = (date: DateValue | string | null | undefined): string => {
     if (!date) return "";
     if (date === "Present") return "Present";
-    if (typeof date === "string") return date;
-    if ("month" in date && "year" in date) {
-      return `${date.month}/${date.year}`;
-    }
-    return "";
-  };
 
-  if (data.length === 0) {
-    return (
-      <div className="p-4">
         <EmptyState
           title="No experience added"
           description="Click to add work experience"

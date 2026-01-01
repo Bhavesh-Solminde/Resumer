@@ -20,8 +20,8 @@ export interface SectionData {
 }
 
 export interface TemplateSection {
-  data: any;
-  sectionId?: string;
+  data: SectionData;
+  sectionId: string;
   settings?: Record<string, boolean>;
 }
 

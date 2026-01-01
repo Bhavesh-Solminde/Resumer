@@ -73,7 +73,7 @@ const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
             <span className="text-gray-500 min-w-[100px]">{field.label}:</span>
             <EditableText
               value={data[field.key] || ""}
-              onChange={(val) => handleChange(field.key as string, val)}
+              onChange={(val) => handleChange(field.key, val)}
               placeholder={`Enter ${field.label.toLowerCase()}`}
               className="text-gray-700"
               as="span"
