@@ -5,7 +5,7 @@ Always follow these architectural and stylistic rules strictly.
 
 ## 1. 🚫 Critical Restrictions (Do Not Violate)
 
-- **NO TypeScript:** Use strictly **JavaScript (ES6+)**. Do not use `interface`, `type`, or `: string`.
+- **No JavaScript ** Use strictly **TypsScript**. Use `interface`, `type`, or `: string`.
 - **NO Next.js:** This is a **Vite + React Router** project.
   - ❌ No `next/image` (Use `<img>`).
   - ❌ No `next/link` (Use `Link` from `react-router-dom`).
