@@ -87,7 +87,7 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({
             <div key={item.key} className="flex items-center gap-1">
               <Icon className="w-3.5 h-3.5 text-gray-500" />
               <EditableText
-                value={item.value}
+                value={item.value || ""}
                 onChange={(val) => handleChange(item.key, val)}
                 placeholder={item.key}
                 className="text-sm"
