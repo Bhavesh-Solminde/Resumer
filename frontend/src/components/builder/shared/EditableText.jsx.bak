@@ -1,0 +1,97 @@
+import { useState, useRef, useEffect } from "react";
+import { cn } from "../../../lib/utils";
+
+/**
+ * Editable inline text component with click-to-edit functionality
+ * @param {string} value - Current text value
+ * @param {function} onChange - Callback when text changes
+ * @param {string} placeholder - Placeholder text when empty
+ * @param {string} className - Additional CSS classes
+ * @param {boolean} multiline - Enable textarea for multiline editing
+ * @param {string} as - HTML element to render (h1, h2, p, span, etc.)
+ */
+export default function EditableText({
+  value,
+  onChange,
+  placeholder = "Click to edit",
+  className = "",
+  multiline = false,
+  as = "span",
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (localValue !== value) {
+      onChange(localValue);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !multiline) {
+      e.preventDefault();
+      inputRef.current?.blur();
+    }
+    if (e.key === "Escape") {
+      setLocalValue(value);
+      setIsEditing(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setLocalValue(e.target.value);
+  };
+
+  const Tag = as;
+
+  if (isEditing) {
+    const InputComponent = multiline ? "textarea" : "input";
+    return (
+      <InputComponent
+        ref={inputRef}
+        type="text"
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className={cn(
+          "bg-transparent border-none outline-none w-full resize-none",
+          "focus:ring-1 focus:ring-blue-400 rounded px-1",
+          className
+        )}
+        rows={multiline ? 3 : undefined}
+      />
+    );
+  }
+
+  return (
+    <Tag
+      onClick={handleClick}
+      className={cn(
+        "cursor-text hover:bg-gray-100 rounded px-1 transition-colors",
+        !value && "text-gray-400 italic",
+        className
+      )}
+    >
+      {value || placeholder}
+    </Tag>
+  );
+}

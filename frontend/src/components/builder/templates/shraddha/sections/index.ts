@@ -1,0 +1,10 @@
+export { default as SectionHeader } from "./SectionHeader";
+export { default as HeaderSection } from "./HeaderSection";
+export { default as SummarySection } from "./SummarySection";
+export { default as SkillsSection } from "./SkillsSection";
+export { default as EducationSection } from "./EducationSection";
+export { default as ExperienceSection } from "./ExperienceSection";
+export { default as ProjectsSection } from "./ProjectsSection";
+export { default as AchievementsSection } from "./AchievementsSection";
+export { default as StrengthsSection } from "./StrengthsSection";
+export { default as PersonalDetailsSection } from "./PersonalDetailsSection";

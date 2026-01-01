@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Builder Prototype</title>
+    <style>
+      /* --- RESET & BASE STYLES --- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+      body {
+        height: 100vh;
+        overflow: hidden;
+        background-color: #f3f4f6;
+        display: flex;
+      }
+
+      /* --- LEFT COLUMN: EDITOR (50%) --- */
+      .editor-pane {
+        width: 50%;
+        height: 100%;
+        background: white;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
+      }
+
+      .editor-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #e5e7eb;
+        background: white;
+      }
+      .editor-header h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+      }
+      .editor-header p {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+
+      .editor-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+      }
+
+      /* Form Sections */
+      .form-group {
+        margin-bottom: 24px;
+      }
+      .form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+      .input-row {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: #2563eb;
+        outline: none;
+      }
+
+      /* DRAGGABLE SECTIONS (The "Playlist") */
+      .draggable-list {
+        margin-top: 30px;
+      }
+      .draggable-item {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+      .draggable-item.dragging {
+        opacity: 0.5;
+        border: 2px dashed #2563eb;
+      }
+
+      /* The Header of a Draggable Item */
+      .section-header {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        border-radius: 8px 8px 0 0;
+        cursor: grab; /* Shows it's draggable */
+      }
+      .drag-handle {
+        margin-right: 12px;
+        color: #9ca3af;
+        font-size: 18px;
+        cursor: grab;
+      }
+      .section-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #374151;
+        flex: 1;
+      }
+      .toggle-btn {
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 12px;
+      }
+
+      /* The Content inside (Accordion) */
+      .section-content {
+        padding: 16px;
+        display: none;
+      } /* Hidden by default */
+      .section-content.active {
+        display: block;
+      }
+
+      /* --- RIGHT COLUMN: PREVIEW (50%) --- */
+      .preview-pane {
+        width: 50%;
+        height: 100%;
+        background-color: #52525b; /* Dark gray like a PDF viewer */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+      }
+
+      /* The A4 Page */
+      .a4-page {
+        width: 100%;
+        max-width: 500px; /* Scaled down A4 */
+        aspect-ratio: 1 / 1.414;
+        background: white;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Preview Typography (Simulates the PDF) */
+      .pv-name {
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #111;
+        border-bottom: 2px solid #111;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+      }
+      .pv-contact {
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 20px;
+      }
+      .pv-section {
+        margin-bottom: 15px;
+      }
+      .pv-section-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #2563eb;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 2px;
+      }
+      .pv-item {
+        margin-bottom: 8px;
+      }
+      .pv-item-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .pv-item-sub {
+        font-size: 10px;
+        font-style: italic;
+        color: #666;
+        margin-bottom: 2px;
+      }
+      .pv-item-desc {
+        font-size: 10px;
+        color: #333;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="editor-pane">
+      <div class="editor-header">
+        <h1>Resume Builder</h1>
+        <p>Drag sections to reorder. Edits auto-save.</p>
+      </div>
+
+      <div class="editor-scroll">
+        <div class="form-group">
+          <label class="form-label">Personal Information</label>
+          <div class="input-row">
+            <input
+              type="text"
+              placeholder="Full Name"
+              value="Bhavesh Solminde"
+            />
+            <input type="email" placeholder="Email" value="bhavesh@dev.com" />
+          </div>
+          <input
+            type="text"
+            placeholder="Professional Summary"
+            value="Full Stack Engineer passionate about MERN stack..."
+          />
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0" />
+
+        <label class="form-label">Dynamic Sections (Drag to Reorder)</label>
+
+        <div class="draggable-list" id="dragList">
+          <div class="draggable-item" draggable="true">
+            <div class="section-header" onclick="toggleSection(this)">
+              <span class="drag-handle">☰</span>
+              <span class="section-title">EXPERIENCE</span>
+              <span class="toggle-btn">▼</span>
+            </div>
+            <div class="section-content">
+              <input
+                type="text"
+                placeholder="Company"
+                value="Tech Corp"
+                style="margin-bottom: 8px"
+              />
+              <input
+                type="text"
+                placeholder="Role"
+                value="Software Intern"
+                style="margin-bottom: 8px"
+              />
+              <textarea placeholder="Description" rows="3">
+Built scalable React components.</textarea
+              >
+            </div>
+          </div>
+
+          <div class="draggable-item" draggable="true">
+            <div class="section-header" onclick="toggleSection(this)">
+              <span class="drag-handle">☰</span>
+              <span class="section-title">PROJECTS</span>
+              <span class="toggle-btn">▼</span>
+            </div>
+            <div class="section-content">
+              <input
+                type="text"
+                placeholder="Project Title"
+                value="Resume Builder"
+              />
+            </div>
+          </div>
+
+          <div class="draggable-item" draggable="true">
+            <div class="section-header" onclick="toggleSection(this)">
+              <span class="drag-handle">☰</span>
+              <span class="section-title">SKILLS</span>
+              <span class="toggle-btn">▼</span>
+            </div>
+            <div class="section-content">
+              <textarea placeholder="Comma separated skills">
+React, Node.js, MongoDB, Express</textarea
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-pane">
+      <div class="a4-page" id="pdfPreview">
+        <div class="pv-header">
+          <div class="pv-name">Bhavesh Solminde</div>
+          <div class="pv-contact">bhavesh@dev.com | +91 9876543210</div>
+        </div>
+
+        <div class="pv-section" id="preview-experience">
+          <div class="pv-section-title">Experience</div>
+          <div class="pv-item">
+            <div class="pv-item-header">
+              <span>Tech Corp</span><span>2024 - Present</span>
+            </div>
+            <div class="pv-item-sub">Software Intern</div>
+            <div class="pv-item-desc">Built scalable React components...</div>
+          </div>
+        </div>
+
+        <div class="pv-section" id="preview-projects">
+          <div class="pv-section-title">Projects</div>
+          <div class="pv-item">
+            <div class="pv-item-header">
+              <span>Resume Builder</span><span>2025</span>
+            </div>
+            <div class="pv-item-desc">A SaaS platform for ATS resumes...</div>
+          </div>
+        </div>
+
+        <div class="pv-section" id="preview-skills">
+          <div class="pv-section-title">Skills</div>
+          <div class="pv-item-desc">React, Node.js, MongoDB, Express</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Simple Script to Toggle Accordions (Click to Expand)
+      function toggleSection(header) {
+        const content = header.nextElementSibling;
+        const isOpen = content.style.display === "block";
+
+        // Close all first (Accordion behavior)
+        document
+          .querySelectorAll(".section-content")
+          .forEach((el) => (el.style.display = "none"));
+
+        // Open clicked one if it wasn't open
+        if (!isOpen) {
+          content.style.display = "block";
+        }
+      }
+
+      // NOTE: Real Drag-and-Drop requires complex JS logic.
+      // In the React app, @dnd-kit handles this automatically.
+      // This is just a visual HTML mockup.
+    </script>
+  </body>
+</html>

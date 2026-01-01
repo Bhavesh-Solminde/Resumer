@@ -1,0 +1,19 @@
+{
+  "name": "resumer",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "clean": "pnpm -r run clean"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "shadcn": "^3.6.1",
+    "typescript": "^5.7.2"
+  }
+}
