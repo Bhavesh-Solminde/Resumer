@@ -17,6 +17,7 @@ interface SummarySectionProps {
  */
 const SummarySection: React.FC<SummarySectionProps> = ({
   data = "",
+  sectionId = "summary",
   sectionType = "summary",
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
@@ -24,7 +25,7 @@ const SummarySection: React.FC<SummarySectionProps> = ({
   const title = sectionType === "objective" ? "Objective" : "Summary";
 
   const handleChange = (value: string) => {
-    updateSectionData(sectionType, value);
+    updateSectionData(sectionId, { content: value });
   };
 
   if (!data) {

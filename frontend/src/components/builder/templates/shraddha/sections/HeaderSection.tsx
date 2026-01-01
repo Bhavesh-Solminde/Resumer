@@ -12,7 +12,7 @@ import { EditableText } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 
 interface HeaderData {
-  name?: string;
+  fullName?: string;
   title?: string;
   email?: string;
   phone?: string;
@@ -38,11 +38,14 @@ interface ContactItem {
  * Header Section for Shraddha template
  * Clean centered layout with contact info in a row
  */
-const HeaderSection: React.FC<HeaderSectionProps> = ({ data }) => {
+const HeaderSection: React.FC<HeaderSectionProps> = ({
+  data,
+  sectionId = "header",
+}) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
   const handleChange = (field: string, value: string) => {
-    updateSectionData("header", { [field]: value });
+    updateSectionData(sectionId, { [field]: value });
   };
 
   const contactItems: ContactItem[] = [
@@ -60,8 +63,8 @@ const HeaderSection: React.FC<HeaderSectionProps> = ({ data }) => {
     <div className="text-center mb-4">
       {/* Name */}
       <EditableText
-        value={data.name || ""}
-        onChange={(val) => handleChange("name", val)}
+        value={data.fullName || ""}
+        onChange={(val) => handleChange("fullName", val)}
         placeholder="Your Name"
         className="text-2xl font-bold text-gray-900"
         as="h1"

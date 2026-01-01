@@ -111,8 +111,13 @@ const SortableItem: React.FC<SortableItemProps> = ({ section }) => {
 };
 
 const RearrangeModal: React.FC = () => {
-  const { activePanel, setActivePanel, resumeData, reorderSections } =
-    useBuildStore();
+  const {
+    activePanel,
+    setActivePanel,
+    sections,
+    sectionOrder,
+    reorderSections,
+  } = useBuildStore();
 
   const isOpen = activePanel === "rearrange";
 
@@ -129,24 +134,24 @@ const RearrangeModal: React.FC = () => {
     if (!over || !over.id) return;
 
     if (active.id !== over.id) {
-      const sectionOrder = resumeData.sectionOrder as string[];
-      const oldIndex = sectionOrder.indexOf(active.id as string);
-      const newIndex = sectionOrder.indexOf(over.id as string);
+      const currentSectionOrder = sectionOrder as string[];
+      const oldIndex = currentSectionOrder.indexOf(active.id as string);
+      const newIndex = currentSectionOrder.indexOf(over.id as string);
 
       if (oldIndex === -1 || newIndex === -1) return;
 
-      const newOrder = arrayMove(sectionOrder, oldIndex, newIndex);
+      const newOrder = arrayMove(currentSectionOrder, oldIndex, newIndex);
       reorderSections(newOrder);
     }
   };
 
-  const sections = resumeData.sections as Section[];
-  const sectionOrder = resumeData.sectionOrder as string[];
+  const typedSections = (sections || []) as Section[];
+  const typedSectionOrder = (sectionOrder || []) as string[];
 
   const sectionsPerPage = 6;
   const pages: Section[][] = [];
-  for (let i = 0; i < sections.length; i += sectionsPerPage) {
-    pages.push(sections.slice(i, i + sectionsPerPage));
+  for (let i = 0; i < typedSections.length; i += sectionsPerPage) {
+    pages.push(typedSections.slice(i, i + sectionsPerPage));
   }
 
   return (
@@ -168,7 +173,7 @@ const RearrangeModal: React.FC = () => {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={sectionOrder}
+              items={typedSectionOrder}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-6">

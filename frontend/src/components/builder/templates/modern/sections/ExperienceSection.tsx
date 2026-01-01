@@ -52,6 +52,7 @@ interface ConfirmDialogState {
  */
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
+  sectionId = "experience",
   settings = {},
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
@@ -74,14 +75,14 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, bullets } : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAddItem = () => {
@@ -94,7 +95,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
       endDate: null,
       bullets: [""],
     };
-    updateSectionData("experience", [...data, newItem]);
+    updateSectionData(sectionId, { items: [...data, newItem] });
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -103,10 +104,9 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
       title: "Delete Experience Entry",
       message: "Are you sure you want to delete this entry?",
       onConfirm: () => {
-        updateSectionData(
-          "experience",
-          data.filter((item) => item.id !== itemId)
-        );
+        updateSectionData(sectionId, {
+          items: data.filter((item) => item.id !== itemId),
+        });
         setConfirmDialog?.({ isOpen: false });
       },
       onCancel: () => setConfirmDialog?.({ isOpen: false }),

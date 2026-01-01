@@ -1,5 +1,6 @@
 import React from "react";
-import { useBuildStore, useResumeData } from "../../store/Build.store";
+import { useShallow } from "zustand/react/shallow";
+import { useBuildStore } from "../../store/Build.store";
 import { cn } from "../../lib/utils";
 import { getSectionComponent, DEFAULT_TEMPLATE } from "./templates";
 import { ConfirmDialog } from "./shared";
@@ -53,18 +54,20 @@ const fontSizeMap: Record<string, string> = {
 
 const ResumeEditor: React.FC = () => {
   const { confirmDialog, setConfirmDialog } = useBuildStore();
-  const resumeData = useResumeData();
+
   const {
     sections,
     theme,
     template = DEFAULT_TEMPLATE,
     sectionSettings = {},
-  } = resumeData as {
-    sections: Section[];
-    theme: Theme;
-    template?: string;
-    sectionSettings?: Record<string, unknown>;
-  };
+  } = useBuildStore(
+    useShallow((state) => ({
+      sections: state.sections,
+      theme: state.theme,
+      template: state.template,
+      sectionSettings: state.sectionSettings,
+    }))
+  );
 
   // Normalize data format for template sections
   const normalizeData = (sectionType: string, rawData: unknown): unknown => {
@@ -82,8 +85,16 @@ const ResumeEditor: React.FC = () => {
       if (data.categories !== undefined) {
         return rawData;
       }
-      if (data.items !== undefined) {
-        return data.items;
+      if (data.items !== undefined && Array.isArray(data.items)) {
+        // Transform flat items to a default category for templates that expect categories
+        return {
+          categories: [
+            {
+              name: "General",
+              items: data.items,
+            },
+          ],
+        };
       }
       return rawData;
     }

@@ -30,11 +30,12 @@ interface FieldConfig {
  */
 const PersonalDetailsSection: React.FC<PersonalDetailsSectionProps> = ({
   data = {},
+  sectionId = "personalDetails",
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
   const handleChange = (field: string, value: string) => {
-    updateSectionData("personalDetails", { ...data, [field]: value });
+    updateSectionData(sectionId, { ...data, [field]: value });
   };
 
   const fields: FieldConfig[] = [

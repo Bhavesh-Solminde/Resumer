@@ -4,7 +4,7 @@ import { EditableText } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 
 interface HeaderData {
-  name?: string;
+  fullName?: string;
   title?: string;
   email?: string;
   phone?: string;
@@ -23,19 +23,22 @@ interface HeaderSectionProps {
  * Header Section for Modern template
  * Left-aligned with accent border
  */
-const HeaderSection: React.FC<HeaderSectionProps> = ({ data }) => {
+const HeaderSection: React.FC<HeaderSectionProps> = ({
+  data,
+  sectionId = "header",
+}) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
   const handleChange = (field: string, value: string) => {
-    updateSectionData("header", { [field]: value });
+    updateSectionData(sectionId, { [field]: value });
   };
 
   return (
     <div className="mb-6 pb-4 border-l-4 border-indigo-600 pl-4">
       {/* Name */}
       <EditableText
-        value={data.name || ""}
-        onChange={(val) => handleChange("name", val)}
+        value={data.fullName || ""}
+        onChange={(val) => handleChange("fullName", val)}
         placeholder="Your Name"
         className="text-3xl font-bold text-gray-900"
         as="h1"

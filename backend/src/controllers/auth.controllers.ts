@@ -59,14 +59,16 @@ const generateAccessAndRefreshTokens = async (
 const getAccessCookieOptions = () => ({
   httpOnly: true,
   secure: ENV.NODE_ENV === "production",
-  sameSite: (ENV.NODE_ENV === "production" ? "strict" : "lax") as const,
+  sameSite:
+    ENV.NODE_ENV === "production" ? ("strict" as const) : ("lax" as const),
   maxAge: 60 * 60 * 1000, // 1 hour
 });
 
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
   secure: ENV.NODE_ENV === "production",
-  sameSite: (ENV.NODE_ENV === "production" ? "strict" : "lax") as const,
+  sameSite:
+    ENV.NODE_ENV === "production" ? ("strict" as const) : ("lax" as const),
   maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
 });
 

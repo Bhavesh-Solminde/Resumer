@@ -207,8 +207,13 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId }) => {
 };
 
 const TemplatesModal: React.FC = () => {
-  const { activePanel, setActivePanel, templates, resumeData, changeTemplate } =
-    useBuildStore();
+  const {
+    activePanel,
+    setActivePanel,
+    registeredTemplates,
+    template,
+    changeTemplate,
+  } = useBuildStore();
 
   const isOpen = activePanel === "templates";
 
@@ -216,7 +221,9 @@ const TemplatesModal: React.FC = () => {
     changeTemplate(templateId);
   };
 
-  const templateList = Object.values(templates as Record<string, Template>);
+  const templateList = Object.values(
+    (registeredTemplates || {}) as Record<string, Template>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setActivePanel(null)}>
@@ -232,13 +239,13 @@ const TemplatesModal: React.FC = () => {
 
         <div className="overflow-y-auto flex-1 py-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {templateList.map((template) => {
-              const isSelected = resumeData.template === template.id;
+            {templateList.map((tmpl) => {
+              const isSelected = template === tmpl.id;
 
               return (
                 <button
-                  key={template.id}
-                  onClick={() => handleSelectTemplate(template.id)}
+                  key={tmpl.id}
+                  onClick={() => handleSelectTemplate(tmpl.id)}
                   className={cn(
                     "group relative rounded-xl overflow-hidden border-2 transition-all duration-200",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
@@ -248,7 +255,7 @@ const TemplatesModal: React.FC = () => {
                   )}
                 >
                   <div className="aspect-[3/4] bg-white relative">
-                    <TemplatePreview templateId={template.id} />
+                    <TemplatePreview templateId={tmpl.id} />
                     {isSelected && (
                       <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                         <Check className="h-4 w-4 text-primary-foreground" />
@@ -263,7 +270,7 @@ const TemplatesModal: React.FC = () => {
                         : "bg-muted text-foreground"
                     )}
                   >
-                    {template.name}
+                    {tmpl.name}
                   </div>
                 </button>
               );

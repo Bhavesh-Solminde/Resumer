@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Plus,
-  Type,
-  Calendar,
-  Trash2,
-  Settings,
-  GripVertical,
-} from "lucide-react";
+import { Plus, Type, Calendar, Trash2, Settings } from "lucide-react";
 import { cn } from "../../../lib/utils";
 
 type ToolbarPosition = "top" | "right" | "left";
@@ -17,13 +10,11 @@ interface ItemToolbarProps {
   onOpenCalendar?: () => void;
   onDelete?: () => void;
   onSettings?: () => void;
-  onDragStart?: () => void;
   showAddEntry?: boolean;
   showToggleText?: boolean;
   showCalendar?: boolean;
   showDelete?: boolean;
   showSettings?: boolean;
-  showDragHandle?: boolean;
   className?: string;
   position?: ToolbarPosition;
 }
@@ -40,13 +31,11 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
   onOpenCalendar,
   onDelete,
   onSettings,
-  onDragStart,
   showAddEntry = true,
   showToggleText = false,
   showCalendar = true,
   showDelete = true,
   showSettings = false,
-  showDragHandle = true,
   className = "",
   position = "top",
 }) => {
@@ -58,17 +47,6 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
         className
       )}
     >
-      {/* Drag Handle */}
-      {showDragHandle && (
-        <button
-          onMouseDown={onDragStart}
-          className="p-1.5 rounded hover:bg-gray-100 cursor-grab active:cursor-grabbing"
-          title="Drag to reorder"
-        >
-          <GripVertical className="w-3.5 h-3.5 text-gray-500" />
-        </button>
-      )}
-
       {/* Add Entry */}
       {showAddEntry && (
         <button
