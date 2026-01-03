@@ -9,7 +9,6 @@ import type { StateCreator } from "zustand";
 import type {
   Section,
   SectionType,
-  ISectionSettings,
   SectionSettingsMap,
 } from "@resumer/shared-types";
 import type { BuildState, BuildActions } from "../Build.store";
@@ -39,11 +38,13 @@ export interface ResumeDataActions {
   ) => void;
 
   // Section Settings
-  updateSectionSettings: (
-    sectionType: string,
-    settings: Partial<ISectionSettings>
+  updateSectionSettings: <K extends keyof SectionSettingsMap>(
+    sectionType: K,
+    settings: Partial<SectionSettingsMap[K]>
   ) => void;
-  getSectionSettings: (sectionType: string) => ISectionSettings;
+  getSectionSettings: <K extends keyof SectionSettingsMap>(
+    sectionType: K
+  ) => SectionSettingsMap[K];
 
   // Item management within sections
   addItemToSection: (sectionType: string, newItem: unknown) => void;
@@ -71,6 +72,11 @@ export interface ResumeDataActions {
 // ============================================================================
 
 export const createDefaultSectionSettings = (): SectionSettingsMap => ({
+  header: {
+    showPhoto: false,
+    showSocialIcons: true,
+    layout: "left",
+  },
   education: {
     showGPA: true,
     showLocation: true,
@@ -182,6 +188,7 @@ export const createResumeDataSlice: StateCreator<
   // Get section settings
   getSectionSettings: (sectionType) => {
     const { sectionSettings } = get();
+    // @ts-ignore - Dynamic access is safe here due to generic constraints
     return sectionSettings[sectionType] || {};
   },
 

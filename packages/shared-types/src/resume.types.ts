@@ -38,18 +38,69 @@ export const DEFAULT_THEME: ITheme = {
 // Section Settings
 // ============================================================================
 
-export interface ISectionSettings {
-  showTitle?: boolean;
-  showDates?: boolean;
-  showLocation?: boolean;
-  showDescription?: boolean;
-  showBullets?: boolean;
-  showIcons?: boolean;
-  columns?: number;
+export interface BaseSectionSettings {
+  isVisible?: boolean;
+  title?: string;
   [key: string]: boolean | number | string | undefined;
 }
 
-export type SectionSettingsMap = Record<string, ISectionSettings>;
+export interface EducationSettings extends BaseSectionSettings {
+  showGPA?: boolean;
+  showLocation?: boolean;
+  showDates?: boolean;
+  showDescription?: boolean;
+}
+
+export interface ExperienceSettings extends BaseSectionSettings {
+  showBullets?: boolean;
+  showLocation?: boolean;
+  showDates?: boolean;
+  showDescription?: boolean;
+  showCompanyLogo?: boolean;
+}
+
+export interface ProjectsSettings extends BaseSectionSettings {
+  showDate?: boolean;
+  showLink?: boolean;
+  showBullets?: boolean;
+  showTechnologies?: boolean;
+}
+
+export interface SkillsSettings extends BaseSectionSettings {
+  showCategories?: boolean;
+  showProficiency?: boolean;
+  layout?: "grid" | "list" | "tags";
+}
+
+export interface HeaderSettings extends BaseSectionSettings {
+  showPhoto?: boolean;
+  showSocialIcons?: boolean;
+  layout?: "left" | "center" | "right";
+}
+
+export interface CustomSectionSettings extends BaseSectionSettings {
+  showDescription?: boolean;
+}
+
+export type AnySectionSettings =
+  | EducationSettings
+  | ExperienceSettings
+  | ProjectsSettings
+  | SkillsSettings
+  | HeaderSettings
+  | CustomSectionSettings;
+
+// Alias for backward compatibility, but AnySectionSettings is preferred
+export type ISectionSettings = AnySectionSettings;
+
+export interface SectionSettingsMap {
+  education: EducationSettings;
+  experience: ExperienceSettings;
+  projects: ProjectsSettings;
+  skills: SkillsSettings;
+  header: HeaderSettings;
+  [key: string]: AnySectionSettings;
+}
 
 // ============================================================================
 // Template Types
