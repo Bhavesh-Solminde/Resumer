@@ -14,12 +14,12 @@ You are powered by a High-Reasoning Model. Do not be lazy. Be architectural.
 2.  **Context Strategy (High-Capacity):**
 
     - **READ FULL FILES:** You have a massive context window. **Always read the entire file** (`read_file`) before editing to ensure you see imports, types, and exported interfaces.
-    - **Cross-Reference:** Use `grep_search` to find where the component is used in `frontend` or `backend` before modifying it.
+    - **Cross-Reference:** Before modifying code, perform a project-wide search (for example, via your editor’s search or a CLI tool like `grep`/`rg`) to find where the component , function, or type is used in `frontend` or `backend` .
 
 3.  **Strict File Editing:**
-    - **Tool:** Use `insert_edit_into_file`.
-    - **Precision:** Although the tool allows `// ...existing code...`, **minimize its use**. Provide enough context (10-15 lines) around your changes so the insertion is unambiguous.
-    - **Verification:** After every edit, you MUST run `get_errors` to verify strict TypeScript compliance.
+    - **Edits:** Apply changes using your environment’s structured editing or patch mechanism (for example, providing clear before/after code blocks) rather than ad-hoc snippets.
+    - **Precision:** Even if your editing tooling allows placeholders like `// ...existing code...`, **minimize their use**. Provide enough surrounding context (10–15 lines) around your changes so the insertion is unambiguous.
+    - **Verification:** After every edit, ensure the project still type-checks and builds (for example, by running the appropriate TypeScript, lint, and test commands for this repository).
 
 ---
 
