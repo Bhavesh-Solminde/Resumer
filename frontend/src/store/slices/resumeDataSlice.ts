@@ -11,7 +11,6 @@ import type {
   SectionType,
   ISectionSettings,
   SectionSettingsMap,
-  SectionTemplateMap,
 } from "@resumer/shared-types";
 import type { BuildState, BuildActions } from "../Build.store";
 
