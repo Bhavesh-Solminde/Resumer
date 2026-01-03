@@ -26,17 +26,17 @@ import type {
 
 import {
   createResumeDataSlice,
-  createThemeSlice,
+  createStylingSlice,
   createTemplatesSlice,
   createUISlice,
   createDefaultSectionSettings,
-  defaultTheme,
+  defaultStyle,
   defaultTemplates,
   createSectionTemplates,
   type ResumeDataState,
   type ResumeDataActions,
-  type ThemeState,
-  type ThemeActions,
+  type StylingState,
+  type StylingActions,
   type TemplatesState,
   type TemplatesActions,
   type UIState,
@@ -48,11 +48,11 @@ import {
 // ============================================================================
 
 export type BuildState = ResumeDataState &
-  ThemeState &
+  StylingState &
   TemplatesState &
   UIState;
 export type BuildActions = ResumeDataActions &
-  ThemeActions &
+  StylingActions &
   TemplatesActions &
   UIActions;
 
@@ -62,14 +62,14 @@ export type BuildActions = ResumeDataActions &
 
 type TemporalState = Pick<
   BuildState,
-  "sections" | "sectionOrder" | "sectionSettings" | "theme"
+  "sections" | "sectionOrder" | "sectionSettings" | "style"
 >;
 
 // ============================================================================
 // Default Sections Factory
 // ============================================================================
 
-const createDefaultSections = (): Section[] => {
+const generateStarterSections = (): Section[] => {
   const headerSection: Section = {
     id: "header",
     type: "header",
@@ -173,8 +173,8 @@ const createDefaultSections = (): Section[] => {
 // Initial State Factory
 // ============================================================================
 
-const createInitialState = (): BuildState => {
-  const sections = createDefaultSections();
+const initializeBuilderState = (): BuildState => {
+  const sections = generateStarterSections();
   return {
     // Resume Data
     sections,
@@ -182,7 +182,7 @@ const createInitialState = (): BuildState => {
     sectionSettings: createDefaultSectionSettings(),
 
     // Theme
-    theme: { ...defaultTheme },
+    style: { ...defaultStyle },
 
     // Templates
     template: "basic",
@@ -206,11 +206,11 @@ interface ResumeDataComputed {
   sections: Section[];
   sectionOrder: string[];
   sectionSettings: SectionSettingsMap;
-  theme: ITheme;
+  style: ITheme;
   template: TemplateId;
 }
 
-interface BackwardCompatActions {
+interface UndoActions {
   /** @deprecated Use useTemporalStore().undo() */
   undo: () => void;
   /** @deprecated Use useTemporalStore().redo() */
@@ -225,17 +225,15 @@ interface BackwardCompatActions {
 // Store Creation with Temporal Middleware
 // ============================================================================
 
-export const useBuildStore = create<
-  BuildState & BuildActions & BackwardCompatActions
->()(
+export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
   temporal(
     (set, get, api) => {
       // Get initial state
-      const initialState = createInitialState();
+      const initialState = initializeBuilderState();
 
       // Create slices (they use the same set/get)
       const resumeDataSlice = createResumeDataSlice(set, get, api);
-      const themeSlice = createThemeSlice(set, get, api);
+      const stylingSlice = createStylingSlice(set, get, api);
       const templatesSlice = createTemplatesSlice(set, get, api);
       const uiSlice = createUISlice(set, get, api);
 
@@ -245,7 +243,7 @@ export const useBuildStore = create<
 
         // Spread slice actions (override initial state values)
         ...resumeDataSlice,
-        ...themeSlice,
+        ...stylingSlice,
         ...templatesSlice,
         ...uiSlice,
 
@@ -263,7 +261,7 @@ export const useBuildStore = create<
         sections: state.sections,
         sectionOrder: state.sectionOrder,
         sectionSettings: state.sectionSettings,
-        theme: state.theme,
+        style: state.style,
       }),
       // Limit history size
       limit: 50,
@@ -326,7 +324,7 @@ export const useResumeData = () =>
       sections: state.sections,
       sectionOrder: state.sectionOrder,
       sectionSettings: state.sectionSettings,
-      theme: state.theme,
+      style: state.style,
       template: state.template,
     }))
   );

@@ -1,12 +1,12 @@
 /**
- * Theme Slice
+ * Styling Slice
  * Handles theme settings (colors, fonts, spacing, etc.)
  * This slice is tracked by temporal middleware for undo/redo
  */
 
 import type { StateCreator } from "zustand";
 import type {
-  ITheme,
+  ITheme as IStyle,
   FontSize,
   BackgroundPattern,
 } from "@resumer/shared-types";
@@ -16,24 +16,24 @@ import type { BuildState, BuildActions } from "../Build.store";
 // State Interface
 // ============================================================================
 
-export interface ThemeState {
-  theme: ITheme;
+export interface StylingState {
+  style: IStyle;
 }
 
 // ============================================================================
 // Actions Interface
 // ============================================================================
 
-export interface ThemeActions {
-  updateTheme: (themeUpdates: Partial<ITheme>) => void;
-  resetTheme: () => void;
+export interface StylingActions {
+  updateStyle: (styleUpdates: Partial<IStyle>) => void;
+  resetStyle: () => void;
 }
 
 // ============================================================================
 // Default Theme
 // ============================================================================
 
-export const defaultTheme: ITheme = {
+export const defaultStyle: IStyle = {
   primaryColor: "#1e3a5f",
   accentColor: "#3b82f6",
   fontFamily: "Inter",
@@ -48,28 +48,28 @@ export const defaultTheme: ITheme = {
 // Slice Creator
 // ============================================================================
 
-export const createThemeSlice: StateCreator<
+export const createStylingSlice: StateCreator<
   BuildState & BuildActions,
   [],
   [],
-  ThemeActions
+  StylingActions
 > = (set, get) => ({
   // Initial state removed to prevent overriding Build.store.ts defaults
-  // theme: { ...defaultTheme },
+  // style: { ...defaultStyle },
 
   // Update theme settings
-  updateTheme: (themeUpdates) => {
-    const { theme } = get();
+  updateStyle: (styleUpdates) => {
+    const { style } = get();
 
     set({
-      theme: { ...theme, ...themeUpdates },
+      style: { ...style, ...styleUpdates },
     });
   },
 
   // Reset theme to defaults
-  resetTheme: () => {
+  resetStyle: () => {
     set({
-      theme: { ...defaultTheme },
+      style: { ...defaultStyle },
     });
   },
 });

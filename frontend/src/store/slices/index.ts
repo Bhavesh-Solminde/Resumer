@@ -8,8 +8,8 @@ export {
 } from "./resumeDataSlice";
 export type { ResumeDataState, ResumeDataActions } from "./resumeDataSlice";
 
-export { createThemeSlice, defaultTheme } from "./themeSlice";
-export type { ThemeState, ThemeActions } from "./themeSlice";
+export { createStylingSlice, defaultStyle } from "./stylingSlice";
+export type { StylingState, StylingActions } from "./stylingSlice";
 
 export {
   createTemplatesSlice,
