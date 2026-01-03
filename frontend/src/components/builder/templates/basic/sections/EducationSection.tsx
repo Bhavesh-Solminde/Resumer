@@ -128,7 +128,8 @@ const EducationSection: React.FC<EducationSectionProps> = ({
 
   const handleSettingsChange = (key: string, value: boolean) => {
     if (!sectionType) return;
-    updateSectionSettings(sectionType, { [key]: value });
+    // Cast key to specific settings key for type safety
+    updateSectionSettings("education", { [key]: value } as any);
   };
 
   const formatDate = (date: DateValue | string | null | undefined): string => {
