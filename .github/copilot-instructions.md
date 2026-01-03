@@ -1,59 +1,75 @@
-# 🤖 Copilot Instructions for "Resumer" Project
+# 🤖 Project Instructions: "Resumer" (Gemini 3 / Opus 4.5 Edition)
 
-You are an expert AI developer working on "Resumer," an AI-powered resume optimizer.
-Always follow these architectural and stylistic rules strictly.
+You are an expert AI developer working on **"Resumer"** (Resume Optimizer).
+You are powered by a High-Reasoning Model. Do not be lazy. Be architectural.
 
-## 1. 🚫 Critical Restrictions (Do Not Violate)
+## 0. 🧠 Reasoning & Planning (MANDATORY)
 
-- **NO Javascript:** Use strictly **TypeScript**. use `interface`, `generics`, `type` or `: string`.
-- **NO Next.js:** This is a **Vite + React Router** project.
-  - ❌ No `next/image` (Use `<img>`).
-  - ❌ No `next/link` (Use `Link` from `react-router-dom`).
-  - ❌ No `next/navigation` (Use `react-router-dom` hooks).
-- **NO CommonJS:** Use **ES Modules** (`import/export`) exclusively, even in the Backend.
+1.  **Chain of Thought:**
 
-## 2. 📂 Project Structure (Monorepo)
+    - **STOP & THINK:** Before writing a single line of code, analyze the dependency tree.
+    - **Plan First:** If a task touches >1 file, outline your plan in 3 bullet points before executing.
+    - **No "Lazy" Fixes:** Do not just patch the error. Fix the root cause.
 
-- **Frontend:** `./frontend` (React 19, Vite, Tailwind v4)
-- **Backend:** `./backend` (Node, Express, ES Modules)
-  _Context Awareness:_ Before generating code, check if the user is asking about the Frontend or Backend.
+2.  **Context Strategy (High-Capacity):**
+
+    - **READ FULL FILES:** You have a massive context window. **Always read the entire file** (`read_file`) before editing to ensure you see imports, types, and exported interfaces.
+    - **Cross-Reference:** Use `grep_search` to find where the component is used in `frontend` or `backend` before modifying it.
+
+3.  **Strict File Editing:**
+    - **Tool:** Use `insert_edit_into_file`.
+    - **Precision:** Although the tool allows `// ...existing code...`, **minimize its use**. Provide enough context (10-15 lines) around your changes so the insertion is unambiguous.
+    - **Verification:** After every edit, you MUST run `get_errors` to verify strict TypeScript compliance.
 
 ---
 
-## 3. 🎨 Frontend Rules (React 19 + Vite)
+## 1. 📂 Monorepo Architecture
 
-### UI & Styling
+- **Root:** `pnpm` workspaces (No Docker).
+- **Frontend:** `./frontend` (React 18.3.1, Vite, Tailwind v4).
+- **Backend:** `./backend` (Node, Express, ES Modules).
+- **Shared:** `packages/shared-types` (linked via `workspace:*`).
 
-- **Styling Engine:** Tailwind CSS v4.
-- **Component Libraries:**
-  - **Shadcn UI:** Reusable atoms (Buttons, Inputs). Place in `src/components/ui`.
-  - **Aceternity UI:** Complex animations (Hero, Bento Grid). Place in `src/components/ui` or `src/components/aceternity`.
-  - **Utils:** Always use the `cn()` utility for class merging: `import { cn } from "@/lib/utils"`.
-- **Icons:** Use `lucide-react`.
-- **Imports:** Use the `@/` path alias for imports (e.g., `@/components/ui/button`, `@/lib/utils`).
+**Rule:** explicit check—Are we in `frontend` or `backend`? Do not mix imports.
 
-### Architecture & Routing
+---
 
-- **Routing:** Use `react-router-dom` v7.
-- **Dev Server:** Frontend always runs on `localhost:5173`. Do NOT use other ports.
-- **Directories:**
-  - `src/components/ui`: Shadcn/Aceternity base components.
-  - `src/pages`: Full page views.
-  - `src/layouts`: Layout wrappers (Navbar/Footer).
-- **Naming:**
-  - Components: PascalCase (`ResumeAnalysis.tsx`).
-  - Hooks: camelCase (`useResumeScore.ts`).
+## 2. 🚫 Critical Tech Restrictions
+
+- **Language:** **TypeScript ONLY.** Strict Mode (`interface`, `type`).
+- **Modules:** **ES Modules** (`import` / `export`) everywhere. NO `require`.
+- **Framework:** **Vite + React Router** (Not Next.js).
+  - ❌ No `next/*` imports.
+  - ✅ Use `react-router-dom` hooks (`useNavigate`, `useParams`).
+
+---
+
+## 3. 🎨 Frontend Rules (Vite + React 18)
+
+- **State:**
+  - **Zustand:** Global store.
+  - **Zundo:** Temporal middleware for Undo/Redo.
+- **UI Engine:** Tailwind CSS v4 + `clsx`/`tailwind-merge` (via `cn()` utility).
+- **Components:**
+  - **Shadcn UI:** Atoms in `@/components/ui`.
+  - **Aceternity:** Complex layouts.
+- **Async:** Use `TanStack Query` (React Query) for data fetching if needed, or native `fetch` inside `useEffect` for simple tasks.
 
 ---
 
 ## 4. ⚙️ Backend Rules (Node + Express)
 
-### Architecture
-
-- **Pattern:** MVC (Controller-Route pattern).
-- **Module System:** **ES Modules** (`import` / `export default`). Do NOT use `require()`.
-- **Error Handling:** **MANDATORY**: Wrap all async controller functions in `asyncHandler`.
-  ```javascript
-  // Example
-  export const analyzeResume = asyncHandler(async (req, res) => { ... });
+- **Controller Pattern:**
+  ```typescript
+  // MANDATORY: Wrap all controllers
+  export const handler = asyncHandler(async (req: Request, res: Response) => { ... });
   ```
+- **Validation:** `zod` schemas for all inputs.
+- **Database:** Mongoose with strict Schema <-> Interface parity.
+
+---
+
+## 5. 🛠 Deployment
+
+- **Frontend:** Vercel (`pnpm build`).
+- **Backend:** Render (`pnpm --filter backend build`).
