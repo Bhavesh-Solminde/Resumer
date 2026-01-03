@@ -29,9 +29,7 @@ const modernTemplate: Template = {
     experience: ExperienceSection,
     projects: ProjectsSection,
     skills: SkillsSection,
-    technicalSkills: SkillsSection,
     summary: SummarySection,
-    objective: SummarySection,
     achievements: AchievementsSection,
   },
 

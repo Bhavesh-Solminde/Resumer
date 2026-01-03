@@ -32,9 +32,7 @@ const basicTemplate = {
     experience: ExperienceSection,
     projects: ProjectsSection,
     skills: SkillsSection,
-    technicalSkills: SkillsSection,
     summary: SummarySection,
-    objective: SummarySection,
     achievements: AchievementsSection,
   },
 

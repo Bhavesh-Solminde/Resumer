@@ -120,22 +120,6 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
       ],
     },
   },
-  volunteering: {
-    type: "volunteering",
-    label: "Volunteering",
-    icon: "Heart",
-    data: {
-      items: [
-        {
-          id: uuidv4(),
-          role: "Volunteer Role",
-          organization: "Organization Name",
-          date: "MM/YYYY - MM/YYYY",
-          description: "Description of your volunteer work.",
-        },
-      ],
-    },
-  },
   awards: {
     type: "awards",
     label: "Awards",
@@ -150,14 +134,6 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
           description: "",
         },
       ],
-    },
-  },
-  interests: {
-    type: "interests",
-    label: "Interests",
-    icon: "Sparkles",
-    data: {
-      items: ["Interest 1", "Interest 2", "Interest 3"],
     },
   },
   references: {
@@ -189,21 +165,6 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
           publisher: "Publisher",
           date: "MM/YYYY",
           link: "",
-        },
-      ],
-    },
-  },
-  courses: {
-    type: "courses",
-    label: "Training / Courses",
-    icon: "GraduationCap",
-    data: {
-      items: [
-        {
-          id: uuidv4(),
-          name: "Course Name",
-          provider: "Provider",
-          date: "MM/YYYY",
         },
       ],
     },
@@ -243,45 +204,12 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
     icon: "Medal",
     data: {
       items: [
-        { id: uuidv4(), description: "Achievement 1" },
-        { id: uuidv4(), description: "Achievement 2" },
-      ],
-    },
-  },
-  personalDetails: {
-    type: "personalDetails",
-    label: "Personal Details",
-    icon: "User",
     data: {
       dob: "",
       languages: "",
       hobbies: "",
       address: "",
-    },
-  },
-  technicalSkills: {
-    type: "technicalSkills",
-    label: "Technical Skills",
-    icon: "Code",
-    data: {
-      categories: [
-        { id: uuidv4(), name: "Frontend", skills: "HTML5, CSS3, JavaScript" },
-        { id: uuidv4(), name: "Backend", skills: "Node.js, Express.js" },
-        { id: uuidv4(), name: "Databases", skills: "MySQL, MongoDB" },
-        { id: uuidv4(), name: "Tools", skills: "Git, VS Code" },
-      ],
-    },
-  },
-  custom: {
-    type: "custom",
-    label: "Custom Section",
-    icon: "Plus",
-    data: {
-      title: "Custom Section",
-      content: "Add your custom content here.",
-    },
-  },
-});
+  ;
 
 // ============================================================================
 // Slice Creator

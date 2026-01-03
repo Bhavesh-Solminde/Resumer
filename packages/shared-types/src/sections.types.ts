@@ -16,18 +16,12 @@ export type SectionType =
   | "projects"
   | "certifications"
   | "languages"
-  | "volunteering"
   | "awards"
-  | "interests"
   | "references"
   | "publications"
-  | "courses"
   | "socialLinks"
   | "strengths"
-  | "objective"
   | "achievements"
-  | "personalDetails"
-  | "technicalSkills"
   | "custom";
 
 // ============================================================================
@@ -109,13 +103,6 @@ export interface ILanguageItem extends IItemBase {
   proficiency: string;
 }
 
-export interface IVolunteeringItem extends IItemBase {
-  role: string;
-  organization: string;
-  date: string;
-  description: string;
-}
-
 export interface IAwardItem extends IItemBase {
   title: string;
   issuer: string;
@@ -145,13 +132,7 @@ export interface ICourseItem extends IItemBase {
 }
 
 export interface ISocialLinkItem extends IItemBase {
-  platform: string;
-  url: string;
-}
-
-export interface IAchievementItem extends IItemBase {
-  description: string;
-}
+  platform: string
 
 export interface ITechnicalSkillCategory extends IItemBase {
   name: string;
@@ -159,23 +140,7 @@ export interface ITechnicalSkillCategory extends IItemBase {
 }
 
 export interface IPersonalDetailsData {
-  dob: string;
-  languages: string;
-  hobbies: string;
-  address: string;
-}
-
-export interface IObjectiveData {
-  content: string;
-}
-
-export interface ICustomSectionData {
-  title: string;
-  content: string;
-}
-
-// ============================================================================
-// Discriminated Union Section Types
+  dob: string;nion Section Types
 // ============================================================================
 
 export interface IHeaderSection extends ISectionBase {
@@ -253,14 +218,7 @@ export interface IInterestsSection extends ISectionBase {
 }
 
 export interface IReferencesSection extends ISectionBase {
-  type: "references";
-  data: {
-    items: IReferenceItem[];
-  };
-}
-
-export interface IPublicationsSection extends ISectionBase {
-  type: "publications";
+  type: "referenceons";
   data: {
     items: IPublicationItem[];
   };
@@ -268,13 +226,6 @@ export interface IPublicationsSection extends ISectionBase {
 
 export interface ICoursesSection extends ISectionBase {
   type: "courses";
-  data: {
-    items: ICourseItem[];
-  };
-}
-
-export interface ISocialLinksSection extends ISectionBase {
-  type: "socialLinks";
   data: {
     items: ISocialLinkItem[];
   };
@@ -297,23 +248,11 @@ export interface IAchievementsSection extends ISectionBase {
   data: {
     items: IAchievementItem[];
   };
-}
-
-export interface IPersonalDetailsSection extends ISectionBase {
-  type: "personalDetails";
-  data: IPersonalDetailsData;
-}
-
 export interface ITechnicalSkillsSection extends ISectionBase {
   type: "technicalSkills";
   data: {
     categories: ITechnicalSkillCategory[];
-  };
-}
-
-export interface ICustomSection extends ISectionBase {
-  type: "custom";
-  data: ICustomSectionData;
+  };tionData;
 }
 
 // ============================================================================
@@ -325,19 +264,7 @@ export interface ICustomSection extends ISectionBase {
  * Use with type guards for type-safe section handling:
  *
  * @example
- * function renderSection(section: Section) {
- *   switch (section.type) {
- *     case 'header':
- *       // TypeScript knows section.data is IHeaderData
- *       return <Header name={section.data.fullName} />;
- *     case 'experience':
- *       // TypeScript knows section.data.items is IExperienceItem[]
- *       return <Experience items={section.data.items} />;
- *   }
- * }
- */
-export type Section =
-  | IHeaderSection
+ * function render
   | ISummarySection
   | IExperienceSection
   | IEducationSection
@@ -371,3 +298,9 @@ export interface ISectionTemplate {
 }
 
 export type SectionTemplateMap = Partial<Record<SectionType, ISectionTemplate>>;
+AwardsSection
+  | IReferencesSection
+  | IPublicationsSection
+  | ISocialLinksSection
+  | IStrengthsSection
+  | IAchievement

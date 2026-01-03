@@ -13,7 +13,6 @@ import SkillsSection from "./sections/SkillsSection";
 import SummarySection from "./sections/SummarySection";
 import AchievementsSection from "./sections/AchievementsSection";
 import StrengthsSection from "./sections/StrengthsSection";
-import PersonalDetailsSection from "./sections/PersonalDetailsSection";
 
 // Preview component for template selection
 import TemplatePreview from "./TemplatePreview";
@@ -37,12 +36,9 @@ const shraddhaTemplate: Template = {
     experience: ExperienceSection,
     projects: ProjectsSection,
     skills: SkillsSection,
-    technicalSkills: SkillsSection, // Alias
     summary: SummarySection,
-    objective: SummarySection, // Uses same component
     achievements: AchievementsSection,
     strengths: StrengthsSection,
-    personalDetails: PersonalDetailsSection,
   },
 
   sampleData,
