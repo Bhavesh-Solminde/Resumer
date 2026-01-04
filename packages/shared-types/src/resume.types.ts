@@ -41,7 +41,6 @@ export const DEFAULT_THEME: ITheme = {
 export interface BaseSectionSettings {
   isVisible?: boolean;
   title?: string;
-  [key: string]: boolean | number | string | undefined;
 }
 
 export interface EducationSettings extends BaseSectionSettings {
@@ -80,6 +79,7 @@ export interface HeaderSettings extends BaseSectionSettings {
 
 export interface CustomSectionSettings extends BaseSectionSettings {
   showDescription?: boolean;
+  [key: string]: boolean | number | string | undefined;
 }
 
 export type AnySectionSettings =
@@ -157,7 +157,15 @@ export interface IConfirmDialog {
 // Active Panels (UI State)
 // ============================================================================
 
-export type PanelId = "sections" | "design" | "templates" | "settings" | "ai";
+export type PanelId =
+  | "sections"
+  | "design"
+  | "templates"
+  | "settings"
+  | "ai"
+  | "addSection"
+  | "rearrange"
+  | "branding";
 
 export interface IActivePanels {
   sections: boolean;

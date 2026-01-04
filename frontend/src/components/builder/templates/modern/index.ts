@@ -29,13 +29,11 @@ const modernTemplate: Template = {
     experience: ExperienceSection,
     projects: ProjectsSection,
     skills: SkillsSection,
-    technicalSkills: SkillsSection,
     summary: SummarySection,
-    objective: SummarySection,
     achievements: AchievementsSection,
   },
 
-  sampleData,
+  sampleData: sampleData as unknown as Record<string, unknown>,
 };
 
 export default modernTemplate;

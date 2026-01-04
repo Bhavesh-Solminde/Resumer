@@ -5,6 +5,7 @@
  */
 
 import React from "react";
+import type { TemplateId } from "@resumer/shared-types";
 
 // Template imports
 import shraddhaTemplate from "./shraddha";
@@ -25,10 +26,11 @@ export interface TemplateSection {
   settings?: Record<string, boolean>;
 }
 
-export interface TemplateSectionComponent extends React.FC<TemplateSection> {}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type TemplateSectionComponent = React.FC<any>;
 
 export interface Template {
-  id: string;
+  id: TemplateId;
   name: string;
   description: string;
   themeColor: string;

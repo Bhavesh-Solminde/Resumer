@@ -1,4 +1,5 @@
 import React from "react";
+import type { TemplateId } from "@resumer/shared-types";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +12,12 @@ import { cn } from "../../../lib/utils";
 import { Check } from "lucide-react";
 
 interface Template {
-  id: string;
+  id: TemplateId;
   name: string;
 }
 
 interface TemplatePreviewProps {
-  templateId: string;
+  templateId: TemplateId;
 }
 
 const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId }) => {
@@ -217,12 +218,12 @@ const TemplatesModal: React.FC = () => {
 
   const isOpen = activePanel === "templates";
 
-  const handleSelectTemplate = (templateId: string) => {
+  const handleSelectTemplate = (templateId: TemplateId) => {
     changeTemplate(templateId);
   };
 
   const templateList = Object.values(
-    (registeredTemplates || {}) as Record<string, Template>
+    (registeredTemplates || {}) as Record<TemplateId, Template>
   );
 
   return (

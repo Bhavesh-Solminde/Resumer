@@ -4,6 +4,7 @@ import { cn } from "../../../../../lib/utils";
 interface SectionHeaderProps {
   title: string;
   className?: string;
+  themeColor?: string;
 }
 
 /**
@@ -13,13 +14,16 @@ interface SectionHeaderProps {
 const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   className = "",
+  themeColor,
 }) => {
   return (
     <h2
       className={cn(
-        "text-sm font-bold uppercase tracking-wide text-teal-700 mb-2",
+        "text-sm font-bold uppercase tracking-wide mb-2",
+        !themeColor && "text-teal-700",
         className
       )}
+      style={themeColor ? { color: themeColor } : undefined}
     >
       {title}
     </h2>

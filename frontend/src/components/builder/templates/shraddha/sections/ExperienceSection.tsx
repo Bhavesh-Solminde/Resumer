@@ -34,6 +34,7 @@ interface ExperienceSectionProps {
   data?: ExperienceItem[];
   sectionId?: string;
   settings?: ExperienceSectionSettings;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -51,6 +52,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
   sectionId = "experience",
   settings = {},
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -119,15 +121,16 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
+        : item
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
   };
 
-  const formatDate = (date: DateValue | string | null | undefined): string => {
-    if (!date) return "";
-    if (date === "Present") return "Present";
-
+  if (data.length === 0) {
+    return (
+      <div className="mb-4">
+        <SectionHeader title="Experience" themeColor={themeColor} />
         <EmptyState
           title="No experience added"
           description="Click to add work experience"
@@ -140,7 +143,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Experience" />
+      <SectionHeader title="Experience" themeColor={themeColor} />
 
       <div className="space-y-4">
         {data.map((item) => (

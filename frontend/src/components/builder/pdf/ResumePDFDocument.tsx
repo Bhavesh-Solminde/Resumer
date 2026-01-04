@@ -1,12 +1,9 @@
 import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Style,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+
+// Style type for react-pdf
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Style = any;
 
 // Theme interface
 interface Theme {
@@ -96,7 +93,7 @@ interface Section {
 
 interface ResumeData {
   sections: Section[];
-  theme: Theme;
+  style: Theme;
 }
 
 interface PDFStyles {
@@ -374,8 +371,8 @@ interface ResumePDFDocumentProps {
 }
 
 const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
-  const { sections, theme } = data;
-  const styles = createStyles(theme);
+  const { sections, style } = data;
+  const styles = createStyles(style);
 
   const renderSection = (section: Section): React.ReactNode => {
     switch (section.type) {

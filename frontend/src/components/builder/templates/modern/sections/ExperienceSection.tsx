@@ -118,7 +118,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
         ? { ...item, startDate: dates.from, endDate: dates.to }
         : item
     );
-    updateSectionData("experience", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
   };
 

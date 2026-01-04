@@ -3,8 +3,8 @@ import { pdf } from "@react-pdf/renderer";
 import ResumePDFDocument from "../components/builder/pdf/ResumePDFDocument";
 import toast from "react-hot-toast";
 
-// Theme interface matching ResumePDFDocument
-interface Theme {
+// Style interface matching ResumePDFDocument
+interface Style {
   pageMargins?: number;
   fontSize?: "small" | "medium" | "large";
   lineHeight?: number;
@@ -26,23 +26,19 @@ type SectionData =
   | HeaderData
   | { content?: string }
   | { items?: unknown[] }
-  | { title?: string; items?: string[] };
+  | { title?: string; items?: string[] }
+  | unknown;
 
 interface Section {
   id: string;
-  type:
-    | "header"
-    | "summary"
-    | "experience"
-    | "education"
-    | "skills"
-    | "projects";
+  type: string;
   data: SectionData;
 }
 
 interface ResumeData {
   sections: Section[];
-  theme: Theme;
+  style: Style;
+  [key: string]: unknown;
 }
 
 /**

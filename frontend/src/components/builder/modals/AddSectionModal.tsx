@@ -1,4 +1,5 @@
 import React from "react";
+import type { SectionType } from "@resumer/shared-types";
 import {
   Dialog,
   DialogContent,
@@ -90,40 +91,6 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ type }) => {
           ))}
         </div>
       );
-    case "interests":
-      return (
-        <div className="flex gap-2 px-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-2 w-8 bg-primary/20 rounded" />
-          ))}
-        </div>
-      );
-    case "objective":
-      return (
-        <div className="flex flex-col gap-1 w-full px-3">
-          <div className="flex items-center gap-1">
-            <div className="h-2 w-16 bg-teal-500/30 rounded" />
-            <div className="h-0.5 flex-1 bg-teal-500/20" />
-          </div>
-          <div className="h-1.5 w-full bg-muted-foreground/20 rounded" />
-          <div className="h-1.5 w-3/4 bg-muted-foreground/20 rounded" />
-        </div>
-      );
-    case "technicalSkills":
-      return (
-        <div className="flex flex-col gap-1 w-full px-3">
-          <div className="flex items-center gap-1">
-            <div className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
-            <div className="h-1.5 w-16 bg-primary/20 rounded" />
-            <div className="h-1.5 w-24 bg-muted-foreground/20 rounded" />
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
-            <div className="h-1.5 w-14 bg-primary/20 rounded" />
-            <div className="h-1.5 w-20 bg-muted-foreground/20 rounded" />
-          </div>
-        </div>
-      );
     case "achievements":
       return (
         <div className="flex flex-col gap-1 w-full px-3">
@@ -134,21 +101,6 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ type }) => {
           <div className="flex items-center gap-1">
             <div className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
             <div className="h-1.5 w-3/4 bg-muted-foreground/20 rounded" />
-          </div>
-        </div>
-      );
-    case "personalDetails":
-      return (
-        <div className="flex flex-col gap-1 w-full px-3">
-          <div className="flex items-center gap-1">
-            <div className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
-            <div className="h-1.5 w-12 bg-primary/20 rounded" />
-            <div className="h-1.5 w-16 bg-muted-foreground/20 rounded" />
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-1 w-1 bg-muted-foreground/30 rounded-full" />
-            <div className="h-1.5 w-10 bg-primary/20 rounded" />
-            <div className="h-1.5 w-20 bg-muted-foreground/20 rounded" />
           </div>
         </div>
       );
@@ -169,16 +121,16 @@ const AddSectionModal: React.FC = () => {
 
   const isOpen = activePanel === "addSection";
 
-  const handleAddSection = (sectionType: string) => {
+  const handleAddSection = (sectionType: SectionType) => {
     addSection(sectionType);
     setActivePanel(null);
   };
 
-  const sectionCards = Object.entries(
-    sectionTemplates as Record<
-      string,
-      { label: string; icon: string; type: string }
-    >
+  const sectionCards = (
+    Object.entries(sectionTemplates) as [
+      SectionType,
+      { label: string; icon: string; type: SectionType }
+    ][]
   ).map(([key, value]) => ({
     key,
     ...value,

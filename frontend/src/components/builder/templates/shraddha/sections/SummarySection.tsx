@@ -10,6 +10,7 @@ interface SummarySectionProps {
   data?: string;
   sectionId?: string;
   sectionType?: SectionType;
+  themeColor?: string;
 }
 
 /**
@@ -19,6 +20,7 @@ const SummarySection: React.FC<SummarySectionProps> = ({
   data = "",
   sectionId = "summary",
   sectionType = "summary",
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
@@ -31,7 +33,7 @@ const SummarySection: React.FC<SummarySectionProps> = ({
   if (!data) {
     return (
       <div className="mb-4">
-        <SectionHeader title={title} />
+        <SectionHeader title={title} themeColor={themeColor} />
         <EmptyState
           title={`No ${title.toLowerCase()} added`}
           description={`Click to add your ${title.toLowerCase()}`}
@@ -44,7 +46,7 @@ const SummarySection: React.FC<SummarySectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title={title} />
+      <SectionHeader title={title} themeColor={themeColor} />
       <EditableText
         value={data}
         onChange={handleChange}

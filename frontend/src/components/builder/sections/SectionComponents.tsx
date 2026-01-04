@@ -40,7 +40,8 @@ interface SectionData {
 interface Section {
   id: string;
   type: string;
-  data: SectionData;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
   locked?: boolean;
 }
 

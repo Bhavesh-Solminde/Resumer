@@ -13,6 +13,7 @@ interface AchievementItem {
 interface AchievementsSectionProps {
   data?: AchievementItem[];
   sectionId?: string;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -29,6 +30,7 @@ interface ConfirmDialogState {
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
   sectionId = "achievements",
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -71,7 +73,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   if (!data || data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Achievements" />
+        <SectionHeader title="Achievements" themeColor={themeColor} />
         <EmptyState
           title="No achievements added"
           description="Click to add achievements"
@@ -84,7 +86,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Achievements" />
+      <SectionHeader title="Achievements" themeColor={themeColor} />
 
       <ul className="space-y-1">
         {data.map((item) => (

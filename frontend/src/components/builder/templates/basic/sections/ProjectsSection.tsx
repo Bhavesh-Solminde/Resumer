@@ -33,6 +33,7 @@ interface ProjectsSectionProps {
   data?: ProjectItem[];
   sectionId?: string;
   settings?: ProjectsSectionSettings;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -50,6 +51,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   data = [],
   sectionId = "projects",
   settings = {},
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
@@ -132,7 +134,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   if (!data || data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Projects" />
+        <SectionHeader title="Projects" themeColor={themeColor} />
         <EmptyState
           title="No projects added"
           description="Click to add your projects"
@@ -145,7 +147,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Projects" />
+      <SectionHeader title="Projects" themeColor={themeColor} />
 
       <div className="space-y-3">
         {data.map((item) => (

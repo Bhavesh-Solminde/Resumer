@@ -34,7 +34,7 @@ export interface ResumeDataActions {
   reorderSections: (newOrder: string[]) => void;
   updateSectionData: (
     sectionId: string,
-    newData: Partial<Section["data"]>
+    newData: Record<string, unknown>
   ) => void;
 
   // Section Settings
@@ -186,10 +186,9 @@ export const createResumeDataSlice: StateCreator<
   },
 
   // Get section settings
-  getSectionSettings: (sectionType) => {
+  getSectionSettings: <K extends keyof SectionSettingsMap>(sectionType: K) => {
     const { sectionSettings } = get();
-    // @ts-ignore - Dynamic access is safe here due to generic constraints
-    return sectionSettings[sectionType] || {};
+    return (sectionSettings[sectionType] || {}) as SectionSettingsMap[K];
   },
 
   // Add item to a section
