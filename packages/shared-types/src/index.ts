@@ -11,8 +11,9 @@ export type {
   IAnalysisResult,
   IOptimizationResult,
   IComparisonItem,
-  IPaginationMeta,
-  PaginatedResponse,
+  // TODO: Uncomment when pagination is implemented
+  // IPaginationMeta,
+  // PaginatedResponse,
   IErrorResponse,
 } from "./api.types.js";
 

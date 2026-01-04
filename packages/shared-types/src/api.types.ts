@@ -48,25 +48,22 @@ export interface IOptimizationResult {
 }
 
 /**
- * Pagination metadata for list endpoints
+ * TODO: Implement pagination for list endpoints (GET /api/resumes, GET /api/scans)
+ * Uncomment when pagination is added to API controllers
  */
-export interface IPaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
+// export interface IPaginationMeta {
+//   page: number;
+//   limit: number;
+//   total: number;
+//   totalPages: number;
+//   hasNextPage: boolean;
+//   hasPrevPage: boolean;
+// }
 
-/**
- * Paginated response wrapper
- * @template T - The type of items in the list
- */
-export interface PaginatedResponse<T> {
-  items: T[];
-  pagination: IPaginationMeta;
-}
+// export interface PaginatedResponse<T> {
+//   items: T[];
+//   pagination: IPaginationMeta;
+// }
 
 /**
  * Error response structure

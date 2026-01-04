@@ -14,6 +14,7 @@ export type BackgroundPattern = "plain" | "dots" | "lines" | "grid";
 
 export interface ITheme {
   primaryColor: string;
+  /** TODO: Add accentColor picker to DesignPanel - currently only used in ShraddhaHeader for highlight backgrounds */
   accentColor: string;
   fontFamily: string;
   fontSize: FontSize;
@@ -39,13 +40,16 @@ export const DEFAULT_THEME: ITheme = {
 // ============================================================================
 
 export interface BaseSectionSettings {
+  /** TODO: Implement section visibility toggle - hide sections from PDF without deleting */
   isVisible?: boolean;
+  /** TODO: Implement custom section title override in SectionSettings UI */
   title?: string;
 }
 
 export interface EducationSettings extends BaseSectionSettings {
   showGPA?: boolean;
   showLocation?: boolean;
+  /** TODO: Implement showDates toggle in SectionSettings UI and Education section components */
   showDates?: boolean;
   showDescription?: boolean;
 }
@@ -53,8 +57,10 @@ export interface EducationSettings extends BaseSectionSettings {
 export interface ExperienceSettings extends BaseSectionSettings {
   showBullets?: boolean;
   showLocation?: boolean;
+  /** TODO: Implement showDates toggle in SectionSettings UI and Experience section components */
   showDates?: boolean;
   showDescription?: boolean;
+  /** TODO: Implement company logo upload/display feature in Experience section components */
   showCompanyLogo?: boolean;
 }
 
@@ -67,13 +73,18 @@ export interface ProjectsSettings extends BaseSectionSettings {
 
 export interface SkillsSettings extends BaseSectionSettings {
   showCategories?: boolean;
+  /** TODO: Implement proficiency bars/indicators in Skills section templates */
   showProficiency?: boolean;
+  /** TODO: Implement alternative layouts (list, tags) in Skills section - currently only grid is used */
   layout?: "grid" | "list" | "tags";
 }
 
 export interface HeaderSettings extends BaseSectionSettings {
+  /** TODO: Implement photo upload and display in Header section components */
   showPhoto?: boolean;
+  /** TODO: Implement social icons toggle - conditionally render LinkedIn/GitHub/Website icons in Header */
   showSocialIcons?: boolean;
+  /** TODO: Implement header layout variations (left/center/right alignment) in templates */
   layout?: "left" | "center" | "right";
 }
 
@@ -109,10 +120,14 @@ export interface SectionSettingsMap {
 export type TemplateId =
   | "basic"
   | "modern"
+  /** TODO: Create Professional template folder with section components (frontend/src/components/builder/templates/professional/) */
   | "professional"
+  /** TODO: Create Elegant template folder with section components (frontend/src/components/builder/templates/elegant/) */
   | "elegant"
+  /** TODO: Create Minimal template folder with section components (frontend/src/components/builder/templates/minimal/) */
   | "minimal"
   | "shraddha";
+/** TODO: Implement two-column layout rendering in ResumePreview - currently all templates use single-column */
 export type LayoutType = "single-column" | "two-column";
 export type HeaderStyle = "left-aligned" | "centered" | "right-aligned";
 
@@ -158,21 +173,26 @@ export interface IConfirmDialog {
 // ============================================================================
 
 export type PanelId =
+  /** TODO: Create SectionsPanel component for section management (currently inline in ResumeEditor) */
   | "sections"
   | "design"
   | "templates"
+  /** TODO: Create SettingsPanel component - see IActivePanels.settings */
   | "settings"
+  /** TODO: Create AIPanel component for AI-powered resume optimization suggestions */
   | "ai"
   | "addSection"
   | "rearrange"
+  /** TODO: Create BrandingPanel component content - panel exists but needs implementation */
   | "branding";
 
 export interface IActivePanels {
   sections: boolean;
   design: boolean;
   templates: boolean;
+  /** TODO: Create SettingsPanel component for global settings (PDF export options, paper size, dark mode toggle) */
   settings: boolean;
-  ai: boolean;
+  // TODO: Add ai: boolean for AI integration panel
 }
 
 // ============================================================================
