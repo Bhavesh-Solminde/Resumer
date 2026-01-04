@@ -16,6 +16,7 @@ interface SkillsData {
 interface SkillsSectionProps {
   data?: SkillsData;
   sectionId?: string;
+  themeColor?: string;
 }
 
 /**
@@ -24,6 +25,7 @@ interface SkillsSectionProps {
 const SkillsSection: React.FC<SkillsSectionProps> = ({
   data = {},
   sectionId = "skills",
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
 
@@ -58,7 +60,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   if (!categories || categories.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Skills" />
+        <SectionHeader title="Skills" themeColor={themeColor} />
         <EmptyState
           title="No skills added"
           description="Click to add skills"
@@ -71,7 +73,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Skills" />
+      <SectionHeader title="Skills" themeColor={themeColor} />
 
       <div className="space-y-2">
         {categories.map((category, index) => (

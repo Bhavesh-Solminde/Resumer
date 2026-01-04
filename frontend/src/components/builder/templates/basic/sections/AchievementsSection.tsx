@@ -13,6 +13,7 @@ interface AchievementItem {
 interface AchievementsSectionProps {
   data?: AchievementItem[];
   sectionId?: string;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -28,6 +29,8 @@ interface ConfirmDialogState {
  */
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
+  sectionId = "achievements",
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -40,7 +43,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
     const updatedData = data.map((item) =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
-    updateSectionData("achievements", updatedData);
+    updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleAddItem = () => {
@@ -49,7 +52,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
       title: "",
       description: "",
     };
-    updateSectionData("achievements", [...data, newItem]);
+    updateSectionData(sectionId, { items: [...data, newItem] });
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -58,10 +61,9 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
       title: "Delete Achievement",
       message: "Are you sure you want to delete this achievement?",
       onConfirm: () => {
-        updateSectionData(
-          "achievements",
-          data.filter((item) => item.id !== itemId)
-        );
+        updateSectionData(sectionId, {
+          items: data.filter((item) => item.id !== itemId),
+        });
         setConfirmDialog?.({ isOpen: false });
       },
       onCancel: () => setConfirmDialog?.({ isOpen: false }),
@@ -71,7 +73,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   if (!data || data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Achievements" />
+        <SectionHeader title="Achievements" themeColor={themeColor} />
         <EmptyState
           title="No achievements added"
           description="Click to add achievements"
@@ -84,7 +86,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Achievements" />
+      <SectionHeader title="Achievements" themeColor={themeColor} />
 
       <ul className="space-y-1 list-disc ml-4">
         {data.map((item) => (

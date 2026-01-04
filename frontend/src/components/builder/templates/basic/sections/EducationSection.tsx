@@ -36,6 +36,7 @@ interface EducationSectionProps {
   sectionId?: string;
   sectionType?: string;
   settings?: EducationSectionSettings;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -54,6 +55,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   sectionId = "education",
   sectionType = "education",
   settings = {},
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const updateSectionSettings = useBuildStore(
@@ -132,10 +134,10 @@ const EducationSection: React.FC<EducationSectionProps> = ({
     updateSectionSettings("education", { [key]: value } as any);
   };
 
-  const formatDate = (date: DateValue | string | null | undefined): string => {
-    if (!date) return "";
-    if (date === "Present") return "Present";
-
+  if (data.length === 0) {
+    return (
+      <div className="mb-4">
+        <SectionHeader title="Education" themeColor={themeColor} />
         <EmptyState
           title="No education added"
           description="Click to add your educational background"
@@ -171,7 +173,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Education" />
+      <SectionHeader title="Education" themeColor={themeColor} />
 
       <div className="space-y-3">
         {data.map((item) => (

@@ -189,27 +189,37 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
       items: ["Strength 1", "Strength 2", "Strength 3", "Strength 4"],
     },
   },
-  objective: {
-    type: "objective",
-    label: "Career Objective",
-    icon: "Target",
-    data: {
-      content:
-        "A brief career objective describing your goals and aspirations.",
-    },
-  },
   achievements: {
     type: "achievements",
     label: "Achievements",
     icon: "Medal",
     data: {
       items: [
+        {
+          id: uuidv4(),
+          title: "Achievement 1",
+          description: "Description of achievement 1",
+          date: "",
+        },
+        {
+          id: uuidv4(),
+          title: "Achievement 2",
+          description: "Description of achievement 2",
+          date: "",
+        },
+      ],
+    },
+  },
+  custom: {
+    type: "custom",
+    label: "Custom Section",
+    icon: "Plus",
     data: {
-      dob: "",
-      languages: "",
-      hobbies: "",
-      address: "",
-  ;
+      title: "Custom Section",
+      content: "Add your custom content here.",
+    },
+  },
+});
 
 // ============================================================================
 // Slice Creator

@@ -4,10 +4,15 @@ import { useBuildStore } from "../../store/Build.store";
 import { cn } from "../../lib/utils";
 import { getSectionComponent, DEFAULT_TEMPLATE } from "./templates";
 import { ConfirmDialog } from "./shared";
+import type {
+  Section as SharedSection,
+  SectionSettingsMap,
+} from "@resumer/shared-types";
 
 // Fallback imports for legacy section types
 import { GenericSection } from "./sections/SectionComponents";
 
+// Local Section type for flexibility
 interface Section {
   id: string;
   type: string;
@@ -57,13 +62,13 @@ const ResumeEditor: React.FC = () => {
 
   const {
     sections,
-    theme,
+    style,
     template = DEFAULT_TEMPLATE,
     sectionSettings = {},
   } = useBuildStore(
     useShallow((state) => ({
       sections: state.sections,
-      theme: state.theme,
+      style: state.style,
       template: state.template,
       sectionSettings: state.sectionSettings,
     }))
@@ -118,7 +123,9 @@ const ResumeEditor: React.FC = () => {
     if (SectionComponent) {
       const rawData = section.data;
       const sectionData = normalizeData(section.type, rawData);
-      const settings = sectionSettings[section.type] || {};
+      const sectionType = section.type as keyof SectionSettingsMap;
+      const settings =
+        (sectionSettings as SectionSettingsMap)[sectionType] || {};
 
       return (
         <SectionComponent
@@ -127,7 +134,7 @@ const ResumeEditor: React.FC = () => {
           sectionId={section.id}
           sectionType={section.type}
           settings={settings}
-          themeColor={theme?.primaryColor}
+          themeColor={style?.primaryColor}
         />
       );
     }
@@ -137,7 +144,7 @@ const ResumeEditor: React.FC = () => {
       <GenericSection
         key={section.id}
         section={section}
-        themeColor={theme?.primaryColor}
+        themeColor={style?.primaryColor}
       />
     );
   };
@@ -150,25 +157,25 @@ const ResumeEditor: React.FC = () => {
           className={cn(
             "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
             "min-h-[297mm] w-full max-w-[210mm]",
-            marginMap[theme?.pageMargins ?? 2] || "px-10",
+            marginMap[style?.pageMargins ?? 2] || "px-10",
             "py-8",
-            fontSizeMap[theme?.fontSize ?? "medium"] || "text-base"
+            fontSizeMap[style?.fontSize ?? "medium"] || "text-base"
           )}
           style={{
-            fontFamily: theme?.fontFamily || "Inter",
-            lineHeight: theme?.lineHeight || 1.5,
+            fontFamily: style?.fontFamily || "Inter",
+            lineHeight: style?.lineHeight || 1.5,
           }}
         >
           {/* Background Pattern */}
-          {theme?.background !== "plain" && theme?.background && (
+          {style?.background !== "plain" && style?.background && (
             <div
               className={cn(
                 "absolute inset-0 pointer-events-none opacity-5",
-                theme.background === "dots" &&
+                style.background === "dots" &&
                   "bg-[radial-gradient(circle,_#000_1px,_transparent_1px)] bg-[length:20px_20px]",
-                theme.background === "lines" &&
+                style.background === "lines" &&
                   "bg-[linear-gradient(to_bottom,_#000_1px,_transparent_1px)] bg-[length:100%_20px]",
-                theme.background === "grid" &&
+                style.background === "grid" &&
                   "bg-[linear-gradient(#000_1px,_transparent_1px),_linear-gradient(90deg,_#000_1px,_transparent_1px)] bg-[length:20px_20px]"
               )}
             />
@@ -177,7 +184,7 @@ const ResumeEditor: React.FC = () => {
           {/* Sections */}
           <div
             className={cn(
-              spacingMap[theme?.sectionSpacing ?? 2] || "space-y-4",
+              spacingMap[style?.sectionSpacing ?? 2] || "space-y-4",
               "relative"
             )}
           >
@@ -198,11 +205,11 @@ const ResumeEditor: React.FC = () => {
         message={(confirmDialog as ConfirmDialogState)?.message}
         onConfirm={() => {
           (confirmDialog as ConfirmDialogState)?.onConfirm?.();
-          setConfirmDialog({ isOpen: false });
+          setConfirmDialog(null);
         }}
         onCancel={() => {
           (confirmDialog as ConfirmDialogState)?.onCancel?.();
-          setConfirmDialog({ isOpen: false });
+          setConfirmDialog(null);
         }}
       />
     </div>

@@ -33,7 +33,7 @@ const modernTemplate: Template = {
     achievements: AchievementsSection,
   },
 
-  sampleData,
+  sampleData: sampleData as unknown as Record<string, unknown>,
 };
 
 export default modernTemplate;

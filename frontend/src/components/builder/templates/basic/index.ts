@@ -36,7 +36,7 @@ const basicTemplate = {
     achievements: AchievementsSection,
   },
 
-  sampleData,
+  sampleData: sampleData as unknown as Record<string, unknown>,
 };
 
 export default basicTemplate;

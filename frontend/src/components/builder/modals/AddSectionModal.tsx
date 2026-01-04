@@ -1,4 +1,5 @@
 import React from "react";
+import type { SectionType } from "@resumer/shared-types";
 import {
   Dialog,
   DialogContent,
@@ -120,16 +121,16 @@ const AddSectionModal: React.FC = () => {
 
   const isOpen = activePanel === "addSection";
 
-  const handleAddSection = (sectionType: string) => {
+  const handleAddSection = (sectionType: SectionType) => {
     addSection(sectionType);
     setActivePanel(null);
   };
 
-  const sectionCards = Object.entries(
-    sectionTemplates as Record<
-      string,
-      { label: string; icon: string; type: string }
-    >
+  const sectionCards = (
+    Object.entries(sectionTemplates) as [
+      SectionType,
+      { label: string; icon: string; type: SectionType }
+    ][]
   ).map(([key, value]) => ({
     key,
     ...value,

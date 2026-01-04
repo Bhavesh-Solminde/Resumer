@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { useBuildStore, useResumeData } from "../../store/Build.store";
 import { cn } from "../../lib/utils";
 import { X, Check } from "lucide-react";
+import type { BackgroundPattern as BackgroundPatternType } from "@resumer/shared-types";
 
 interface ColorOption {
   id: string;
@@ -16,12 +17,13 @@ interface FontOption {
   label: string;
 }
 
-interface BackgroundPattern {
-  id: string;
+interface BackgroundPatternOption {
+  id: BackgroundPatternType;
   label: string;
 }
 
 const colorOptions: ColorOption[] = [
+  { id: "blue600", value: "#2563eb", label: "Blue" },
   { id: "blue", value: "#1e3a5f", label: "Navy Blue" },
   { id: "slate", value: "#334155", label: "Slate" },
   { id: "emerald", value: "#047857", label: "Emerald" },
@@ -45,7 +47,7 @@ const fontOptions: FontOption[] = [
   { id: "merriweather", value: "Merriweather", label: "Merriweather" },
 ];
 
-const backgroundPatterns: BackgroundPattern[] = [
+const backgroundPatterns: BackgroundPatternOption[] = [
   { id: "plain", label: "Plain" },
   { id: "dots", label: "Dots" },
   { id: "lines", label: "Lines" },
@@ -93,14 +95,17 @@ const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({ type }) => {
 };
 
 const DesignPanel: React.FC = () => {
-  const { activePanel, setActivePanel, updateTheme } = useBuildStore();
+  const { activePanel, setActivePanel, updateStyle } = useBuildStore();
   const resumeData = useResumeData();
 
   const isOpen = activePanel === "design";
 
   if (!isOpen) return null;
 
-  const { theme } = resumeData;
+  const { style } = resumeData;
+
+  // Guard against undefined style during initial render
+  if (!style) return null;
 
   return (
     <div className="fixed left-20 top-1/2 -translate-y-1/2 z-30 w-72 max-h-[80vh] bg-card border border-border rounded-xl shadow-xl overflow-hidden flex flex-col">
@@ -121,7 +126,7 @@ const DesignPanel: React.FC = () => {
         {/* Page Margins */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            PAGE MARGINS: {theme.pageMargins}
+            PAGE MARGINS: {style.pageMargins}
           </label>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">narrow</span>
@@ -130,9 +135,9 @@ const DesignPanel: React.FC = () => {
               min="1"
               max="4"
               step="1"
-              value={theme.pageMargins}
+              value={style.pageMargins}
               onChange={(e) =>
-                updateTheme({ pageMargins: parseInt(e.target.value) })
+                updateStyle({ pageMargins: parseInt(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
@@ -143,7 +148,7 @@ const DesignPanel: React.FC = () => {
         {/* Section Spacing */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            SECTION SPACING: {theme.sectionSpacing}
+            SECTION SPACING: {style.sectionSpacing}
           </label>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">compact</span>
@@ -152,9 +157,9 @@ const DesignPanel: React.FC = () => {
               min="1"
               max="4"
               step="1"
-              value={theme.sectionSpacing}
+              value={style.sectionSpacing}
               onChange={(e) =>
-                updateTheme({ sectionSpacing: parseInt(e.target.value) })
+                updateStyle({ sectionSpacing: parseInt(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
@@ -169,18 +174,18 @@ const DesignPanel: React.FC = () => {
             {colorOptions.map((color) => (
               <button
                 key={color.id}
-                onClick={() => updateTheme({ primaryColor: color.value })}
+                onClick={() => updateStyle({ primaryColor: color.value })}
                 className={cn(
                   "w-10 h-10 rounded-full transition-all duration-200",
                   "ring-offset-2 ring-offset-background",
                   "hover:scale-110 focus:outline-none",
-                  theme.primaryColor === color.value &&
+                  style.primaryColor === color.value &&
                     "ring-2 ring-primary scale-110"
                 )}
                 style={{ backgroundColor: color.value }}
                 title={color.label}
               >
-                {theme.primaryColor === color.value && (
+                {style.primaryColor === color.value && (
                   <Check className="h-4 w-4 text-white mx-auto" />
                 )}
               </button>
@@ -194,8 +199,8 @@ const DesignPanel: React.FC = () => {
             FONT STYLE
           </label>
           <select
-            value={theme.fontFamily}
-            onChange={(e) => updateTheme({ fontFamily: e.target.value })}
+            value={style.fontFamily}
+            onChange={(e) => updateStyle({ fontFamily: e.target.value })}
             className="w-full h-10 px-3 rounded-lg bg-muted border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {fontOptions.map((font) => (
@@ -209,7 +214,7 @@ const DesignPanel: React.FC = () => {
         {/* Font Size */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            FONT SIZE: {theme.fontSize.toUpperCase()}
+            FONT SIZE: {style.fontSize.toUpperCase()}
           </label>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">A</span>
@@ -220,12 +225,12 @@ const DesignPanel: React.FC = () => {
               step="1"
               value={Math.max(
                 0,
-                ["small", "medium", "large"].indexOf(theme.fontSize) !== -1
-                  ? ["small", "medium", "large"].indexOf(theme.fontSize)
+                ["small", "medium", "large"].indexOf(style.fontSize) !== -1
+                  ? ["small", "medium", "large"].indexOf(style.fontSize)
                   : 1
               )}
               onChange={(e) =>
-                updateTheme({
+                updateStyle({
                   fontSize:
                     (["small", "medium", "large"] as const)[
                       parseInt(e.target.value)
@@ -241,7 +246,7 @@ const DesignPanel: React.FC = () => {
         {/* Line Height */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-foreground">
-            LINE HEIGHT: {theme.lineHeight}
+            LINE HEIGHT: {style.lineHeight}
           </label>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">condensed</span>
@@ -250,9 +255,9 @@ const DesignPanel: React.FC = () => {
               min="1.2"
               max="2"
               step="0.1"
-              value={theme.lineHeight}
+              value={style.lineHeight}
               onChange={(e) =>
-                updateTheme({ lineHeight: parseFloat(e.target.value) })
+                updateStyle({ lineHeight: parseFloat(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
@@ -269,11 +274,11 @@ const DesignPanel: React.FC = () => {
             {backgroundPatterns.map((pattern) => (
               <button
                 key={pattern.id}
-                onClick={() => updateTheme({ background: pattern.id })}
+                onClick={() => updateStyle({ background: pattern.id })}
                 className={cn(
                   "aspect-square rounded-lg border-2 transition-all duration-200",
                   "focus:outline-none",
-                  theme.background === pattern.id
+                  style.background === pattern.id
                     ? "border-primary bg-primary/10"
                     : "border-border bg-muted hover:border-primary/50"
                 )}

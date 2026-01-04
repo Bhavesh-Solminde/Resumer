@@ -7,6 +7,7 @@ import SectionHeader from "./SectionHeader";
 interface StrengthsSectionProps {
   data?: string[];
   sectionId?: string;
+  themeColor?: string;
 }
 
 interface ConfirmDialogState {
@@ -24,6 +25,7 @@ interface ConfirmDialogState {
 const StrengthsSection: React.FC<StrengthsSectionProps> = ({
   data = [],
   sectionId = "strengths",
+  themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -60,7 +62,7 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({
   if (!data || data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Strengths" />
+        <SectionHeader title="Strengths" themeColor={themeColor} />
         <EmptyState
           title="No strengths added"
           description="Click to add your key strengths"
@@ -73,7 +75,7 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Strengths" />
+      <SectionHeader title="Strengths" themeColor={themeColor} />
 
       <div className="flex flex-wrap gap-2">
         {data.map((strength, index) => (

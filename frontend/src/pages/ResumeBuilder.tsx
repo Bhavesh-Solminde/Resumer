@@ -19,7 +19,7 @@ const ResumeBuilder: React.FC = () => {
     sections,
     sectionOrder,
     sectionSettings,
-    theme,
+    style,
     confirmDialog,
     setConfirmDialog,
   } = useBuildStore();
@@ -27,7 +27,7 @@ const ResumeBuilder: React.FC = () => {
 
   const handleExportPDF = () => {
     // Create resumeData object from store state for PDF export
-    const resumeData = { sections, sectionOrder, sectionSettings, theme };
+    const resumeData = { sections, sectionOrder, sectionSettings, style };
     exportToPDF(resumeData);
   };
 

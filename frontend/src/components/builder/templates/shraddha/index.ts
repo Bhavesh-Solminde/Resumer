@@ -41,7 +41,7 @@ const shraddhaTemplate: Template = {
     strengths: StrengthsSection,
   },
 
-  sampleData,
+  sampleData: sampleData as unknown as Record<string, unknown>,
 };
 
 export default shraddhaTemplate;
