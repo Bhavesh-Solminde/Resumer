@@ -82,6 +82,12 @@ export interface IResumeBuild {
   templateId: string;
   thumbnail: string;
   content: IResumeContent;
+  /**
+   * TODO: Implement "Create Resume from Scan" feature
+   * - Link resume to the analyzed/uploaded resume scan
+   * - Pre-populate content from AI analysis results
+   * - Show "imported from scan" indicator in UI
+   */
   sourceScanId: Types.ObjectId | null;
   layout: ILayout;
   createdAt: Date;

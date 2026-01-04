@@ -95,6 +95,11 @@ export interface IResumeBuild {
   thumbnail: string;
   content: IResumeBuildContent;
   layout: IResumeBuildLayout;
+  /**
+   * TODO: Implement "Create Resume from Scan" feature
+   * - Link resume to the analyzed/uploaded resume scan
+   * - Pre-populate content from AI analysis results
+   */
   sourceScanId: string | null;
   createdAt: string;
   updatedAt: string;

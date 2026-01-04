@@ -96,13 +96,11 @@ const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({ type }) => {
 
 const DesignPanel: React.FC = () => {
   const { activePanel, setActivePanel, updateStyle } = useBuildStore();
-  const resumeData = useResumeData();
+  const { style } = useResumeData();
 
   const isOpen = activePanel === "design";
 
   if (!isOpen) return null;
-
-  const { style } = resumeData;
 
   // Guard against undefined style during initial render
   if (!style) return null;

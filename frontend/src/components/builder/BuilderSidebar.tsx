@@ -83,9 +83,9 @@ const BuilderSidebar: React.FC = () => {
   ];
 
   const handleToolClick = (tool: ActionTool | PanelTool) => {
-    if ("action" in tool && tool.action) {
+    if (tool.action && typeof tool.action === "function") {
       tool.action();
-    } else if ("panel" in tool && tool.panel) {
+    } else if (tool.panel && typeof tool.panel === "string") {
       setActivePanel(activePanel === tool.panel ? null : tool.panel);
     }
   };

@@ -57,6 +57,7 @@ export const defaultTemplates: TemplateConfigMap = {
     layout: "single-column",
     headerStyle: "centered",
   },
+  // TODO: Create template components at frontend/src/components/builder/templates/professional/
   professional: {
     id: "professional",
     name: "Professional",
@@ -64,6 +65,7 @@ export const defaultTemplates: TemplateConfigMap = {
     layout: "single-column",
     headerStyle: "left-aligned",
   },
+  // TODO: Create template components at frontend/src/components/builder/templates/elegant/
   elegant: {
     id: "elegant",
     name: "Elegant",
@@ -71,6 +73,7 @@ export const defaultTemplates: TemplateConfigMap = {
     layout: "single-column",
     headerStyle: "left-aligned",
   },
+  // TODO: Create template components at frontend/src/components/builder/templates/minimal/
   minimal: {
     id: "minimal",
     name: "Minimal",
@@ -253,20 +256,22 @@ export const createTemplatesSlice: StateCreator<
 
   // Load basic template
   loadBasicTemplate: () => {
-    // This will be implemented to load the full basic template data
-    // For now, just set the template ID
+    // TODO: Load unique sample data for basic template (different from shraddha)
+    // Should call set({ sections: basicSampleSections, template: "basic" })
     set({ template: "basic" });
   },
 
   // Load shraddha template
   loadShraddhaTemplate: () => {
-    // This will be implemented to load the full shraddha template data
+    // TODO: Load full shraddha template sample data with realistic content
+    // Should call set({ sections: shraddhaSampleSections, template: "shraddha" })
     set({ template: "shraddha" });
   },
 
   // Load template sample data
   loadTemplateSampleData: (templateId) => {
-    // Placeholder - will integrate with getTemplateSampleData
+    // TODO: Integrate with getTemplateSampleData() from templates/index.ts
+    // Should load template-specific sections and styling
     set({ template: templateId });
   },
 
