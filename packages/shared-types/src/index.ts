@@ -19,12 +19,13 @@ export type {
 
 // User Types
 export type {
-  IUser,
-  IUserWithPassword,
-  IUserMethods,
-  ISignupRequest,
-  ILoginRequest,
-  IAuthResponse,
+  // TODO: Uncomment when backend is refactored to use shared-types
+  // IUser,
+  // IUserWithPassword,
+  // IUserMethods,
+  // ISignupRequest,
+  // ILoginRequest,
+  // IAuthResponse,
   IUpdatePasswordRequest,
   IUpdateProfileRequest,
   IJwtPayload,
@@ -33,9 +34,10 @@ export type {
 // Scan Types
 export type {
   ResumeScanType,
-  IResumeScan,
-  IAnalysisScan,
-  IOptimizationScan,
+  // TODO: Uncomment when backend is refactored to use shared-types
+  // IResumeScan,
+  // IAnalysisScan,
+  // IOptimizationScan,
   IResumeScanSummary,
   ICreateScanRequest,
   IOptimizeRequest,
@@ -74,7 +76,7 @@ export type {
   IAchievementsSection,
   ICustomSection,
   Section,
-  ISectionTemplate,
+  ISectionStructure,
   SectionTemplateMap,
 } from "./sections.types.js";
 
@@ -82,7 +84,7 @@ export type {
 export type {
   FontSize,
   BackgroundPattern,
-  ITheme,
+  IStyle,
   ISectionSettings,
   SectionSettingsMap,
   TemplateId,
@@ -90,12 +92,13 @@ export type {
   HeaderStyle,
   ITemplateConfig,
   TemplateConfigMap,
-  IResumeData,
+  // TODO: Uncomment when store is refactored to use this interface
+  // IResumeData,
   IConfirmDialog,
   PanelId,
   IActivePanels,
   IResumeDataState,
-  IThemeState,
+  IStyleState,
   ITemplatesState,
   IUIState,
   IBuildState,
@@ -104,18 +107,19 @@ export type {
 export { DEFAULT_THEME } from "./resume.types.js";
 
 // Build Types (MongoDB schema)
-export type {
-  IEducationDoc,
-  IExperienceDoc,
-  IProjectDoc,
-  ICertificationDoc,
-  IExtracurricularDoc,
-  IPersonalInfoDoc,
-  ISkillsDoc,
-  IResumeBuildContent,
-  IResumeBuildLayout,
-  IResumeBuild,
-  IResumeBuildSummary,
-  ICreateResumeBuildRequest,
-  IUpdateResumeBuildRequest,
-} from "./build.types.js";
+// TODO: Uncomment when backend is refactored to use shared-types
+// export type {
+//   IEducationDoc,
+//   IExperienceDoc,
+//   IProjectDoc,
+//   ICertificationDoc,
+//   IExtracurricularDoc,
+//   IPersonalInfoDoc,
+//   ISkillsDoc,
+//   IResumeBuildContent,
+//   IResumeBuildLayout,
+//   IResumeBuild,
+//   IResumeBuildSummary,
+//   ICreateResumeBuildRequest,
+//   IUpdateResumeBuildRequest,
+// } from "./build.types.js";

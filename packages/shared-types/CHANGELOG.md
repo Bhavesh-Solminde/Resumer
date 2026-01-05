@@ -17,4 +17,4 @@ All notable changes to `@resumer/shared-types` will be documented in this file.
 - `IUser`, `IResumeScan`, `IResumeBuild` interfaces
 - `ApiResponse<T>` generic wrapper
 - `IAnalysisResult`, `IOptimizationResult` AI response types
-- `ITheme`, `IResumeData`, `ISectionSettings` resume types
+- `IStyle`, `IResumeData`, `ISectionSettings` resume types
