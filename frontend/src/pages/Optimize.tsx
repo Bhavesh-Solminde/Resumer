@@ -147,7 +147,7 @@ const Optimize: React.FC = () => {
                   )}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Results are automatically saved to your history
+                  The Optimization will be on your Lastest analysis of resume
                 </p>
                 <Button
                   variant="ghost"
