@@ -28,13 +28,13 @@
 - **PDF Parsing** — Upload any PDF resume for intelligent text extraction and analysis
 
 <div align="center">
-  <img src="./frontend/public/Optimize(light).jpg" alt="Optimization Light" width="85%" />
+  <img src="./frontend/public/Optimize(light).jpg" alt="Optimization Light" width="800" />
   
 </div>
 
 ### 🚀 Smart Optimization Engine
 <div align="center">
-<img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="85%" />
+<img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="800" />
 </div>
 - **General Optimization** — Enhance your resume with AI-suggested improvements for clarity, impact, and professionalism
 - **Job Description Matching** — Tailor your resume to specific job postings with targeted keyword optimization
