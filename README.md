@@ -11,9 +11,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://resumer.vercel.app) · [Report Bug](https://github.com/yourusername/resumer/issues) · [Request Feature](https://github.com/yourusername/resumer/issues)
-
-<img src="./frontend/public/demo-screenshot.png" alt="Resumer Preview" width="800" />
+[Live Demo](https://resumer.vercel.app) · [Report Bug](https://github.com/Bhavesh-Solminde/resumer/issues) · [Request Feature](https://github.com/Bhavesh-Solminde/resumer/issues)
 
 </div>
 
@@ -25,9 +23,18 @@
 
 - **ATS Score Calculation** — Get an instant Applicant Tracking System compatibility score (0-100)
 - **Structured Feedback** — Receive detailed analysis including summary, key skills, missing keywords, formatting issues, and actionable tips
+  <img src="./frontend/public/Analyze.jpg" alt="Resume Analysis" width="800" />
+
 - **PDF Parsing** — Upload any PDF resume for intelligent text extraction and analysis
 
+<div align="center">
+  <img src="./frontend/public/Optimize(light).jpg" alt="Optimization Light" width="45%" />
+  <img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="45%" />
+</div>
+
 ### 🚀 Smart Optimization Engine
+
+<img src="./frontend/public/ResumeBuilder.jpg" alt="Resume Builder" width="800" />
 
 - **General Optimization** — Enhance your resume with AI-suggested improvements for clarity, impact, and professionalism
 - **Job Description Matching** — Tailor your resume to specific job postings with targeted keyword optimization
@@ -164,7 +171,7 @@ resumer/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/resumer.git
+git clone https://github.com/Bhavesh-Solminde/resumer.git
 cd resumer
 
 # Install dependencies
@@ -379,7 +386,7 @@ This project is licensed under the MIT License — see the [LICENSE](./LICENSE) 
 
 <div align="center">
 
-**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+**Built with ❤️ by [Bhavesh Solminde](https://github.com/Bhavesh-Solminde)**
 
 ⭐ Star this repo if you found it helpful!
 
