@@ -28,13 +28,13 @@
 - **PDF Parsing** — Upload any PDF resume for intelligent text extraction and analysis
 
 <div align="center">
-  <img src="./frontend/public/Optimize(light).jpg" alt="Optimization Light" width="45%" />
-  <img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="45%" />
+  <img src="./frontend/public/Optimize(light).jpg" alt="Optimization Light" width="85%" />
+  
 </div>
 
 ### 🚀 Smart Optimization Engine
 
-<img src="./frontend/public/ResumeBuilder.jpg" alt="Resume Builder" width="800" />
+<img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="85%" />
 
 - **General Optimization** — Enhance your resume with AI-suggested improvements for clarity, impact, and professionalism
 - **Job Description Matching** — Tailor your resume to specific job postings with targeted keyword optimization
@@ -42,6 +42,8 @@
 - **One-Click Copy** — Copy optimized sections directly to your clipboard
 
 ### 🛠️ Resume Builder
+
+<img src="./frontend/public/ResumeBuilder.jpg" alt="Resume Builder" width="800" />
 
 - **Drag-and-Drop Editor** — Intuitive section-based resume builder with real-time preview
 - **Multiple Templates** — Choose from professional templates (Modern, Classic, Minimal, Creative)
