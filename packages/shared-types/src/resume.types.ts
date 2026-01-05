@@ -12,7 +12,7 @@ import type { Section, SectionType } from "./sections.types.js";
 export type FontSize = "small" | "medium" | "large";
 export type BackgroundPattern = "plain" | "dots" | "lines" | "grid";
 
-export interface ITheme {
+export interface IStyle {
   primaryColor: string;
   /** TODO: Add accentColor picker to DesignPanel - currently only used in ShraddhaHeader for highlight backgrounds */
   accentColor: string;
@@ -24,7 +24,7 @@ export interface ITheme {
   background: BackgroundPattern;
 }
 
-export const DEFAULT_THEME: ITheme = {
+export const DEFAULT_THEME: IStyle = {
   primaryColor: "#1e3a5f",
   accentColor: "#3b82f6",
   fontFamily: "Inter",
@@ -146,13 +146,18 @@ export type TemplateConfigMap = Record<TemplateId, ITemplateConfig>;
 // Resume Data (Core State)
 // ============================================================================
 
-export interface IResumeData {
-  sections: Section[];
-  template: TemplateId;
-  theme: ITheme;
-  sectionSettings: SectionSettingsMap;
-  sectionOrder: string[];
-}
+/**
+ * ⚠️ ISSUE: Exported but never imported in frontend or backend
+ * Frontend uses Zustand slices (resumeDataSlice) instead of this monolithic interface
+ * TODO: Use this as the source of truth for the store shape OR delete if redundant
+ */
+// export interface IResumeData {
+//   sections: Section[];
+//   template: TemplateId;
+//   theme: IStyle;
+//   sectionSettings: SectionSettingsMap;
+//   sectionOrder: string[];
+// }
 
 // ============================================================================
 // Confirm Dialog
@@ -211,8 +216,8 @@ export interface IResumeDataState {
 /**
  * Theme slice state (tracked by temporal middleware)
  */
-export interface IThemeState {
-  theme: ITheme;
+export interface IStyleState {
+  theme: IStyle;
 }
 
 /**
@@ -238,6 +243,6 @@ export interface IUIState {
  */
 export interface IBuildState
   extends IResumeDataState,
-    IThemeState,
+    IStyleState,
     ITemplatesState,
     IUIState {}

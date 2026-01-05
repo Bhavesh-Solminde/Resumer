@@ -38,6 +38,7 @@ You are powered by a High-Reasoning Model. Do not be lazy. Be architectural.
 
 - **Language:** **TypeScript ONLY.** Strict Mode (`interface`, `type`).
 - **Modules:** **ES Modules** (`import` / `export`) everywhere. NO `require`.
+- **Backend Imports:** **MUST include `.js` extension** for local imports (e.g., `import ENV from "../env.js"`).
 - **Framework:** **Vite + React Router** (Not Next.js).
   - ❌ No `next/*` imports.
   - ✅ Use `react-router-dom` hooks (`useNavigate`, `useParams`).
@@ -53,7 +54,8 @@ You are powered by a High-Reasoning Model. Do not be lazy. Be architectural.
 - **Components:**
   - **Shadcn UI:** Atoms in `@/components/ui`.
   - **Aceternity:** Complex layouts.
-- **Async:** Use `TanStack Query` (React Query) for data fetching if needed, or native `fetch` inside `useEffect` for simple tasks.
+- **API:** Use `axiosInstance` from `@/lib/axios` (handles `withCredentials`).
+- **Types:** Import shared types from `@resumer/shared-types`.
 
 ---
 
@@ -62,14 +64,19 @@ You are powered by a High-Reasoning Model. Do not be lazy. Be architectural.
 - **Controller Pattern:**
   ```typescript
   // MANDATORY: Wrap all controllers
+  import asyncHandler from "../utils/asyncHandler.js";
   export const handler = asyncHandler(async (req: Request, res: Response) => { ... });
   ```
-- **Validation:** `zod` schemas for all inputs.
+- **Validation:** Currently manual (Interfaces + Regex).
 - **Database:** Mongoose with strict Schema <-> Interface parity.
+- **Environment:** Use `ENV` object from `src/env.ts`, do not use `process.env` directly in business logic.
+- **Types:** Currently defines local interfaces (e.g., `RegisterBody`) in controllers. _Goal: Refactor to use `@resumer/shared-types`._
 
 ---
 
-## 5. 🛠 Deployment
+& Scripts
 
-- **Frontend:** Vercel (`pnpm build`).
+- **Frontend:** `pnpm build` (Vercel).
+- **Backend:** `pnpm --filter backend build` (Render).
+- **Dev:** `pnpm dev` (runs parallel
 - **Backend:** Render (`pnpm --filter backend build`).

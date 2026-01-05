@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import type {
   Section,
   SectionType,
-  ITheme,
+  IStyle,
   ISectionSettings,
   SectionSettingsMap,
   TemplateId,
@@ -206,7 +206,7 @@ interface ResumeDataComputed {
   sections: Section[];
   sectionOrder: string[];
   sectionSettings: SectionSettingsMap;
-  style: ITheme;
+  style: IStyle;
   template: TemplateId;
 }
 

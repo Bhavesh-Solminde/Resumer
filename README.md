@@ -1,144 +1,386 @@
-# Resumer — AI-Powered Resume Optimizer
+<div align="center">
 
-Resumer is a full-stack application that helps candidates analyze and optimize resumes with Gemini-powered insights. It offers ATS scoring, tailored rewrite suggestions, JD matching, and a polished UI that supports both light and dark themes.
+# Resumer | AI Resume Optimizer
 
-## Table of Contents
+**Build, Analyze, and Optimize Your Resume with AI Precision**
 
-- Overview
-- Architecture & Tech Stack
-- Features
-- Frontend (Vite + React)
-- Backend (Express + Gemini)
-- API Surface
-- Environment Variables
-- Local Development
-- Design System
-- Project Structure
-- Testing & Quality
-- Roadmap
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.3-61dafb?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646cff?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-## Overview
+[Live Demo](https://resumer.vercel.app) · [Report Bug](https://github.com/yourusername/resumer/issues) · [Request Feature](https://github.com/yourusername/resumer/issues)
 
-The app guides users through uploading a resume, receiving AI-generated analysis, optimizing content for general improvements or specific job descriptions, and saving versions to history. The UI uses Tailwind v4 with Shadcn and Aceternity components, and the backend uses Express with Gemini for content generation and Cloudinary for asset storage.
+<img src="./frontend/public/demo-screenshot.png" alt="Resumer Preview" width="800" />
 
-## Architecture & Tech Stack
+</div>
 
-- Monorepo: `frontend/` (Vite + React Router) and `backend/` (Express, ES Modules).
-- Language: JavaScript (ESM everywhere; no CommonJS).
-- AI: Google Gemini (`gemini-2.0-flash`).
-- Storage: MongoDB (resume scans and user profiles).
-- Assets: Cloudinary for resume PDFs and thumbnails.
-- Auth: JWT middleware; OAuth strategies (GitHub/Google) are scaffolded.
-- Styling: Tailwind v4 utilities + Shadcn UI primitives + Aceternity animations.
+---
 
-## Features
+## ✨ Features
 
-- Resume analysis: Upload PDF, extract text, score, and get structured feedback (summary, skills, missing keywords, formatting issues, actionable tips).
-- Optimization flows:
-  - General optimization (`/optimize/general`): Before/After comparison with ATS score delta.
-  - JD match (`/optimize/jd`): Tailors resume to a provided job description, adds missing keywords.
-- History: Persisted resume scans with URLs and AI results; copy-to-clipboard helpers in UI.
-- Theming: Light/dark via CSS variables; semantic tokens (`bg-background`, `text-foreground`, `border-border`).
-- UI polish: Animated hero/sections (Aceternity), reusable Shadcn components (button, card, dialog, textarea, progress, switch), responsive layouts.
+### 📊 AI-Powered Resume Analysis
 
-## Frontend (Vite + React)
+- **ATS Score Calculation** — Get an instant Applicant Tracking System compatibility score (0-100)
+- **Structured Feedback** — Receive detailed analysis including summary, key skills, missing keywords, formatting issues, and actionable tips
+- **PDF Parsing** — Upload any PDF resume for intelligent text extraction and analysis
 
-- Routing: `react-router-dom` v7; pages live in `src/pages` (Landing, Analyze, Optimize, Profile, etc.).
-- State: Lightweight stores in `src/store` (e.g., `Resume.store.js`, `History.store.js`, `Auth.store.js`).
-- Key components:
-  - Analyze flow: Upload card, previous scans, results display.
-  - Optimize flow: Tabs for General vs JD, textarea for JD input, score cards, comparison grid with copy actions.
-  - Profile: History grid, analysis dialog, security and profile cards.
-  - UI kit: Buttons, cards, dialogs, inputs, textarea, switch, progress, loaders, animated backgrounds.
-- Styling: Tailwind v4 utility classes with `cn()` helper; semantic colors ensure theming works (we removed hardcoded dark-mode colors in Optimize).
+### 🚀 Smart Optimization Engine
 
-## Backend (Express + Gemini)
+- **General Optimization** — Enhance your resume with AI-suggested improvements for clarity, impact, and professionalism
+- **Job Description Matching** — Tailor your resume to specific job postings with targeted keyword optimization
+- **Before/After Comparison** — Visual red/green diff comparison showing exactly what changed and why
+- **One-Click Copy** — Copy optimized sections directly to your clipboard
 
-- Controllers:
-  - `handleAnalyzeResume`: PDF parse → Gemini analysis → save to `ResumeScan` with ATS score and analysis JSON.
-  - `optimizeResume` (general) and `optimizeJd`: PDF parse or last-scan fallback → Gemini optimization → saved snapshot.
-  - `saveResumeScan`: Persists AI result, Cloudinary URL, thumbnail fallback, and resume text.
-- Middlewares: `verifyJWT`, `memory.middleware` (multer memory storage), `uploadToCloudinaryMiddleware`.
-- Models: `user.model.js`, `resumeScan.model.js` (history of analyses/optimizations).
-- Cloudinary: `cloudinaryUpload` returns the full upload result (not just the URL) so controllers can access `secure_url` and derived thumbnails.
+### 🛠️ Resume Builder
 
-## API Surface (prefix: `/api/v1/resume`)
+- **Drag-and-Drop Editor** — Intuitive section-based resume builder with real-time preview
+- **Multiple Templates** — Choose from professional templates (Modern, Classic, Minimal, Creative)
+- **Customizable Styling** — Adjust fonts, colors, spacing, and layout to match your personal brand
+- **Section Management** — Add, remove, and rearrange sections (Experience, Education, Skills, Projects, Certifications)
+- **Undo/Redo Support** — Full history tracking powered by Zundo temporal middleware
+- **PDF Export** — Generate polished, ATS-friendly PDF resumes with `@react-pdf/renderer`
 
-- POST `/analyze` — Upload `resume` (PDF). Auth required. Returns ATS score + structured analysis.
-- POST `/optimize/general` — Upload `resume` or reuse latest. Auth required. Returns before/after scores and comparison grid; saves scan.
-- POST `/optimize/jd` — Same as above, with `jobDescription` in body; tailors resume to JD and saves scan.
+### 👤 User Profile & History
 
-## Environment Variables
+- **Secure Authentication** — JWT-based auth with OAuth support (Google, GitHub)
+- **Scan History** — Access all previous resume analyses and optimizations
+- **Resume Library** — Manage multiple resume versions for different job applications
+- **Cloud Storage** — All resumes securely stored on Cloudinary with automatic thumbnail generation
 
-Create `backend/.env` with:
+### 🎨 Modern UI/UX
 
-- `PORT` — API port (e.g., 4000)
-- `MONGODB_URI` — Mongo connection string
-- `GEMINI_API_KEY` — Google Generative AI key
-- `JWT_SECRET` — Auth signing key
-- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` — Asset uploads
+- **Dark/Light Theme** — Seamless theme switching with CSS variables
+- **Responsive Design** — Fully responsive layouts for desktop, tablet, and mobile
+- **Animated Components** — Beautiful animations powered by Aceternity UI and Framer Motion
+- **Accessible** — Built with accessibility best practices
 
-Create `frontend/.env` with:
+---
 
-- `VITE_API_BASE_URL` — Points to backend (e.g., `http://localhost:4000/api/v1`)
+## 🏗️ Architecture
 
-## Local Development
+```
+resumer/
+├── frontend/                 # React 18 + Vite + TypeScript
+│   ├── src/
+│   │   ├── components/       # UI components (Shadcn + Aceternity)
+│   │   │   ├── ui/           # Base UI primitives
+│   │   │   ├── analyze/      # Analysis feature components
+│   │   │   ├── builder/      # Resume builder components
+│   │   │   └── profile/      # User profile components
+│   │   ├── pages/            # Route pages
+│   │   ├── store/            # Zustand state management
+│   │   ├── hooks/            # Custom React hooks
+│   │   └── lib/              # Utilities & axios instance
+│   └── ...
+├── backend/                  # Express + TypeScript (ES Modules)
+│   ├── src/
+│   │   ├── controllers/      # Route handlers
+│   │   ├── models/           # Mongoose schemas
+│   │   ├── middlewares/      # Auth, upload, etc.
+│   │   ├── routes/           # Express routers
+│   │   ├── passport/         # OAuth strategies
+│   │   └── lib/              # DB & Cloudinary setup
+│   └── ...
+├── packages/
+│   └── shared-types/         # Shared TypeScript types
+└── pnpm-workspace.yaml       # Monorepo configuration
+```
 
-1. Install deps
+---
 
-- `npm install` (root, then `backend/`, `frontend/` if needed)
+## 🛠️ Tech Stack
 
-2. Backend
+| Layer          | Technology                                                  |
+| -------------- | ----------------------------------------------------------- |
+| **Frontend**   | React 18, Vite 6, TypeScript, React Router v7               |
+| **Styling**    | Tailwind CSS v4, Shadcn UI, Aceternity UI, Framer Motion    |
+| **State**      | Zustand + Zundo (temporal middleware for undo/redo)         |
+| **Backend**    | Node.js, Express 4, TypeScript (ES Modules)                 |
+| **AI Engine**  | Google Gemini 2.0 Flash                                     |
+| **Database**   | MongoDB with Mongoose ODM                                   |
+| **Storage**    | Cloudinary (PDFs & thumbnails)                              |
+| **Auth**       | JWT (HttpOnly cookies) + Passport.js (Google, GitHub OAuth) |
+| **PDF Export** | @react-pdf/renderer                                         |
+| **Monorepo**   | pnpm workspaces                                             |
 
-- `cd backend`
-- `npm run dev` (nodemon)
+---
 
-3. Frontend
+## 📡 API Reference
 
-- `cd frontend`
-- `npm run dev` (Vite)
+### Authentication
 
-4. Open app
+| Method | Endpoint                | Description                    |
+| ------ | ----------------------- | ------------------------------ |
+| POST   | `/api/v1/auth/register` | Create new user account        |
+| POST   | `/api/v1/auth/login`    | Login with email/password      |
+| POST   | `/api/v1/auth/logout`   | Logout and clear cookies       |
+| POST   | `/api/v1/auth/refresh`  | Refresh access token           |
+| GET    | `/api/v1/auth/me`       | Get authenticated user profile |
+| PATCH  | `/api/v1/auth/password` | Update password                |
+| GET    | `/api/v1/auth/google`   | Google OAuth initiation        |
+| GET    | `/api/v1/auth/github`   | GitHub OAuth initiation        |
 
-- Frontend on Vite port (default 5173); backend on `PORT`.
+### Resume Analysis & Optimization
 
-## Design System
+| Method | Endpoint                     | Description                              |
+| ------ | ---------------------------- | ---------------------------------------- |
+| POST   | `/api/v1/resume/analyze`     | Upload PDF & get AI analysis + ATS score |
+| POST   | `/api/v1/resume/optimize`    | General resume optimization              |
+| POST   | `/api/v1/resume/optimize/jd` | Job description-specific optimization    |
 
-- Color tokens: `bg-background`, `text-foreground`, `border-border`, `bg-card`, `text-muted-foreground`, etc., mapped to CSS variables for theme switching.
-- Components: Shadcn primitives (button, card, dialog, textarea, input, switch, progress) plus Aceternity motion components (hero highlight, floating dock, bento grid, moving cards, background beams/stars).
-- Motion: `motion/react` for fades/staggers in result sections; loaders for async states.
-- Layout: Responsive grid for score cards and comparison; cards use semantic colors (red/green) with light/dark variants.
+### Resume Builder
 
-## Project Structure (high level)
+| Method | Endpoint            | Description                       |
+| ------ | ------------------- | --------------------------------- |
+| POST   | `/api/v1/build`     | Create new resume draft           |
+| GET    | `/api/v1/build`     | Fetch user's resume build history |
+| GET    | `/api/v1/build/:id` | Fetch specific resume by ID       |
+| PATCH  | `/api/v1/build/:id` | Update resume (auto-save)         |
+| DELETE | `/api/v1/build/:id` | Delete a resume                   |
 
-- `frontend/src/pages` — Views (Landing, Analyze, Optimize, Profile, etc.)
-- `frontend/src/components/ui` — Shadcn/Aceternity primitives
-- `frontend/src/components/analyze`, `frontend/src/components/profile` — Feature blocks
-- `frontend/src/store` — Auth, history, resume stores
-- `backend/src/controllers` — Analyze/optimize/auth/profile controllers
-- `backend/src/routes` — Express routers (analyze, optimize, auth, profile)
-- `backend/src/middlewares` — Auth, memory upload, etc.
-- `backend/src/lib/cloudinary.js` — Upload helper (returns full result object)
+### Profile & History
 
-## Testing & Quality
+| Method | Endpoint                   | Description               |
+| ------ | -------------------------- | ------------------------- |
+| GET    | `/api/v1/profile/history`  | Get resume scan history   |
+| GET    | `/api/v1/profile/scan/:id` | Get specific scan details |
 
-- Linting: ESLint configured for both frontend and backend.
-- Error handling: All async controllers wrapped with `asyncHandler`; API errors surfaced with `ApiError`/`ApiResponse` helpers.
-- Logging: Avoid logging raw resume text; use length-only or hashed indicators for PII safety.
+---
 
-## Roadmap
+## 🚀 Getting Started
 
-- Add e2e tests for upload/analysis flows.
-- Add rate limiting and better retry for Gemini calls.
-- Add richer history UI (filters, pagination) and export options.
-- Manage History Properly in UI.
-- Also use inbuilt Cloudinary thumbnail creator to create thumbnails for history.
-- how to add the optimize resume to the builder page to get the new resume with optimized content
-- Build out the Resume Builder page (currently a placeholder).
+### Prerequisites
 
-## Changelog
+- **Node.js** >= 18.x
+- **pnpm** >= 8.x
+- **MongoDB** (local or Atlas)
+- **Cloudinary** account
+- **Google Gemini API** key
 
-### December 30, 2025
+### Installation
 
-- **Builder Page Reset**: Cleaned up the Resume Builder page to a minimal placeholder. Removed all complex builder components (`frontend/src/components/builder/*`), the `Build.store.js` store, and associated logic. The page now displays a simple "Builder Page" heading, ready for future development.
-- **Navigation Preserved**: The "Build" route (`/resume/build`) and navigation items in `DashboardLayout` and `BottomNav` remain functional, pointing to the cleaned placeholder page.
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/resumer.git
+cd resumer
+
+# Install dependencies
+pnpm install
+```
+
+### Environment Setup
+
+**Backend (`backend/.env`)**
+
+```env
+NODE_ENV=development
+PORT=4000
+MONGODB_URI=mongodb://localhost:27017/resumer
+JWT_SECRET=your-super-secret-jwt-key
+JWT_REFRESH_SECRET=your-super-secret-refresh-key
+
+# Google Gemini
+GEMINI_API_KEY=your-gemini-api-key
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# OAuth (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Frontend URL (for CORS & OAuth callbacks)
+FRONTEND_URL=http://localhost:5173
+```
+
+**Frontend (`frontend/.env`)**
+
+```env
+VITE_API_BASE_URL=http://localhost:4000/api/v1
+```
+
+### Development
+
+```bash
+# Run both frontend and backend concurrently
+pnpm dev
+
+# Or run separately:
+pnpm --filter backend dev     # Backend on port 4000
+pnpm --filter frontend dev    # Frontend on port 5173
+```
+
+### Build for Production
+
+```bash
+# Build all packages
+pnpm build
+
+# Or build separately:
+pnpm --filter backend build
+pnpm --filter frontend build
+```
+
+---
+
+## 🎨 Design System
+
+### Color Tokens
+
+The app uses semantic CSS variables for seamless light/dark theme switching:
+
+| Token                | Usage                     |
+| -------------------- | ------------------------- |
+| `--background`       | Page backgrounds          |
+| `--foreground`       | Primary text              |
+| `--card`             | Card backgrounds          |
+| `--card-foreground`  | Card text                 |
+| `--primary`          | Primary actions & accents |
+| `--muted`            | Subtle backgrounds        |
+| `--muted-foreground` | Secondary text            |
+| `--border`           | Borders & dividers        |
+| `--destructive`      | Error states              |
+
+### Component Library
+
+- **Shadcn UI** — Button, Card, Dialog, Input, Textarea, Switch, Progress, Tabs, etc.
+- **Aceternity UI** — Hero Highlight, Bento Grid, Infinite Moving Cards, Background Beams/Stars, Floating Dock
+- **Custom** — Multi-step Loader, Resume Editor, Section Components
+
+---
+
+## 📁 Project Structure
+
+```
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── LandingPage.tsx      # Marketing landing page
+│   │   │   ├── Login.tsx            # Authentication
+│   │   │   ├── Signup.tsx           # User registration
+│   │   │   ├── Analyze.tsx          # Resume analysis
+│   │   │   ├── Optimize.tsx         # Resume optimization
+│   │   │   ├── ResumeBuilder.tsx    # Drag-and-drop builder
+│   │   │   ├── Profile.tsx          # User dashboard
+│   │   │   └── NotFound.tsx         # 404 page
+│   │   ├── components/
+│   │   │   ├── builder/
+│   │   │   │   ├── BuilderHeader.tsx
+│   │   │   │   ├── BuilderSidebar.tsx
+│   │   │   │   ├── ResumeEditor.tsx
+│   │   │   │   ├── DesignPanel.tsx
+│   │   │   │   ├── sections/        # Editable section components
+│   │   │   │   ├── modals/          # Add section, rearrange, templates
+│   │   │   │   ├── pdf/             # PDF generation components
+│   │   │   │   └── templates/       # Resume template definitions
+│   │   │   └── ...
+│   │   ├── store/
+│   │   │   ├── Auth.store.ts        # Authentication state
+│   │   │   ├── Build.store.ts       # Resume builder state + undo/redo
+│   │   │   ├── Resume.store.ts      # Analysis & optimization state
+│   │   │   ├── History.store.ts     # Scan history state
+│   │   │   └── slices/              # Store slice modules
+│   │   └── hooks/
+│   │       └── usePDFExport.tsx     # PDF generation hook
+│   └── ...
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   │   ├── auth.controllers.ts
+│   │   │   ├── analyze.controllers.ts
+│   │   │   ├── optimize.controllers.ts
+│   │   │   ├── build.controllers.ts
+│   │   │   └── profile.controllers.ts
+│   │   ├── models/
+│   │   │   ├── user.model.ts
+│   │   │   ├── resumeScan.model.ts
+│   │   │   └── resumeBuild.model.ts
+│   │   ├── middlewares/
+│   │   │   ├── auth.middleware.ts
+│   │   │   └── memory.middleware.ts
+│   │   └── passport/
+│   │       ├── google.strategy.ts
+│   │       └── github.strategy.ts
+│   └── ...
+└── packages/
+    └── shared-types/                # Shared TypeScript interfaces
+        └── src/
+            ├── api.types.ts
+            ├── user.types.ts
+            ├── scan.types.ts
+            ├── build.types.ts
+            └── sections.types.ts
+```
+
+---
+
+## 🔒 Security
+
+- **JWT in HttpOnly Cookies** — Tokens are never exposed to JavaScript
+- **Password Hashing** — bcrypt with salt rounds
+- **CORS Protection** — Strict origin validation
+- **Input Validation** — Server-side validation on all endpoints
+- **Rate Limiting** — API rate limiting to prevent abuse
+- **PII Safety** — Resume text is never logged; only hashed indicators for debugging
+
+---
+
+## 🧪 Testing & Quality
+
+- **TypeScript Strict Mode** — Full type safety across frontend and backend
+- **ESLint** — Configured for both workspaces
+- **Error Handling** — All async controllers wrapped with `asyncHandler`
+- **API Responses** — Consistent `ApiResponse` / `ApiError` helpers
+
+---
+
+## 📦 Deployment
+
+### Frontend (Vercel)
+
+```bash
+pnpm --filter frontend build
+# Deploy dist/ to Vercel
+```
+
+### Backend (Render / Railway / Fly.io)
+
+```bash
+pnpm --filter backend build
+# Deploy with start command: node dist/server.js
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+
+⭐ Star this repo if you found it helpful!
+
+</div>

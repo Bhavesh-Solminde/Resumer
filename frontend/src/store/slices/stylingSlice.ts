@@ -6,7 +6,7 @@
 
 import type { StateCreator } from "zustand";
 import type {
-  ITheme as IStyle,
+  IStyle as IStyle,
   FontSize,
   BackgroundPattern,
 } from "@resumer/shared-types";

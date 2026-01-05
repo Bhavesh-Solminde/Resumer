@@ -282,11 +282,13 @@ export type Section =
 // Section Template (for adding new sections)
 // ============================================================================
 
-export interface ISectionTemplate {
+export interface ISectionStructure {
   type: SectionType;
   label: string;
   icon: string;
   data: Section["data"];
 }
 
-export type SectionTemplateMap = Partial<Record<SectionType, ISectionTemplate>>;
+export type SectionTemplateMap = Partial<
+  Record<SectionType, ISectionStructure>
+>;

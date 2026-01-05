@@ -12,40 +12,49 @@ export type ResumeScanType = "analysis" | "optimization";
 
 /**
  * Base resume scan interface
+ *
+ * ⚠️ ISSUE: Backend defines this locally in models/resumeScan.model.ts instead of importing
+ * TODO: Refactor backend to import from shared-types OR delete this duplicate
  */
-export interface IResumeScan {
-  _id: string;
-  originalName: string;
-  pdfUrl: string;
-  thumbnail: string | null;
-  owner: string;
-  atsScore: number;
-  resumeText: string;
-  analysisResult: IAnalysisResult | IOptimizationResult;
-  type: ResumeScanType;
-  gOptimized: string;
-  jdOptimized: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface IResumeScan {
+//   _id: string;
+//   originalName: string;
+//   pdfUrl: string;
+//   thumbnail: string | null;
+//   owner: string;
+//   atsScore: number;
+//   resumeText: string;
+//   analysisResult: IAnalysisResult | IOptimizationResult;
+//   type: ResumeScanType;
+//   gOptimized: string;
+//   jdOptimized: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 /**
  * Analysis scan (discriminated)
+ *
+ * ⚠️ ISSUE: Extends IResumeScan which is commented out; also never imported
+ * TODO: Uncomment when IResumeScan is fixed
  */
-export interface IAnalysisScan
-  extends Omit<IResumeScan, "type" | "analysisResult"> {
-  type: "analysis";
-  analysisResult: IAnalysisResult;
-}
+// export interface IAnalysisScan
+//   extends Omit<IResumeScan, "type" | "analysisResult"> {
+//   type: "analysis";
+//   analysisResult: IAnalysisResult;
+// }
 
 /**
  * Optimization scan (discriminated)
+ *
+ * ⚠️ ISSUE: Extends IResumeScan which is commented out; also never imported
+ * TODO: Uncomment when IResumeScan is fixed
  */
-export interface IOptimizationScan
-  extends Omit<IResumeScan, "type" | "analysisResult"> {
-  type: "optimization";
-  analysisResult: IOptimizationResult;
-}
+// export interface IOptimizationScan
+//   extends Omit<IResumeScan, "type" | "analysisResult"> {
+//   type: "optimization";
+//   analysisResult: IOptimizationResult;
+// }
 
 /**
  * Resume scan for history list (lightweight)
