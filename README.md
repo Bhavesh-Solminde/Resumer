@@ -33,18 +33,18 @@
 </div>
 
 ### 🚀 Smart Optimization Engine
-
+<div align="center">
 <img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="85%" />
-
+</div>
 - **General Optimization** — Enhance your resume with AI-suggested improvements for clarity, impact, and professionalism
 - **Job Description Matching** — Tailor your resume to specific job postings with targeted keyword optimization
 - **Before/After Comparison** — Visual red/green diff comparison showing exactly what changed and why
 - **One-Click Copy** — Copy optimized sections directly to your clipboard
 
 ### 🛠️ Resume Builder
-
+<div align="center">
 <img src="./frontend/public/ResumeBuilder.jpg" alt="Resume Builder" width="800" />
-
+</div>
 - **Drag-and-Drop Editor** — Intuitive section-based resume builder with real-time preview
 - **Multiple Templates** — Choose from professional templates (Modern, Classic, Minimal, Creative)
 - **Customizable Styling** — Adjust fonts, colors, spacing, and layout to match your personal brand
