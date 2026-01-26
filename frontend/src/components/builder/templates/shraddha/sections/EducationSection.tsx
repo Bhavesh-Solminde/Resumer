@@ -38,6 +38,8 @@ interface EducationSectionProps {
   sectionType?: string;
   settings?: EducationSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -57,10 +59,12 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   sectionType = "education",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const updateSectionSettings = useBuildStore(
-    (state) => state.updateSectionSettings
+    (state) => state.updateSectionSettings,
   );
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
@@ -77,10 +81,14 @@ const EducationSection: React.FC<EducationSectionProps> = ({
     ...settings,
   };
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -88,7 +96,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, bullets } : item
+      item.id === itemId ? { ...item, bullets } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -126,13 +134,13 @@ const EducationSection: React.FC<EducationSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -144,7 +152,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
     updateSectionSettings("education", { [key]: value } as any);
   };
 
-  if (data.length === 0) {
+  if (data.length === 0 && !displayItemIndices) {
     return (
       <div className="mb-8">
         <SectionHeader title="Education" themeColor={themeColor} />
@@ -183,12 +191,17 @@ const EducationSection: React.FC<EducationSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Education" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Education" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-3">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
+            data-pagination-item
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

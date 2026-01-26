@@ -35,6 +35,8 @@ interface ExperienceSectionProps {
   sectionId?: string;
   settings?: ExperienceSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -53,6 +55,8 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   sectionId = "experience",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -71,16 +75,20 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     ...settings,
   };
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, bullets } : item
+      item.id === itemId ? { ...item, bullets } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -115,19 +123,19 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
   };
 
-  if (data.length === 0) {
+  if (data.length === 0 && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Experience" themeColor={themeColor} />
@@ -143,12 +151,17 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Experience" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Experience" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-4">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
+            data-pagination-item
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

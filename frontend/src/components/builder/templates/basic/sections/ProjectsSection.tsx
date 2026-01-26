@@ -34,6 +34,8 @@ interface ProjectsSectionProps {
   sectionId?: string;
   settings?: ProjectsSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -52,9 +54,16 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   sectionId = "projects",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
+
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
@@ -70,10 +79,10 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   const handleFieldChange = (
     itemId: string,
     field: string,
-    value: string | string[]
+    value: string | string[],
   ) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -108,12 +117,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -131,10 +140,13 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     handleFieldChange(itemId, "bullets", bullets);
   };
 
-  if (!data || data.length === 0) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && (!data || data.length === 0)) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Projects" themeColor={themeColor} />
+        {!hideHeader && (
+          <SectionHeader title="Projects" themeColor={themeColor} />
+        )}
         <EmptyState
           title="No projects added"
           description="Click to add your projects"
@@ -147,15 +159,20 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Projects" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Projects" themeColor={themeColor} />
+        </div>
+      )}
 
-      <div className="space-y-3">
-        {data.map((item) => (
+      <div className="space-y-4">
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
-            className="relative group"
+            className="group relative"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar

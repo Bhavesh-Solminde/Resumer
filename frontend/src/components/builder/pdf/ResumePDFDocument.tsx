@@ -154,16 +154,39 @@ interface SectionComponentProps {
   settings?: Record<string, boolean>;
 }
 
+const pxToPt = (px: number) => px * 0.75;
+
+const horizontalPaddingPx: Record<number, number> = {
+  1: 24, // px-6
+  2: 40, // px-10
+  3: 56, // px-14
+  4: 80, // px-20
+};
+
+const sectionSpacingPx: Record<number, number> = {
+  1: 8, // space-y-2
+  2: 16, // space-y-4
+  3: 24, // space-y-6
+  4: 32, // space-y-8
+};
+
 // Create styles
 const createStyles = (theme: Theme): PDFStyles =>
   StyleSheet.create({
     page: {
       flexDirection: "column",
       backgroundColor: "#ffffff",
-      padding: (theme.pageMargins || 1) * 15 + 20,
+      paddingHorizontal: pxToPt(
+        horizontalPaddingPx[theme.pageMargins || 2] || 40,
+      ),
+      paddingVertical: pxToPt(32), // matches py-8
       fontFamily: "Helvetica",
       fontSize:
-        theme.fontSize === "small" ? 10 : theme.fontSize === "large" ? 14 : 12,
+        theme.fontSize === "small"
+          ? 10.5
+          : theme.fontSize === "large"
+            ? 13.5
+            : 12,
       lineHeight: theme.lineHeight || 1.5,
     },
     header: {
@@ -193,7 +216,7 @@ const createStyles = (theme: Theme): PDFStyles =>
       marginHorizontal: 6,
     },
     section: {
-      marginBottom: (theme.sectionSpacing || 1) * 6 + 8,
+      marginBottom: pxToPt(sectionSpacingPx[theme.sectionSpacing || 2] || 16),
     },
     sectionTitle: {
       fontSize: 11,

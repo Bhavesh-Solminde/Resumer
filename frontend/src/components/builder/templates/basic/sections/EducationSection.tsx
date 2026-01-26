@@ -37,6 +37,8 @@ interface EducationSectionProps {
   sectionType?: string;
   settings?: EducationSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -56,12 +58,19 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   sectionType = "education",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const updateSectionSettings = useBuildStore(
-    (state) => state.updateSectionSettings
+    (state) => state.updateSectionSettings,
   );
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
+
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
@@ -79,7 +88,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -116,13 +125,13 @@ const EducationSection: React.FC<EducationSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -171,17 +180,39 @@ const EducationSection: React.FC<EducationSectionProps> = ({
     },
   ];
 
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && (!data || data.length === 0)) {
+    return (
+      <div className="mb-4">
+        {!hideHeader && (
+          <SectionHeader title="Education" themeColor={themeColor} />
+        )}
+        <EmptyState
+          title="No education added"
+          description="Click to add your education"
+          onAdd={handleAddItem}
+          icon={GraduationCap}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="mb-4">
-      <SectionHeader title="Education" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Education" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-3">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar

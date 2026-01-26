@@ -23,6 +23,8 @@ interface SkillsSectionProps {
   data?: SkillsData;
   sectionId?: string;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 /**
@@ -37,6 +39,8 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   data = {},
   sectionId = "skills",
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const [isHovered, setIsHovered] = useState(false);
@@ -56,6 +60,16 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
         isVisible: cat.isVisible ?? true,
       }))
     : [{ name: "general", items: [], isVisible: false }];
+
+  // Pagination logic: Using displayItemIndices as indices for categories
+  // Note: logic below uses "categories" variable, so we must filter it before rendering or usage
+  // However, local state (categories) includes visibility logic.
+  // The 'categories' variable is derived from props.data.
+  // If paginating, we slice the derived array.
+
+  const categoriesToRender = displayItemIndices
+    ? categories.filter((_, index) => displayItemIndices.includes(index))
+    : categories;
 
   const handleCategoryNameChange = (index: number, name: string) => {
     const newCategories = [...categories];
@@ -177,7 +191,12 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
     (cat) => cat.items && cat.items.length > 0,
   );
 
-  if (!hasAnySkills && categories.every((cat) => !cat.isVisible)) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (
+    !displayItemIndices &&
+    !hasAnySkills &&
+    categories.every((cat) => !cat.isVisible)
+  ) {
     return (
       <div
         className="mb-4 relative"
@@ -192,7 +211,9 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
             showDelete={false}
           />
         )}
-        <SectionHeader title="Skills" themeColor={themeColor} />
+        {!hideHeader && (
+          <SectionHeader title="Skills" themeColor={themeColor} />
+        )}
         <EmptyState
           title="No skills added"
           description="Click to add your skills"
@@ -209,7 +230,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {isHovered && (
+      {isHovered && !displayItemIndices && (
         <SkillsToolbar
           onAddSkill={handleAddSkill}
           onAddGroup={handleAddGroup}
@@ -217,59 +238,72 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
           showDelete={focusedSkill !== null}
         />
       )}
-      <SectionHeader title="Skills" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Skills" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-2">
-        {categories.map((category, groupIndex) => (
-          <div key={groupIndex} className="relative group">
-            <div className="flex items-start gap-2 flex-wrap">
-              {/* Show group name only if visible */}
-              {category.isVisible && (
-                <>
-                  <EditableText
-                    value={category.name}
-                    onChange={(val) =>
-                      handleCategoryNameChange(groupIndex, val)
-                    }
-                    placeholder="Group Title"
-                    className="text-sm font-medium text-teal-700 min-w-[80px]"
-                    as="span"
-                  />
-                  <span className="text-gray-400">:</span>
-                </>
-              )}
+        {categories.map((category, groupIndex) => {
+          if (displayItemIndices && !displayItemIndices.includes(groupIndex))
+            return null;
 
-              {/* Skills as pills */}
-              <div className="flex flex-wrap gap-1.5 items-center">
-                {(category.items || []).map((skill, skillIndex) => (
-                  <React.Fragment key={skillIndex}>
-                    <SkillPill
-                      value={skill}
+          return (
+            <div
+              key={groupIndex}
+              className="relative group"
+              data-pagination-item
+            >
+              <div className="flex items-start gap-2 flex-wrap">
+                {/* Show group name only if visible */}
+                {category.isVisible && (
+                  <>
+                    <EditableText
+                      value={category.name}
                       onChange={(val) =>
-                        handleSkillChange(groupIndex, skillIndex, val)
+                        handleCategoryNameChange(groupIndex, val)
                       }
-                      onFocus={() => handleSkillFocus(groupIndex, skillIndex)}
-                      onBlur={handleSkillBlur}
-                      autoFocus={
-                        newSkillIndex?.groupIndex === groupIndex &&
-                        newSkillIndex?.skillIndex === skillIndex
-                      }
-                      isFocused={
-                        focusedSkill?.groupIndex === groupIndex &&
-                        focusedSkill?.skillIndex === skillIndex
-                      }
-                      placeholder="Skill"
+                      placeholder="Group Title"
+                      className="text-sm font-medium text-teal-700 min-w-[80px]"
+                      as="span"
                     />
-                    {/* Separator dot between skills */}
-                    {skillIndex < (category.items?.length || 0) - 1 && (
-                      <span className="text-gray-400 text-xs">•</span>
-                    )}
-                  </React.Fragment>
-                ))}
+                    <span className="text-gray-400">:</span>
+                  </>
+                )}
+
+                {/* Skills as pills */}
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  {(category.items || []).map((skill, skillIndex) => (
+                    <React.Fragment key={skillIndex}>
+                      <SkillPill
+                        value={skill}
+                        onChange={(val) =>
+                          handleSkillChange(groupIndex, skillIndex, val)
+                        }
+                        onFocus={() => handleSkillFocus(groupIndex, skillIndex)}
+                        onBlur={handleSkillBlur}
+                        autoFocus={
+                          newSkillIndex?.groupIndex === groupIndex &&
+                          newSkillIndex?.skillIndex === skillIndex
+                        }
+                        isFocused={
+                          focusedSkill?.groupIndex === groupIndex &&
+                          focusedSkill?.skillIndex === skillIndex
+                        }
+                        placeholder="Skill"
+                      />
+                      {/* Separator dot between skills */}
+                      {skillIndex < (category.items?.length || 0) - 1 && (
+                        <span className="text-gray-400 text-xs">•</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
