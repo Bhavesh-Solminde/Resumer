@@ -22,6 +22,7 @@ import type {
   SectionTemplateMap,
   IConfirmDialog,
   PanelId,
+  IOptimizedResume,
 } from "@resumer/shared-types";
 
 import {
@@ -54,7 +55,9 @@ export type BuildState = ResumeDataState &
 export type BuildActions = ResumeDataActions &
   StylingActions &
   TemplatesActions &
-  UIActions;
+  UIActions & {
+    loadOptimizedResume: (optimizedResume: IOptimizedResume) => void;
+  };
 
 // ============================================================================
 // Temporal State (what gets tracked for undo/redo)
@@ -247,6 +250,148 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
         ...templatesSlice,
         ...uiSlice,
 
+        // Load optimized resume from AI optimization
+        loadOptimizedResume: (optimizedResume: IOptimizedResume) => {
+          const sections: Section[] = [];
+          const sectionOrder: string[] = [];
+
+          // 1. Header (locked)
+          const headerId = "header";
+          sections.push({
+            id: headerId,
+            type: "header",
+            locked: true,
+            data: { ...optimizedResume.header },
+          });
+          sectionOrder.push(headerId);
+
+          // 2. Summary
+          if (optimizedResume.summary?.content) {
+            const summaryId = uuidv4();
+            sections.push({
+              id: summaryId,
+              type: "summary",
+              data: { content: optimizedResume.summary.content },
+            });
+            sectionOrder.push(summaryId);
+          }
+
+          // 3. Experience
+          if (optimizedResume.experience?.length > 0) {
+            const expId = uuidv4();
+            sections.push({
+              id: expId,
+              type: "experience",
+              data: {
+                items: optimizedResume.experience.map((exp) => ({
+                  ...exp,
+                  id: exp.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(expId);
+          }
+
+          // 4. Education
+          if (optimizedResume.education?.length > 0) {
+            const eduId = uuidv4();
+            sections.push({
+              id: eduId,
+              type: "education",
+              data: {
+                items: optimizedResume.education.map((edu) => ({
+                  ...edu,
+                  id: edu.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(eduId);
+          }
+
+          // 5. Projects
+          if (optimizedResume.projects?.length > 0) {
+            const projId = uuidv4();
+            sections.push({
+              id: projId,
+              type: "projects",
+              data: {
+                items: optimizedResume.projects.map((proj) => ({
+                  ...proj,
+                  id: proj.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(projId);
+          }
+
+          // 6. Skills
+          if (optimizedResume.skills?.items?.length > 0) {
+            const skillsId = uuidv4();
+            sections.push({
+              id: skillsId,
+              type: "skills",
+              data: {
+                title: optimizedResume.skills.title || "Skills",
+                items: optimizedResume.skills.items,
+              },
+            });
+            sectionOrder.push(skillsId);
+          }
+
+          // 7. Certifications
+          if (optimizedResume.certifications?.length > 0) {
+            const certId = uuidv4();
+            sections.push({
+              id: certId,
+              type: "certifications",
+              data: {
+                items: optimizedResume.certifications.map((cert) => ({
+                  ...cert,
+                  id: cert.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(certId);
+          }
+
+          // 8. Achievements
+          if (optimizedResume.achievements?.length > 0) {
+            const achId = uuidv4();
+            sections.push({
+              id: achId,
+              type: "achievements",
+              data: {
+                items: optimizedResume.achievements.map((ach) => ({
+                  ...ach,
+                  id: ach.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(achId);
+          }
+
+          // 9. Extracurricular
+          if (optimizedResume.extracurricular?.length > 0) {
+            const extraId = uuidv4();
+            sections.push({
+              id: extraId,
+              type: "extracurricular",
+              data: {
+                items: optimizedResume.extracurricular.map((extra) => ({
+                  ...extra,
+                  id: extra.id || uuidv4(),
+                })),
+              },
+            });
+            sectionOrder.push(extraId);
+          }
+
+          set({
+            sections,
+            sectionOrder,
+          });
+        },
+
         // Backward compatibility: undo/redo functions
         // Note: These will be replaced after store creation
         undo: () => {},
@@ -268,8 +413,8 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
       // Equality function for diffing
       equality: (pastState, currentState) =>
         JSON.stringify(pastState) === JSON.stringify(currentState),
-    }
-  )
+    },
+  ),
 );
 
 // Now that the store is created, update the undo/redo functions
@@ -326,7 +471,7 @@ export const useResumeData = () =>
       sectionSettings: state.sectionSettings,
       style: state.style,
       template: state.template,
-    }))
+    })),
   );
 
 /**

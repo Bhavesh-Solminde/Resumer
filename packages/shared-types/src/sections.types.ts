@@ -22,6 +22,7 @@ export type SectionType =
   | "socialLinks"
   | "strengths"
   | "achievements"
+  | "extracurricular"
   | "custom";
 
 // ============================================================================
@@ -95,7 +96,17 @@ export interface ICertificationItem extends IItemBase {
   name: string;
   issuer: string;
   date: string;
+  expiryDate?: string;
   credentialId: string;
+}
+
+export interface IExtracurricularItem extends IItemBase {
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  bullets: string[];
 }
 
 export interface ILanguageItem extends IItemBase {
@@ -164,11 +175,19 @@ export interface IEducationSection extends ISectionBase {
   };
 }
 
+/**
+ * Skill category for grouped skills
+ */
+export interface ISkillCategory {
+  name: string;
+  items: string[];
+  isVisible: boolean;
+}
+
 export interface ISkillsSection extends ISectionBase {
   type: "skills";
   data: {
-    title: string;
-    items: string[];
+    categories?: ISkillCategory[];
   };
 }
 
@@ -244,6 +263,13 @@ export interface ICustomSection extends ISectionBase {
   };
 }
 
+export interface IExtracurricularSection extends ISectionBase {
+  type: "extracurricular";
+  data: {
+    items: IExtracurricularItem[];
+  };
+}
+
 // ============================================================================
 // Union Type for All Sections
 // ============================================================================
@@ -276,6 +302,7 @@ export type Section =
   | ISocialLinksSection
   | IStrengthsSection
   | IAchievementsSection
+  | IExtracurricularSection
   | ICustomSection;
 
 // ============================================================================

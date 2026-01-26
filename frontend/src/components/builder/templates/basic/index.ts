@@ -11,6 +11,8 @@ import ProjectsSection from "./sections/ProjectsSection";
 import SkillsSection from "./sections/SkillsSection";
 import SummarySection from "./sections/SummarySection";
 import AchievementsSection from "./sections/AchievementsSection";
+import CertificationsSection from "./sections/CertificationsSection";
+import ExtracurricularSection from "./sections/ExtracurricularSection";
 
 // Preview component
 import TemplatePreview from "./TemplatePreview";
@@ -34,6 +36,8 @@ const basicTemplate = {
     skills: SkillsSection,
     summary: SummarySection,
     achievements: AchievementsSection,
+    certifications: CertificationsSection,
+    extracurricular: ExtracurricularSection,
   },
 
   sampleData: sampleData as unknown as Record<string, unknown>,

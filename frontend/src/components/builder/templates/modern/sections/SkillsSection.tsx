@@ -1,12 +1,18 @@
-import React from "react";
-import { Code, Plus, X } from "lucide-react";
-import { EditableText, EmptyState } from "../../../shared";
+import React, { useState } from "react";
+import { Code } from "lucide-react";
+import {
+  EditableText,
+  EmptyState,
+  SkillsToolbar,
+  SkillPill,
+} from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
 
 interface SkillCategory {
   name: string;
-  items?: string[];
+  items: string[];
+  isVisible: boolean;
 }
 
 interface SkillsData {
@@ -20,49 +26,175 @@ interface SkillsSectionProps {
 
 /**
  * Skills Section for Modern template
+ * Features:
+ * - Hidden "general" group for ungrouped skills
+ * - "+ Skill" adds to focused group or general
+ * - "+ Group" reveals general group first, then creates new groups
+ * - Editable pill-style skills with auto-focus on add
  */
 const SkillsSection: React.FC<SkillsSectionProps> = ({
   data = {},
   sectionId = "skills",
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const [isHovered, setIsHovered] = useState(false);
+  const [focusedSkill, setFocusedSkill] = useState<{
+    groupIndex: number;
+    skillIndex: number;
+  } | null>(null);
+  const [newSkillIndex, setNewSkillIndex] = useState<{
+    groupIndex: number;
+    skillIndex: number;
+  } | null>(null);
 
-  const categories = data.categories || [];
+  // Initialize with hidden general group if empty
+  const categories: SkillCategory[] = data.categories?.length
+    ? data.categories.map((cat) => ({
+        ...cat,
+        isVisible: cat.isVisible ?? true,
+      }))
+    : [{ name: "general", items: [], isVisible: false }];
 
   const handleCategoryNameChange = (index: number, name: string) => {
     const newCategories = [...categories];
     newCategories[index] = { ...newCategories[index], name };
-    updateSectionData(sectionId, { ...data, categories: newCategories });
+    updateSectionData(sectionId, { categories: newCategories });
   };
 
-  const handleSkillsChange = (index: number, skillsString: string) => {
-    const items = skillsString
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+  const handleSkillChange = (
+    groupIndex: number,
+    skillIndex: number,
+    value: string,
+  ) => {
     const newCategories = [...categories];
-    newCategories[index] = { ...newCategories[index], items };
-    updateSectionData(sectionId, { ...data, categories: newCategories });
+    const newItems = [...(newCategories[groupIndex].items || [])];
+    newItems[skillIndex] = value;
+    newCategories[groupIndex] = {
+      ...newCategories[groupIndex],
+      items: newItems,
+    };
+    updateSectionData(sectionId, { categories: newCategories });
   };
 
-  const handleAddCategory = () => {
-    const newCategories = [...categories, { name: "New Category", items: [] }];
-    updateSectionData(sectionId, { ...data, categories: newCategories });
+  const handleAddSkill = () => {
+    const newCategories = [...categories];
+    // Add to focused group, or first group (general) if none focused
+    const targetGroupIndex = focusedSkill?.groupIndex ?? 0;
+    const newItems = [...(newCategories[targetGroupIndex].items || []), ""];
+    newCategories[targetGroupIndex] = {
+      ...newCategories[targetGroupIndex],
+      items: newItems,
+    };
+    updateSectionData(sectionId, { categories: newCategories });
+    // Set new skill for auto-focus
+    setNewSkillIndex({
+      groupIndex: targetGroupIndex,
+      skillIndex: newItems.length - 1,
+    });
+    setFocusedSkill({
+      groupIndex: targetGroupIndex,
+      skillIndex: newItems.length - 1,
+    });
   };
 
-  const handleRemoveCategory = (index: number) => {
-    const newCategories = categories.filter((_, i) => i !== index);
-    updateSectionData(sectionId, { ...data, categories: newCategories });
+  const handleAddGroup = () => {
+    const newCategories = [...categories];
+    // Check if first group is hidden (general)
+    if (newCategories.length === 1 && !newCategories[0].isVisible) {
+      // Make the general group visible
+      newCategories[0] = {
+        ...newCategories[0],
+        name: "Group Title",
+        isVisible: true,
+      };
+    } else {
+      // Add new group with one empty skill
+      newCategories.push({ name: "New Group", items: [""], isVisible: true });
+      // Auto-focus the new empty skill
+      setNewSkillIndex({ groupIndex: newCategories.length - 1, skillIndex: 0 });
+      setFocusedSkill({ groupIndex: newCategories.length - 1, skillIndex: 0 });
+    }
+    updateSectionData(sectionId, { categories: newCategories });
   };
 
-  if (!categories || categories.length === 0) {
+  const handleDeleteFocusedSkill = () => {
+    if (!focusedSkill) return;
+    const { groupIndex, skillIndex } = focusedSkill;
+    const newCategories = [...categories];
+    const newItems = newCategories[groupIndex].items.filter(
+      (_, i) => i !== skillIndex,
+    );
+
+    // If group becomes empty and it's not the only group, remove it
+    if (newItems.length === 0 && newCategories.length > 1) {
+      newCategories.splice(groupIndex, 1);
+      // Focus last skill in previous group if exists
+      const prevGroupIndex = Math.max(0, groupIndex - 1);
+      const prevGroupItems = newCategories[prevGroupIndex]?.items || [];
+      if (prevGroupItems.length > 0) {
+        setFocusedSkill({
+          groupIndex: prevGroupIndex,
+          skillIndex: prevGroupItems.length - 1,
+        });
+        setNewSkillIndex({
+          groupIndex: prevGroupIndex,
+          skillIndex: prevGroupItems.length - 1,
+        });
+      } else {
+        setFocusedSkill(null);
+      }
+    } else {
+      newCategories[groupIndex] = {
+        ...newCategories[groupIndex],
+        items: newItems,
+      };
+      // Focus previous skill in same group
+      if (newItems.length > 0) {
+        const prevSkillIndex = Math.max(0, skillIndex - 1);
+        setFocusedSkill({ groupIndex, skillIndex: prevSkillIndex });
+        setNewSkillIndex({ groupIndex, skillIndex: prevSkillIndex });
+      } else {
+        setFocusedSkill(null);
+      }
+    }
+
+    updateSectionData(sectionId, { categories: newCategories });
+  };
+
+  const handleSkillFocus = (groupIndex: number, skillIndex: number) => {
+    setFocusedSkill({ groupIndex, skillIndex });
+  };
+
+  const handleSkillBlur = () => {
+    // Clear newSkillIndex after blur to prevent re-focus
+    setNewSkillIndex(null);
+  };
+
+  // Check if we have any skills at all
+  const hasAnySkills = categories.some(
+    (cat) => cat.items && cat.items.length > 0,
+  );
+
+  if (!hasAnySkills && categories.every((cat) => !cat.isVisible)) {
     return (
-      <div className="mb-4">
+      <div
+        className="mb-4 relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {isHovered && (
+          <SkillsToolbar
+            onAddSkill={handleAddSkill}
+            onAddGroup={handleAddGroup}
+            onDelete={handleDeleteFocusedSkill}
+            showDelete={false}
+          />
+        )}
         <SectionHeader title="Skills" />
         <EmptyState
           title="No skills added"
-          description="Click to add skills"
-          onAdd={handleAddCategory}
+          description="Click to add your skills"
+          onAdd={handleAddSkill}
           icon={Code}
         />
       </div>
@@ -70,55 +202,69 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   }
 
   return (
-    <div className="mb-4">
+    <div
+      className="mb-4 relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && (
+        <SkillsToolbar
+          onAddSkill={handleAddSkill}
+          onAddGroup={handleAddGroup}
+          onDelete={handleDeleteFocusedSkill}
+          showDelete={focusedSkill !== null}
+        />
+      )}
       <SectionHeader title="Skills" />
 
       <div className="space-y-3">
-        {categories.map((category, index) => (
-          <div key={index} className="relative group">
-            <div className="flex items-center gap-2 mb-1">
-              <EditableText
-                value={category.name}
-                onChange={(val) => handleCategoryNameChange(index, val)}
-                placeholder="Category"
-                className="text-sm font-medium text-indigo-600"
-                as="span"
-              />
-              <button
-                onClick={() => handleRemoveCategory(index)}
-                className="p-0.5 rounded hover:bg-red-50 opacity-0 group-hover:opacity-100"
-              >
-                <X className="w-3 h-3 text-red-500" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {(category.items || []).map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded-full"
-                >
-                  {skill}
-                </span>
+        {categories.map((category, groupIndex) => (
+          <div key={groupIndex} className="relative group">
+            {/* Show group name only if visible */}
+            {category.isVisible && (
+              <div className="flex items-center gap-2 mb-1">
+                <EditableText
+                  value={category.name}
+                  onChange={(val) => handleCategoryNameChange(groupIndex, val)}
+                  placeholder="Group Title"
+                  className="text-sm font-medium text-indigo-600"
+                  as="span"
+                />
+              </div>
+            )}
+
+            {/* Skills as pills */}
+            <div className="flex flex-wrap gap-1.5 items-center">
+              {(category.items || []).map((skill, skillIndex) => (
+                <React.Fragment key={skillIndex}>
+                  <SkillPill
+                    value={skill}
+                    onChange={(val) =>
+                      handleSkillChange(groupIndex, skillIndex, val)
+                    }
+                    onFocus={() => handleSkillFocus(groupIndex, skillIndex)}
+                    onBlur={handleSkillBlur}
+                    autoFocus={
+                      newSkillIndex?.groupIndex === groupIndex &&
+                      newSkillIndex?.skillIndex === skillIndex
+                    }
+                    isFocused={
+                      focusedSkill?.groupIndex === groupIndex &&
+                      focusedSkill?.skillIndex === skillIndex
+                    }
+                    placeholder="Skill"
+                    className="rounded-full"
+                  />
+                  {/* Separator dot between skills */}
+                  {skillIndex < (category.items?.length || 0) - 1 && (
+                    <span className="text-gray-400 text-xs">•</span>
+                  )}
+                </React.Fragment>
               ))}
             </div>
-            <EditableText
-              value={(category.items || []).join(", ")}
-              onChange={(val) => handleSkillsChange(index, val)}
-              placeholder="Add skills (comma separated)"
-              className="text-xs text-gray-500 italic mt-1"
-              as="span"
-            />
           </div>
         ))}
       </div>
-
-      <button
-        onClick={handleAddCategory}
-        className="mt-2 flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 hover:underline"
-      >
-        <Plus className="w-3.5 h-3.5" />
-        Add Category
-      </button>
     </div>
   );
 };

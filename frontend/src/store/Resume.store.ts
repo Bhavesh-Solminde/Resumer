@@ -3,7 +3,7 @@ import { axiosInstance, getApiErrorMessage } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import type {
   IAnalysisResult,
-  IOptimizationResult,
+  IOptimizationData,
   ApiResponse,
 } from "@resumer/shared-types";
 
@@ -16,7 +16,7 @@ interface ResumeState {
   resumePdf: FormData | null;
 
   isOptimizing: boolean;
-  optimizationResult: IOptimizationResult | null;
+  optimizationResult: IOptimizationData | null;
 }
 
 /**
@@ -49,7 +49,7 @@ const initialState: ResumeState = {
 /**
  * Demo data for testing optimization UI
  */
-const DEMO_OPTIMIZATION_RESULT: IOptimizationResult = {
+const DEMO_OPTIMIZATION_RESULT: IOptimizationData = {
   ats_score_before: 52,
   ats_score_after: 94,
   optimization_summary:
@@ -83,6 +83,80 @@ const DEMO_OPTIMIZATION_RESULT: IOptimizationResult = {
         "Added scale (500+ users) and technical details (Normalized schema, Query performance). Transformed a simple description into an engineering achievement.",
     },
   ],
+  optimizedResume: {
+    header: {
+      fullName: "Aarav Patel",
+      title: "Software Engineer",
+      email: "aarav.patel@email.com",
+      phone: "+1 555 123 4567",
+      location: "San Francisco, CA",
+      linkedin: "linkedin.com/in/aaravpatel",
+      website: "aaravpatel.dev",
+    },
+    summary: {
+      content:
+        "Ambitious Computer Science graduate with a strong foundation in Java and Python, seeking a Software Engineer role to leverage problem-solving skills. Proven ability to collaborate in agile teams and deliver high-quality code.",
+    },
+    experience: [
+      {
+        id: "exp-1",
+        title: "Software Engineering Intern",
+        company: "TechSolutions Inc.",
+        location: "San Francisco, CA",
+        startDate: "06/2024",
+        endDate: "08/2024",
+        description: "Full-stack development internship",
+        bullets: [
+          "Collaborated with a team of 5 developers to build and maintain web applications using JavaScript and HTML/CSS",
+          "Resolved 20+ critical UI bugs, improving application stability by 15%",
+          "Gained hands-on experience with modern web frameworks and version control (Git)",
+        ],
+      },
+    ],
+    education: [
+      {
+        id: "edu-1",
+        degree: "Bachelor of Science in Computer Science",
+        institution: "University of California, Berkeley",
+        location: "Berkeley, CA",
+        startDate: "08/2020",
+        endDate: "05/2024",
+        gpa: "3.7/4.0",
+        description:
+          "Relevant coursework: Data Structures, Algorithms, Database Systems",
+      },
+    ],
+    projects: [
+      {
+        id: "proj-1",
+        name: "Library Management System",
+        subtitle: "Java, SQL, Spring Boot",
+        date: "03/2024",
+        description: "Full-stack library management application",
+        bullets: [
+          "Designed and implemented a comprehensive Library Management System allowing 500+ users to track book inventory in real-time",
+          "Architected a normalized SQL database schema to ensure data integrity and optimize query performance by 30%",
+        ],
+        link: "github.com/aarav/library-system",
+      },
+    ],
+    skills: {
+      title: "Technical Skills",
+      items: [
+        "Java",
+        "Python",
+        "JavaScript",
+        "React",
+        "Node.js",
+        "SQL",
+        "Git",
+        "Spring Boot",
+      ],
+    },
+    certifications: [],
+    achievements: [],
+    extracurricular: [],
+  },
 };
 
 /**
@@ -118,7 +192,10 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       console.error("Error analyzing resume:", error);
       set({ analysisResult: null });
       toast.error(
-        getApiErrorMessage(error, "Failed to analyze resume. Please try again.")
+        getApiErrorMessage(
+          error,
+          "Failed to analyze resume. Please try again.",
+        ),
       );
     } finally {
       // Keep loader for a moment to show 100%
@@ -132,7 +209,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     set({ isOptimizing: true });
     try {
       const response = await axiosInstance.post<
-        ApiResponse<{ analysisResult: IOptimizationResult }>
+        ApiResponse<{ analysisResult: IOptimizationData }>
       >("/resume/optimize/general");
       set({ optimizationResult: response.data.data.analysisResult });
       toast.success("Resume optimized successfully!");
@@ -152,7 +229,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     set({ isOptimizing: true });
     try {
       const response = await axiosInstance.post<
-        ApiResponse<{ analysisResult: IOptimizationResult }>
+        ApiResponse<{ analysisResult: IOptimizationData }>
       >("/resume/optimize/jd", { jobDescription });
       set({ optimizationResult: response.data.data.analysisResult });
       toast.success("Resume optimized for JD successfully!");

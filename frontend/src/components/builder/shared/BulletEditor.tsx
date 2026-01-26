@@ -66,36 +66,38 @@ const BulletEditor: React.FC<BulletEditorProps> = ({
     <div className={cn("space-y-1", className)}>
       <ul
         className={cn(
-          "space-y-0.5",
+          "space-y-0.5 list-outside",
           bulletStyle !== "dash" &&
             bulletStyle !== "arrow" &&
             bulletIcons[bulletStyle],
-          bulletStyle !== "dash" && bulletStyle !== "arrow" && "ml-4"
+          bulletStyle !== "dash" && bulletStyle !== "arrow" && "pl-5",
         )}
       >
         {bullets.map((bullet, index) => (
           <li
             key={index}
-            className="relative group flex items-start gap-1"
+            className="relative group list-item"
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
-            {/* Custom bullet markers */}
-            {(bulletStyle === "dash" || bulletStyle === "arrow") && (
-              <span className="text-gray-600 select-none">
-                {getBulletMarker(bulletStyle)}
-              </span>
-            )}
+            <div className="flex items-start gap-1">
+              {/* Custom bullet markers */}
+              {(bulletStyle === "dash" || bulletStyle === "arrow") && (
+                <span className="text-gray-600 select-none">
+                  {getBulletMarker(bulletStyle)}
+                </span>
+              )}
 
-            {/* Bullet text */}
-            <div className="flex-1">
-              <EditableText
-                value={bullet}
-                onChange={(val) => handleBulletChange(index, val)}
-                placeholder={placeholder}
-                className="text-sm text-gray-700"
-                multiline={false}
-              />
+              {/* Bullet text */}
+              <div className="flex-1">
+                <EditableText
+                  value={bullet}
+                  onChange={(val) => handleBulletChange(index, val)}
+                  placeholder={placeholder}
+                  className="text-sm text-gray-700"
+                  multiline={true}
+                />
+              </div>
             </div>
 
             {/* Hover actions */}
