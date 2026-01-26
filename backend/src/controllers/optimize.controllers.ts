@@ -7,114 +7,14 @@ import ResumeScan from "../models/resumeScan.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ENV from "../env.js";
+import type { IOptimizationData } from "@resumer/shared-types";
 // Type augmentation from ../types/express.d.ts is applied globally
 
 // ============================================================================
-// Types - Frontend-aligned interfaces
+// Types - Shared interfaces
 // ============================================================================
 
-interface IHeaderData {
-  fullName: string;
-  title: string;
-  email: string;
-  phone: string;
-  location: string;
-  linkedin: string;
-  website: string;
-}
-
-interface ISummaryData {
-  content: string;
-}
-
-interface IExperienceItem {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  bullets: string[];
-}
-
-interface IEducationItem {
-  id: string;
-  degree: string;
-  institution: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  gpa: string;
-  description: string;
-}
-
-interface IProjectItem {
-  id: string;
-  name: string;
-  subtitle: string;
-  date: string;
-  description: string;
-  bullets: string[];
-  link: string;
-}
-
-interface ICertificationItem {
-  id: string;
-  name: string;
-  issuer: string;
-  date: string;
-  expiryDate?: string;
-  credentialId: string;
-}
-
-interface IAchievementItem {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-}
-
-interface IExtracurricularItem {
-  id: string;
-  title: string;
-  organization: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  bullets: string[];
-}
-
-interface ISkillsData {
-  title: string;
-  items: string[];
-}
-
-interface IOptimizedResume {
-  header: IHeaderData;
-  summary: ISummaryData;
-  experience: IExperienceItem[];
-  education: IEducationItem[];
-  projects: IProjectItem[];
-  skills: ISkillsData;
-  certifications: ICertificationItem[];
-  achievements: IAchievementItem[];
-  extracurricular: IExtracurricularItem[];
-}
-
-interface IOptimizationResult {
-  ats_score_before: number;
-  ats_score_after: number;
-  optimization_summary: string;
-  red_vs_green_comparison: Array<{
-    section: string;
-    original_text: string;
-    optimized_text: string;
-    explanation: string;
-  }>;
-  missing_keywords_added?: string[];
-  optimizedResume: IOptimizedResume;
-}
+type IOptimizationResult = IOptimizationData;
 
 interface OptimizeJdBody {
   jobDescription?: string;
@@ -143,7 +43,7 @@ export const uploadToCloudinaryMiddleware = asyncHandler(
       console.error("Cloudinary upload failed:", error);
       next(error);
     }
-  }
+  },
 );
 
 // ============================================================================
@@ -172,7 +72,7 @@ export const optimizeResume = asyncHandler(
       if (!lastScan) {
         throw new ApiError(
           400,
-          "No resume found. Please upload a resume first."
+          "No resume found. Please upload a resume first.",
         );
       }
       if (lastScan.resumeText) {
@@ -180,7 +80,7 @@ export const optimizeResume = asyncHandler(
       } else {
         throw new ApiError(
           400,
-          "Resume text not found in history. Please re-upload your resume."
+          "Resume text not found in history. Please re-upload your resume.",
         );
       }
     }
@@ -348,10 +248,10 @@ ${resumeText}
       console.error("Request to AI failed:", error);
       throw new ApiError(
         500,
-        err.message || "An error occurred while optimizing the resume"
+        err.message || "An error occurred while optimizing the resume",
       );
     }
-  }
+  },
 );
 
 // ============================================================================
@@ -362,7 +262,7 @@ export const optimizeJd = asyncHandler(
   async (
     req: Request<object, object, OptimizeJdBody>,
     _res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     const { jobDescription } = req.body;
     if (!jobDescription) {
@@ -389,7 +289,7 @@ export const optimizeJd = asyncHandler(
       if (!lastScan) {
         throw new ApiError(
           400,
-          "No resume found. Please upload a resume first."
+          "No resume found. Please upload a resume first.",
         );
       }
       if (lastScan.resumeText) {
@@ -397,7 +297,7 @@ export const optimizeJd = asyncHandler(
       } else {
         throw new ApiError(
           400,
-          "Resume text not found in history. Please re-upload your resume."
+          "Resume text not found in history. Please re-upload your resume.",
         );
       }
     }
@@ -570,10 +470,10 @@ ${resumeText}
       console.error("Request to AI failed:", error);
       throw new ApiError(
         500,
-        err.message || "An error occurred while optimizing the resume"
+        err.message || "An error occurred while optimizing the resume",
       );
     }
-  }
+  },
 );
 
 // ============================================================================
@@ -603,7 +503,7 @@ export const saveResumeScan = asyncHandler(
       if (!lastScan) {
         throw new ApiError(
           404,
-          "No existing resume found. Please upload a resume first."
+          "No existing resume found. Please upload a resume first.",
         );
       }
       pdfUrl = lastScan.pdfUrl;
@@ -627,5 +527,5 @@ export const saveResumeScan = asyncHandler(
     return res
       .status(201)
       .json(new ApiResponse(201, "Resume scan saved successfully", newScan));
-  }
+  },
 );

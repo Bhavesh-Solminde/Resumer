@@ -188,6 +188,11 @@ export interface ISkillsSection extends ISectionBase {
   type: "skills";
   data: {
     categories?: ISkillCategory[];
+    /**
+     * Legacy shape support (pre-categories)
+     */
+    title?: string;
+    items?: string[];
   };
 }
 

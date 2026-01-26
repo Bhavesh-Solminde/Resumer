@@ -11,6 +11,48 @@ import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
 import { formatDate, DateValue } from "../../../../../lib/dateUtils";
 
+const parseDateString = (
+  value: string | null | undefined,
+): DateValue | null => {
+  if (!value) return null;
+  if (value === "Present") return null;
+
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const monthNameIndex = months.findIndex((m) => value.startsWith(m));
+  if (monthNameIndex >= 0) {
+    const yearPart = value.replace(months[monthNameIndex], "").trim();
+    const year = Number(yearPart);
+    if (!Number.isNaN(year)) {
+      return { month: monthNameIndex, year };
+    }
+  }
+
+  const parts = value.split("/");
+  if (parts.length === 2) {
+    const monthNum = Number(parts[0]) - 1;
+    const year = Number(parts[1]);
+    if (!Number.isNaN(monthNum) && !Number.isNaN(year)) {
+      return { month: Math.max(0, Math.min(11, monthNum)), year };
+    }
+  }
+
+  return null;
+};
+
 interface ExtracurricularItem {
   id: string;
   title?: string;
@@ -63,7 +105,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -71,7 +113,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, bullets } : item
+      item.id === itemId ? { ...item, bullets } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -107,13 +149,13 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -200,7 +242,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
                   >
                     {item.startDate || item.endDate
                       ? `${formatDate(item.startDate)} - ${formatDate(
-                          item.endDate
+                          item.endDate,
                         )}`
                       : "Add dates"}
                   </button>
@@ -216,12 +258,12 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
                     from:
                       typeof item.startDate === "object"
                         ? item.startDate
-                        : null,
+                        : parseDateString(item.startDate),
                     to:
                       typeof item.endDate === "object" ||
                       item.endDate === "Present"
                         ? (item.endDate as DateValue | "Present")
-                        : null,
+                        : parseDateString(item.endDate),
                   }}
                   onChange={(dates) => handleDateChange(item.id, dates)}
                   onClose={() => setCalendarOpen(null)}

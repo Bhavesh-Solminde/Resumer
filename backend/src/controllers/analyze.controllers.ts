@@ -8,115 +8,24 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import User from "../models/user.model.js";
 import ResumeScan from "../models/resumeScan.model.js";
+import type {
+  IAchievementItem,
+  ICertificationItem,
+  IEducationItem,
+  IExperienceItem,
+  IExtracurricularItem,
+  IHeaderData,
+  IProjectItem,
+  ISkillsSection,
+  ISummaryData,
+} from "@resumer/shared-types";
 // Type augmentation from ../types/express.d.ts is applied globally
 
 // ============================================================================
 // Types - Frontend-aligned interfaces
 // ============================================================================
 
-/**
- * Header data (personal info)
- */
-interface IHeaderData {
-  fullName: string;
-  title: string;
-  email: string;
-  phone: string;
-  location: string;
-  linkedin: string;
-  website: string;
-}
-
-/**
- * Summary data
- */
-interface ISummaryData {
-  content: string;
-}
-
-/**
- * Experience item
- */
-interface IExperienceItem {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  bullets: string[];
-}
-
-/**
- * Education item
- */
-interface IEducationItem {
-  id: string;
-  degree: string;
-  institution: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  gpa: string;
-  description: string;
-}
-
-/**
- * Project item
- */
-interface IProjectItem {
-  id: string;
-  name: string;
-  subtitle: string;
-  date: string;
-  description: string;
-  bullets: string[];
-  link: string;
-}
-
-/**
- * Certification item
- */
-interface ICertificationItem {
-  id: string;
-  name: string;
-  issuer: string;
-  date: string;
-  expiryDate?: string;
-  credentialId: string;
-}
-
-/**
- * Achievement item
- */
-interface IAchievementItem {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-}
-
-/**
- * Extracurricular item
- */
-interface IExtracurricularItem {
-  id: string;
-  title: string;
-  organization: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  bullets: string[];
-}
-
-/**
- * Skills data
- */
-interface ISkillsData {
-  title: string;
-  items: string[];
-}
+type ISkillsData = ISkillsSection["data"];
 
 /**
  * Extracted resume structure (matches frontend Section[] format)
@@ -340,7 +249,7 @@ ${resumeText}
 
       await User.updateOne(
         { _id: req.user!._id },
-        { $push: { resumeHistory: resumeScan._id } }
+        { $push: { resumeHistory: resumeScan._id } },
       );
 
       // Send Response
@@ -348,15 +257,15 @@ ${resumeText}
         new ApiResponse(200, "Resume analyzed successfully", {
           ...analysisData,
           resumeUrl: cloudinaryUrl,
-        })
+        }),
       );
     } catch (error: unknown) {
       const err = error as { message?: string };
       console.error("Request to AI or Cloudinary failed:", error);
       throw new ApiError(
         500,
-        err.message || "An error occurred while analyzing the resume"
+        err.message || "An error occurred while analyzing the resume",
       );
     }
-  }
+  },
 );
