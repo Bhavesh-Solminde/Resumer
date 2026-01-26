@@ -13,6 +13,8 @@ interface AchievementItem {
 interface AchievementsSectionProps {
   data?: AchievementItem[];
   sectionId?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -29,6 +31,8 @@ interface ConfirmDialogState {
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
   sectionId = "achievements",
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -37,9 +41,13 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -68,7 +76,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
     });
   };
 
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Achievements" />
@@ -84,12 +92,17 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Achievements" />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Achievements" />
+        </div>
+      )}
 
       <div className="space-y-2">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
+            data-pagination-item
             className="relative group flex items-start gap-2 pl-4 border-l-2 border-gray-200 hover:border-indigo-400"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

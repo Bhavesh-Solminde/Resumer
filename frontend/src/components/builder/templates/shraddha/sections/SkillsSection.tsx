@@ -23,6 +23,8 @@ interface SkillsSectionProps {
   data?: SkillsData;
   sectionId?: string;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 /**
@@ -37,6 +39,8 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   data = {},
   sectionId = "skills",
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const [isHovered, setIsHovered] = useState(false);
@@ -177,7 +181,11 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
     (cat) => cat.items && cat.items.length > 0,
   );
 
-  if (!hasAnySkills && categories.every((cat) => !cat.isVisible)) {
+  if (
+    !displayItemIndices &&
+    !hasAnySkills &&
+    categories.every((cat) => !cat.isVisible)
+  ) {
     return (
       <div
         className="mb-4 relative"
@@ -209,7 +217,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {isHovered && (
+      {isHovered && !displayItemIndices && (
         <SkillsToolbar
           onAddSkill={handleAddSkill}
           onAddGroup={handleAddGroup}
@@ -217,59 +225,72 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
           showDelete={focusedSkill !== null}
         />
       )}
-      <SectionHeader title="Skills" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Skills" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-2">
-        {categories.map((category, groupIndex) => (
-          <div key={groupIndex} className="relative group">
-            <div className="flex items-start gap-2 flex-wrap">
-              {/* Show group name only if visible */}
-              {category.isVisible && (
-                <div className="flex items-center gap-1 min-w-[100px]">
-                  <EditableText
-                    value={category.name}
-                    onChange={(val) =>
-                      handleCategoryNameChange(groupIndex, val)
-                    }
-                    placeholder="Group Title"
-                    className="text-sm font-medium text-gray-700"
-                    as="span"
-                  />
-                  <span className="text-gray-500">:</span>
-                </div>
-              )}
-
-              {/* Skills as pills */}
-              <div className="flex flex-wrap gap-1.5 items-center">
-                {(category.items || []).map((skill, skillIndex) => (
-                  <React.Fragment key={skillIndex}>
-                    <SkillPill
-                      value={skill}
+        {categories.map((category, groupIndex) => {
+          if (displayItemIndices && !displayItemIndices.includes(groupIndex)) {
+            return null;
+          }
+          return (
+            <div
+              key={groupIndex}
+              data-pagination-item
+              className="relative group"
+            >
+              <div className="flex items-start gap-2 flex-wrap">
+                {/* Show group name only if visible */}
+                {category.isVisible && (
+                  <div className="flex items-center gap-1 min-w-[100px]">
+                    <EditableText
+                      value={category.name}
                       onChange={(val) =>
-                        handleSkillChange(groupIndex, skillIndex, val)
+                        handleCategoryNameChange(groupIndex, val)
                       }
-                      onFocus={() => handleSkillFocus(groupIndex, skillIndex)}
-                      onBlur={handleSkillBlur}
-                      autoFocus={
-                        newSkillIndex?.groupIndex === groupIndex &&
-                        newSkillIndex?.skillIndex === skillIndex
-                      }
-                      isFocused={
-                        focusedSkill?.groupIndex === groupIndex &&
-                        focusedSkill?.skillIndex === skillIndex
-                      }
-                      placeholder="Skill"
+                      placeholder="Group Title"
+                      className="text-sm font-medium text-gray-700"
+                      as="span"
                     />
-                    {/* Separator dot between skills */}
-                    {skillIndex < (category.items?.length || 0) - 1 && (
-                      <span className="text-gray-400 text-xs">•</span>
-                    )}
-                  </React.Fragment>
-                ))}
+                    <span className="text-gray-500">:</span>
+                  </div>
+                )}
+
+                {/* Skills as pills */}
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  {(category.items || []).map((skill, skillIndex) => (
+                    <React.Fragment key={skillIndex}>
+                      <SkillPill
+                        value={skill}
+                        onChange={(val) =>
+                          handleSkillChange(groupIndex, skillIndex, val)
+                        }
+                        onFocus={() => handleSkillFocus(groupIndex, skillIndex)}
+                        onBlur={handleSkillBlur}
+                        autoFocus={
+                          newSkillIndex?.groupIndex === groupIndex &&
+                          newSkillIndex?.skillIndex === skillIndex
+                        }
+                        isFocused={
+                          focusedSkill?.groupIndex === groupIndex &&
+                          focusedSkill?.skillIndex === skillIndex
+                        }
+                        placeholder="Skill"
+                      />
+                      {/* Separator dot between skills */}
+                      {skillIndex < (category.items?.length || 0) - 1 && (
+                        <span className="text-gray-400 text-xs">•</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

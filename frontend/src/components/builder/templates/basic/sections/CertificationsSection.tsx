@@ -9,15 +9,12 @@ import {
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
 import { formatDate, DateValue } from "../../../../../lib/dateUtils";
+import type { ICertificationItem } from "@resumer/shared-types";
 
-interface CertificationItem {
-  id: string;
-  name?: string;
-  issuer?: string;
+type CertificationItem = Omit<ICertificationItem, "date" | "expiryDate"> & {
   date?: DateValue | string | null;
   expiryDate?: DateValue | string | null;
-  credentialId?: string;
-}
+};
 
 interface CertificationsSectionSettings {
   showIssuer?: boolean;
@@ -61,7 +58,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -97,11 +94,11 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
   const handleDateChange = (
     itemId: string,
     field: "date" | "expiryDate",
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: dates.from } : item
+      item.id === itemId ? { ...item, [field]: dates.from } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -181,7 +178,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                       setCalendarOpen(
                         calendarOpen === `${item.id}-date`
                           ? null
-                          : `${item.id}-date`
+                          : `${item.id}-date`,
                       )
                     }
                     className="hover:text-gray-700 hover:underline"
@@ -216,7 +213,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                       setCalendarOpen(
                         calendarOpen === `${item.id}-expiry`
                           ? null
-                          : `${item.id}-expiry`
+                          : `${item.id}-expiry`,
                       )
                     }
                     className="hover:text-gray-700 hover:underline"
@@ -247,7 +244,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
               )}
 
               {/* Credential ID */}
-              {sectionSettings.showCredentialId && item.credentialId && (
+              {sectionSettings.showCredentialId && (
                 <div className="flex items-center gap-1">
                   <span className="text-gray-400">ID:</span>
                   <EditableText

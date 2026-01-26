@@ -8,6 +8,8 @@ interface StrengthsSectionProps {
   data?: string[];
   sectionId?: string;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -26,6 +28,8 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({
   data = [],
   sectionId = "strengths",
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -59,7 +63,7 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({
     });
   };
 
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Strengths" themeColor={themeColor} />
@@ -75,35 +79,39 @@ const StrengthsSection: React.FC<StrengthsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Strengths" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Strengths" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
-        {data.map((strength, index) => (
-          <div
-            key={index}
-            className="relative group"
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-              <EditableText
-                value={strength}
-                onChange={(val) => handleChange(index, val)}
-                placeholder="Strength"
-                className="text-sm"
-                as="span"
-              />
-              {hoveredIndex === index && (
-                <button
-                  onClick={() => handleRemove(index)}
-                  className="ml-1 text-blue-500 hover:text-red-500"
-                >
-                  x
-                </button>
-              )}
+        {data.map((strength, index) => {
+          if (displayItemIndices && !displayItemIndices.includes(index)) {
+            return null;
+          }
+          return (
+            <div key={index} data-pagination-item className="relative group">
+              <div className="flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                <EditableText
+                  value={strength}
+                  onChange={(val) => handleChange(index, val)}
+                  placeholder="Strength"
+                  className="text-sm"
+                  as="span"
+                />
+                {hoveredIndex === index && (
+                  <button
+                    onClick={() => handleRemove(index)}
+                    className="ml-1 text-blue-500 hover:text-red-500"
+                  >
+                    x
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add More Button */}

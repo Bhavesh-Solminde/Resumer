@@ -33,6 +33,8 @@ interface ProjectsSectionProps {
   data?: ProjectItem[];
   sectionId?: string;
   settings?: ProjectsSectionSettings;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -50,6 +52,8 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   data = [],
   sectionId = "projects",
   settings = {},
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
@@ -65,13 +69,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     ...settings,
   };
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (
     itemId: string,
     field: string,
-    value: string | string[]
+    value: string | string[],
   ) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -106,12 +114,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -129,7 +137,9 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     handleFieldChange(itemId, "bullets", bullets);
   };
 
-  if (!data || data.length === 0) {
+  // Skip empty check if we are rendering specific indices (pagination case)
+  // Otherwise show empty state if no data
+  if ((!data || data.length === 0) && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Projects" />
@@ -145,12 +155,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Projects" />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Projects" />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-3">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
+            data-pagination-item
             className="relative group p-3 border border-gray-200 rounded-lg hover:border-indigo-400 transition-colors"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

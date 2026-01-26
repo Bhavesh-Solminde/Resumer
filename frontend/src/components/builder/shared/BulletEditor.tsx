@@ -67,6 +67,7 @@ const BulletEditor: React.FC<BulletEditorProps> = ({
       <ul
         className={cn(
           "space-y-0.5 list-outside",
+          (bulletStyle === "dash" || bulletStyle === "arrow") && "list-none",
           bulletStyle !== "dash" &&
             bulletStyle !== "arrow" &&
             bulletIcons[bulletStyle],

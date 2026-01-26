@@ -331,8 +331,13 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
               id: skillsId,
               type: "skills",
               data: {
-                title: optimizedResume.skills.title || "Skills",
-                items: optimizedResume.skills.items,
+                categories: [
+                  {
+                    name: optimizedResume.skills.title || "Skills",
+                    items: optimizedResume.skills.items,
+                    isVisible: true,
+                  },
+                ],
               },
             });
             sectionOrder.push(skillsId);

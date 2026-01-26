@@ -14,6 +14,8 @@ interface AchievementsSectionProps {
   data?: AchievementItem[];
   sectionId?: string;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -31,6 +33,8 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
   sectionId = "achievements",
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -39,9 +43,14 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -70,10 +79,13 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
     });
   };
 
-  if (!data || data.length === 0) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && (!data || data.length === 0)) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Achievements" themeColor={themeColor} />
+        {!hideHeader && (
+          <SectionHeader title="Achievements" themeColor={themeColor} />
+        )}
         <EmptyState
           title="No achievements added"
           description="Click to add achievements"
@@ -86,15 +98,20 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Achievements" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Achievements" themeColor={themeColor} />
+        </div>
+      )}
 
       <ul className="space-y-1 list-disc ml-4">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <li
             key={item.id}
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar

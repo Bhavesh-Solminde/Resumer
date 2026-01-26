@@ -33,6 +33,8 @@ interface ExperienceSectionProps {
   data?: ExperienceItem[];
   sectionId?: string;
   settings?: ExperienceSectionSettings;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -50,6 +52,8 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   data = [],
   sectionId = "experience",
   settings = {},
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -67,16 +71,21 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     ...settings,
   };
 
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
 
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, bullets } : item
+      item.id === itemId ? { ...item, bullets } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -111,21 +120,22 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
   };
 
-  if (!data || data.length === 0) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && (!data || data.length === 0)) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Experience" />
+        {!hideHeader && <SectionHeader title="Experience" />}
         <EmptyState
           title="No experience added"
           description="Click to add work experience"
@@ -138,15 +148,20 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Experience" />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Experience" />
+        </div>
+      )}
 
       <div className="space-y-4">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
             className="relative group pl-4 border-l-2 border-gray-200 hover:border-indigo-400 transition-colors"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar

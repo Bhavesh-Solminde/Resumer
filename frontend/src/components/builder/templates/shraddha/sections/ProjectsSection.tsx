@@ -34,6 +34,8 @@ interface ProjectsSectionProps {
   sectionId?: string;
   settings?: ProjectsSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -52,6 +54,8 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   sectionId = "projects",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
@@ -67,13 +71,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     ...settings,
   };
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (
     itemId: string,
     field: string,
-    value: string | string[]
+    value: string | string[],
   ) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -108,13 +116,13 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const handleDateChange = (
     itemId: string,
-    dates: { from: DateValue | null; to: DateValue | "Present" | null }
+    dates: { from: DateValue | null; to: DateValue | "Present" | null },
   ) => {
     if (!sectionId) return;
     const updatedData = data.map((item) =>
       item.id === itemId
         ? { ...item, startDate: dates.from, endDate: dates.to }
-        : item
+        : item,
     );
     updateSectionData(sectionId, { items: updatedData });
     setCalendarOpen(null);
@@ -132,7 +140,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     handleFieldChange(itemId, "bullets", bullets);
   };
 
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Projects" themeColor={themeColor} />
@@ -148,12 +156,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Projects" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Projects" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-3">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
+            data-pagination-item
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

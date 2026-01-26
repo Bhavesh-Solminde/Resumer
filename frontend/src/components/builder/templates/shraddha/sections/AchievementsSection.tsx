@@ -14,6 +14,8 @@ interface AchievementsSectionProps {
   data?: AchievementItem[];
   sectionId?: string;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 interface ConfirmDialogState {
@@ -31,6 +33,8 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   data = [],
   sectionId = "achievements",
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
@@ -39,9 +43,13 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, idx) => displayItemIndices.includes(idx))
+    : data;
+
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     const updatedData = data.map((item) =>
-      item.id === itemId ? { ...item, [field]: value } : item
+      item.id === itemId ? { ...item, [field]: value } : item,
     );
     updateSectionData(sectionId, { items: updatedData });
   };
@@ -70,7 +78,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
     });
   };
 
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && !displayItemIndices) {
     return (
       <div className="mb-4">
         <SectionHeader title="Achievements" themeColor={themeColor} />
@@ -86,12 +94,17 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Achievements" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Achievements" themeColor={themeColor} />
+        </div>
+      )}
 
       <ul className="space-y-1">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <li
             key={item.id}
+            data-pagination-item
             className="relative group flex items-start gap-2"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}

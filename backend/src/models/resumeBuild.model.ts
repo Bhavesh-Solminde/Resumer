@@ -127,7 +127,11 @@ export type ResumeBuildDocument = Document<Types.ObjectId> & IResumeBuild;
 
 const EducationSchema = new Schema<IEducation>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     institution: { type: String, default: "" },
     degree: { type: String, default: "" },
     location: { type: String, default: "" },
@@ -136,12 +140,16 @@ const EducationSchema = new Schema<IEducation>(
     gpa: { type: String, default: "" },
     description: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ExperienceSchema = new Schema<IExperience>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     title: { type: String, default: "" },
     company: { type: String, default: "" },
     location: { type: String, default: "" },
@@ -150,12 +158,16 @@ const ExperienceSchema = new Schema<IExperience>(
     description: { type: String, default: "" },
     bullets: [{ type: String }],
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ProjectSchema = new Schema<IProject>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     name: { type: String, default: "" },
     subtitle: { type: String, default: "" },
     date: { type: String, default: "" },
@@ -163,24 +175,32 @@ const ProjectSchema = new Schema<IProject>(
     bullets: [{ type: String }],
     link: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const CertificationSchema = new Schema<ICertification>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     name: { type: String, default: "" },
     issuer: { type: String, default: "" },
     date: { type: String, default: "" },
     expiryDate: { type: String, default: "" },
     credentialId: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const ExtracurricularSchema = new Schema<IExtracurricular>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     title: { type: String, default: "" },
     organization: { type: String, default: "" },
     startDate: { type: String, default: "" },
@@ -188,17 +208,21 @@ const ExtracurricularSchema = new Schema<IExtracurricular>(
     description: { type: String, default: "" },
     bullets: [{ type: String }],
   },
-  { _id: false }
+  { _id: false },
 );
 
 const AchievementSchema = new Schema<IAchievement>(
   {
-    id: { type: String, required: true },
+    id: {
+      type: String,
+      required: true,
+      default: () => new Types.ObjectId().toString(),
+    },
     title: { type: String, default: "" },
     description: { type: String, default: "" },
     date: { type: String, default: "" },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // ============================================================================
@@ -272,11 +296,11 @@ const ResumeBuildSchema = new Schema<IResumeBuild>(
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const ResumeBuild = mongoose.model<IResumeBuild>(
   "resumeBuild",
-  ResumeBuildSchema
+  ResumeBuildSchema,
 );
 export default ResumeBuild;

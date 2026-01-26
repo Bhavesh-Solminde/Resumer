@@ -3,6 +3,8 @@
  * Generic wrapper for all API responses
  */
 
+import type { IOptimizedResume } from "./optimized.types.js";
+
 /**
  * Standard API response wrapper
  * @template T - The type of data payload
@@ -36,74 +38,7 @@ export interface IComparisonItem {
   explanation: string;
 }
 
-/**
- * Optimized resume section structure (from AI optimization)
- */
-export interface IOptimizedResume {
-  header: {
-    fullName: string;
-    title: string;
-    email: string;
-    phone: string;
-    location: string;
-    linkedin: string;
-    website: string;
-  };
-  summary: { content: string };
-  experience: Array<{
-    id: string;
-    title: string;
-    company: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-    bullets: string[];
-  }>;
-  education: Array<{
-    id: string;
-    degree: string;
-    institution: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    gpa: string;
-    description: string;
-  }>;
-  projects: Array<{
-    id: string;
-    name: string;
-    subtitle: string;
-    date: string;
-    description: string;
-    bullets: string[];
-    link: string;
-  }>;
-  skills: { title: string; items: string[] };
-  certifications: Array<{
-    id: string;
-    name: string;
-    issuer: string;
-    date: string;
-    expiryDate?: string;
-    credentialId: string;
-  }>;
-  achievements: Array<{
-    id: string;
-    title: string;
-    description: string;
-    date: string;
-  }>;
-  extracurricular: Array<{
-    id: string;
-    title: string;
-    organization: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-    bullets: string[];
-  }>;
-}
+export type { IOptimizedResume } from "./optimized.types.js";
 
 /**
  * Optimization result from AI resume optimization (for display/comparison)
