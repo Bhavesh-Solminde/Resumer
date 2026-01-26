@@ -2,6 +2,7 @@ import React, {
   useState,
   useRef,
   useEffect,
+  useLayoutEffect,
   KeyboardEvent,
   ElementType,
 } from "react";
@@ -27,6 +28,8 @@ const EditableText: React.FC<EditableTextProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const measureRef = useRef<HTMLSpanElement>(null);
+  const [inputWidth, setInputWidth] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     setLocalValue(value);
@@ -38,6 +41,23 @@ const EditableText: React.FC<EditableTextProps> = ({
       inputRef.current.select();
     }
   }, [isEditing]);
+
+  // Auto-resize textarea height
+  useLayoutEffect(() => {
+    if (isEditing && multiline && inputRef.current) {
+      const textarea = inputRef.current as HTMLTextAreaElement;
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [localValue, isEditing, multiline]);
+
+  // Auto-resize input width
+  useLayoutEffect(() => {
+    if (isEditing && !multiline && measureRef.current) {
+      const width = measureRef.current.offsetWidth + 8; // add small padding
+      setInputWidth(Math.max(width, 20)); // minimum width
+    }
+  }, [localValue, isEditing, multiline]);
 
   const handleClick = () => {
     setIsEditing(true);
@@ -51,7 +71,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   };
 
   const handleKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     if (e.key === "Enter" && !multiline) {
       e.preventDefault();
@@ -64,31 +84,57 @@ const EditableText: React.FC<EditableTextProps> = ({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setLocalValue(e.target.value);
   };
 
   if (isEditing) {
-    const InputComponent = multiline ? "textarea" : "input";
+    if (multiline) {
+      return (
+        <textarea
+          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+          value={localValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={cn(
+            "bg-transparent border-none outline-none w-full resize-none overflow-hidden",
+            "focus:ring-1 focus:ring-blue-400 rounded px-1 transition-all",
+            className,
+          )}
+          rows={1}
+        />
+      );
+    }
+
     return (
-      <InputComponent
-        ref={
-          inputRef as React.RefObject<HTMLInputElement & HTMLTextAreaElement>
-        }
-        type="text"
-        value={localValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        className={cn(
-          "bg-transparent border-none outline-none w-full resize-none",
-          "focus:ring-1 focus:ring-blue-400 rounded px-1",
-          className
-        )}
-        rows={multiline ? 3 : undefined}
-      />
+      <>
+        {/* Hidden measuring element */}
+        <span
+          ref={measureRef}
+          className={cn("absolute invisible whitespace-pre px-1", className)}
+          aria-hidden="true"
+        >
+          {localValue || placeholder}
+        </span>
+        <input
+          ref={inputRef as React.RefObject<HTMLInputElement>}
+          type="text"
+          value={localValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          style={{ width: inputWidth ? `${inputWidth}px` : undefined }}
+          className={cn(
+            "bg-transparent border-none outline-none resize-none transition-all",
+            "focus:ring-1 focus:ring-blue-400 rounded px-1",
+            className,
+          )}
+        />
+      </>
     );
   }
 
@@ -98,7 +144,7 @@ const EditableText: React.FC<EditableTextProps> = ({
       className={cn(
         "cursor-text hover:bg-gray-100 rounded px-1 transition-colors",
         !value && "text-gray-400 italic",
-        className
+        className,
       )}
     >
       {value || placeholder}

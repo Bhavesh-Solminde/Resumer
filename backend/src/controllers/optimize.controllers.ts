@@ -10,8 +10,97 @@ import ENV from "../env.js";
 // Type augmentation from ../types/express.d.ts is applied globally
 
 // ============================================================================
-// Types
+// Types - Frontend-aligned interfaces
 // ============================================================================
+
+interface IHeaderData {
+  fullName: string;
+  title: string;
+  email: string;
+  phone: string;
+  location: string;
+  linkedin: string;
+  website: string;
+}
+
+interface ISummaryData {
+  content: string;
+}
+
+interface IExperienceItem {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  bullets: string[];
+}
+
+interface IEducationItem {
+  id: string;
+  degree: string;
+  institution: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  gpa: string;
+  description: string;
+}
+
+interface IProjectItem {
+  id: string;
+  name: string;
+  subtitle: string;
+  date: string;
+  description: string;
+  bullets: string[];
+  link: string;
+}
+
+interface ICertificationItem {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  expiryDate?: string;
+  credentialId: string;
+}
+
+interface IAchievementItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+}
+
+interface IExtracurricularItem {
+  id: string;
+  title: string;
+  organization: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  bullets: string[];
+}
+
+interface ISkillsData {
+  title: string;
+  items: string[];
+}
+
+interface IOptimizedResume {
+  header: IHeaderData;
+  summary: ISummaryData;
+  experience: IExperienceItem[];
+  education: IEducationItem[];
+  projects: IProjectItem[];
+  skills: ISkillsData;
+  certifications: ICertificationItem[];
+  achievements: IAchievementItem[];
+  extracurricular: IExtracurricularItem[];
+}
 
 interface IOptimizationResult {
   ats_score_before: number;
@@ -24,6 +113,7 @@ interface IOptimizationResult {
     explanation: string;
   }>;
   missing_keywords_added?: string[];
+  optimizedResume: IOptimizedResume;
 }
 
 interface OptimizeJdBody {
@@ -100,30 +190,132 @@ export const optimizeResume = asyncHandler(
     }
 
     const prompt = `
-      Act as an expert Resume Writer.
-      I will provide you with a resume text.
-      Your task is to strictly OPTIMIZE the content for a "Before & After" comparison.
-      
-      Identify specific bullet points, sentences, or sections that are weak, passive, or cliché (The "Red" column).
-      Rewrite them to be strong, quantified, and action-oriented (The "Green" column).
+You are an expert Resume Writer and ATS Optimization Specialist.
+I will provide you with a resume text. Your task is to:
+1. OPTIMIZE the content for better ATS scores and impact
+2. Provide a "Before & After" comparison of specific improvements
+3. Return the FULLY OPTIMIZED resume in a structured format
 
-      Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+CRITICAL INSTRUCTIONS:
+1. Generate a UUID (like "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for EVERY "id" field
+2. Use EXACT field names as specified below
+3. Dates should be in "MM/YYYY" format or "Present" for current positions
+4. Convert weak, passive bullet points into strong, quantified achievements
+5. Add metrics and numbers wherever possible (even reasonable estimates)
+
+Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+{
+  "ats_score_before": number (0-100),
+  "ats_score_after": number (0-100),
+  "optimization_summary": "Brief explanation of major improvements made",
+  "red_vs_green_comparison": [
+    {
+      "section": "Experience / Projects / Summary / Skills",
+      "original_text": "The exact weak text from the resume (Red)",
+      "optimized_text": "The powerful, rewritten version (Green)",
+      "explanation": "Why this change improves ATS ranking and impact"
+    }
+  ],
+  "optimizedResume": {
+    "header": {
+      "fullName": "John Doe",
+      "title": "Software Engineer",
+      "email": "john@example.com",
+      "phone": "+1 234 567 890",
+      "location": "City, Country",
+      "linkedin": "linkedin.com/in/johndoe",
+      "website": "johndoe.com"
+    },
+    "summary": {
+      "content": "Optimized professional summary with keywords and impact"
+    },
+    "experience": [
       {
-        "ats_score_before": number (0-100),
-        "ats_score_after": number (0-100),
-        "optimization_summary": "A brief explanation of the major changes made (e.g. 'Added metrics to project descriptions, strengthened action verbs').",
-        "red_vs_green_comparison": [
-          {
-            "section": "Experience / Projects / Summary",
-            "original_text": "The exact weak text from the resume (Red)",
-            "optimized_text": "The powerful, rewritten version (Green)",
-            "explanation": "Why this change is better (e.g. 'Passive voice -> Active voice')"
-          }
-        ]
+        "id": "uuid-here",
+        "title": "Job Title",
+        "company": "Company Name",
+        "location": "City, Country",
+        "startDate": "MM/YYYY",
+        "endDate": "Present or MM/YYYY",
+        "description": "Brief role description",
+        "bullets": ["Quantified achievement 1", "Quantified achievement 2"]
       }
+    ],
+    "education": [
+      {
+        "id": "uuid-here",
+        "degree": "Bachelor of Science in Computer Science",
+        "institution": "University Name",
+        "location": "City, Country",
+        "startDate": "MM/YYYY",
+        "endDate": "MM/YYYY",
+        "gpa": "3.8/4.0",
+        "description": "Relevant coursework or honors"
+      }
+    ],
+    "projects": [
+      {
+        "id": "uuid-here",
+        "name": "Project Name",
+        "subtitle": "Tech Stack",
+        "date": "MM/YYYY",
+        "description": "Impact-focused description",
+        "bullets": ["Quantified feature 1", "Quantified feature 2"],
+        "link": "github.com/project"
+      }
+    ],
+    "skills": {
+      "title": "Skills",
+      "items": ["JavaScript", "Python", "React", "Node.js"]
+    },
+    "certifications": [
+      {
+        "id": "uuid-here",
+        "name": "Certification Name",
+        "issuer": "Issuing Organization",
+        "date": "MM/YYYY",
+        "expiryDate": "",
+        "credentialId": "ABC123"
+      }
+    ],
+    "achievements": [
+      {
+        "id": "uuid-here",
+        "title": "Achievement Title",
+        "description": "Quantified achievement description",
+        "date": "MM/YYYY"
+      }
+    ],
+    "extracurricular": [
+      {
+        "id": "uuid-here",
+        "title": "Role/Position",
+        "organization": "Organization Name",
+        "startDate": "MM/YYYY",
+        "endDate": "MM/YYYY",
+        "description": "Brief description",
+        "bullets": ["Activity 1", "Activity 2"]
+      }
+    ]
+  }
+}
 
-      RESUME TEXT:
-      ${resumeText}
+FIELD NAME RULES (CRITICAL - DO NOT DEVIATE):
+- Experience: use "title" for job title, NOT "role" or "position"
+- Projects: use "name" for project name, NOT "title"
+- Education: use "gpa" NOT "score" or "grade"
+- All dates: use "startDate" and "endDate", NOT "start" and "end"
+- Skills: use flat "items" array, NOT categorized objects
+
+OPTIMIZATION RULES:
+- Replace passive voice with active voice
+- Add metrics: percentages, numbers, dollar amounts
+- Use strong action verbs: Led, Engineered, Architected, Optimized
+- Remove filler words and clichés
+- Ensure keywords match common job descriptions
+
+RESUME TEXT:
+${resumeText}
     `;
 
     try {
@@ -215,34 +407,137 @@ export const optimizeJd = asyncHandler(
     }
 
     const prompt = `
-      Act as an expert Resume Writer and ATS Specialist.
-      I will provide you with a resume text and a Job Description (JD).
-      Your task is to OPTIMIZE the resume specifically to match the JD for a "Before & After" comparison.
-      
-      Identify bullet points or sections in the resume that are irrelevant, weak, or missing key keywords from the JD (The "Red" column).
-      Rewrite them to align with the JD's requirements, incorporating missing keywords and using stronger action verbs (The "Green" column).
+You are an expert Resume Writer and ATS Optimization Specialist.
+I will provide you with a resume text AND a Job Description (JD).
+Your task is to:
+1. TAILOR the resume specifically to match the JD requirements
+2. Provide a "Before & After" comparison showing JD-specific improvements
+3. Return the FULLY OPTIMIZED resume in a structured format
 
-      Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+CRITICAL INSTRUCTIONS:
+1. Generate a UUID (like "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for EVERY "id" field
+2. Use EXACT field names as specified below
+3. Dates should be in "MM/YYYY" format or "Present" for current positions
+4. Incorporate keywords from the JD into experience bullets and skills
+5. Reorder skills to prioritize JD-relevant ones first
+
+Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+{
+  "ats_score_before": number (0-100),
+  "ats_score_after": number (0-100),
+  "optimization_summary": "How the resume was tailored to match the JD",
+  "red_vs_green_comparison": [
+    {
+      "section": "Experience / Projects / Summary / Skills",
+      "original_text": "The original text that didn't match the JD (Red)",
+      "optimized_text": "The JD-tailored version (Green)",
+      "explanation": "Why this change improves ATS ranking for THIS specific JD"
+    }
+  ],
+  "missing_keywords_added": ["keyword1", "keyword2"],
+  "optimizedResume": {
+    "header": {
+      "fullName": "John Doe",
+      "title": "JD-aligned title",
+      "email": "john@example.com",
+      "phone": "+1 234 567 890",
+      "location": "City, Country",
+      "linkedin": "linkedin.com/in/johndoe",
+      "website": "johndoe.com"
+    },
+    "summary": {
+      "content": "JD-tailored professional summary with relevant keywords"
+    },
+    "experience": [
       {
-        "ats_score_before": number (0-100),
-        "ats_score_after": number (0-100),
-        "optimization_summary": "Briefly explain how the resume was tailored to the JD.",
-        "red_vs_green_comparison": [
-          {
-            "section": "Experience / Projects / Skills",
-            "original_text": "The original text that didn't match the JD well (Red)",
-            "optimized_text": "The rewritten version tailored to the JD (Green)",
-            "explanation": "Why this change improves ATS ranking for this specific JD"
-          }
-        ],
-        "missing_keywords_added": ["List of JD keywords that were successfully integrated"]
+        "id": "uuid-here",
+        "title": "Job Title",
+        "company": "Company Name",
+        "location": "City, Country",
+        "startDate": "MM/YYYY",
+        "endDate": "Present or MM/YYYY",
+        "description": "Brief role description",
+        "bullets": ["JD-keyword-rich achievement 1", "JD-keyword-rich achievement 2"]
       }
+    ],
+    "education": [
+      {
+        "id": "uuid-here",
+        "degree": "Degree Name",
+        "institution": "University Name",
+        "location": "City, Country",
+        "startDate": "MM/YYYY",
+        "endDate": "MM/YYYY",
+        "gpa": "3.8/4.0",
+        "description": "Relevant coursework matching JD"
+      }
+    ],
+    "projects": [
+      {
+        "id": "uuid-here",
+        "name": "Project Name",
+        "subtitle": "JD-relevant tech stack",
+        "date": "MM/YYYY",
+        "description": "JD-aligned description",
+        "bullets": ["JD-relevant feature 1", "JD-relevant feature 2"],
+        "link": "github.com/project"
+      }
+    ],
+    "skills": {
+      "title": "Skills",
+      "items": ["JD-keyword-1", "JD-keyword-2", "Other relevant skills"]
+    },
+    "certifications": [
+      {
+        "id": "uuid-here",
+        "name": "Certification Name",
+        "issuer": "Issuing Organization",
+        "date": "MM/YYYY",
+        "expiryDate": "",
+        "credentialId": "ABC123"
+      }
+    ],
+    "achievements": [
+      {
+        "id": "uuid-here",
+        "title": "Achievement Title",
+        "description": "JD-relevant achievement",
+        "date": "MM/YYYY"
+      }
+    ],
+    "extracurricular": [
+      {
+        "id": "uuid-here",
+        "title": "Role/Position",
+        "organization": "Organization Name",
+        "startDate": "MM/YYYY",
+        "endDate": "MM/YYYY",
+        "description": "Brief description",
+        "bullets": ["Activity 1", "Activity 2"]
+      }
+    ]
+  }
+}
 
-      JOB DESCRIPTION:
-      ${jobDescription}
+FIELD NAME RULES (CRITICAL - DO NOT DEVIATE):
+- Experience: use "title" for job title, NOT "role" or "position"
+- Projects: use "name" for project name, NOT "title"
+- Education: use "gpa" NOT "score" or "grade"
+- All dates: use "startDate" and "endDate", NOT "start" and "end"
+- Skills: use flat "items" array, NOT categorized objects
 
-      RESUME TEXT:
-      ${resumeText}
+JD-TAILORING RULES:
+- Extract keywords from JD and incorporate into bullets
+- Match job title in header.title if appropriate
+- Reorder experience bullets to highlight JD-relevant work first
+- Add JD-mentioned technologies to skills (if candidate has them)
+- Tailor summary to echo JD language
+
+JOB DESCRIPTION:
+${jobDescription}
+
+RESUME TEXT:
+${resumeText}
     `;
 
     try {

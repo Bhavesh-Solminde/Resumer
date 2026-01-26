@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useResumeStore } from "../store/Resume.store";
+import { useBuildStore } from "../store/Build.store";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -15,27 +17,16 @@ import {
   ArrowRight,
   Sparkles,
   Briefcase,
+  FileText,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { motion } from "motion/react";
+import type { IOptimizationData } from "@resumer/shared-types";
 
 type TabType = "general" | "jd";
 
-interface ComparisonItem {
-  section: string;
-  original_text: string;
-  optimized_text: string;
-  explanation?: string;
-}
-
-interface OptimizationResult {
-  ats_score_before?: number;
-  ats_score_after?: number;
-  optimization_summary?: string;
-  red_vs_green_comparison?: ComparisonItem[];
-}
-
 const Optimize: React.FC = () => {
+  const navigate = useNavigate();
   const {
     optimizeGeneral,
     optimizeJD,
@@ -43,6 +34,7 @@ const Optimize: React.FC = () => {
     optimizationResult,
     loadFakeData,
   } = useResumeStore();
+  const { loadOptimizedResume } = useBuildStore();
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [jobDescription, setJobDescription] = useState<string>("");
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -61,8 +53,15 @@ const Optimize: React.FC = () => {
     }
   };
 
-  // Type assertion for optimizationResult since store type might be generic
-  const result = optimizationResult as OptimizationResult | null;
+  const handleBuildOptimizedResume = () => {
+    if (result?.optimizedResume) {
+      loadOptimizedResume(result.optimizedResume);
+      navigate("/resume/build");
+    }
+  };
+
+  // Type assertion for optimizationResult
+  const result = optimizationResult as IOptimizationData | null;
 
   return (
     <div className="min-h-screen w-full bg-background antialiased relative overflow-hidden p-4 md:p-8">
@@ -80,7 +79,7 @@ const Optimize: React.FC = () => {
                 "px-6 py-2 rounded-md text-sm font-medium transition-all",
                 activeTab === "general"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <div className="flex items-center gap-2">
@@ -94,7 +93,7 @@ const Optimize: React.FC = () => {
                 "px-6 py-2 rounded-md text-sm font-medium transition-all",
                 activeTab === "jd"
                   ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <div className="flex items-center gap-2">
@@ -269,6 +268,21 @@ const Optimize: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Build Optimized Resume Button */}
+            {result.optimizedResume && (
+              <div className="flex justify-center pt-8">
+                <Button
+                  size="lg"
+                  onClick={handleBuildOptimizedResume}
+                  className="gap-2 px-8 py-6 text-lg font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  <FileText className="h-5 w-5" />
+                  Build the Optimized Resume
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
           </motion.div>
         )}
       </div>

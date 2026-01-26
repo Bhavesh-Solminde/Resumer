@@ -107,7 +107,26 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
           name: "Certification Name",
           issuer: "Issuing Organization",
           date: "MM/YYYY",
+          expiryDate: "",
           credentialId: "",
+        },
+      ],
+    },
+  },
+  extracurricular: {
+    type: "extracurricular",
+    label: "Extracurricular Activities",
+    icon: "Users",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          title: "Role/Position",
+          organization: "Organization Name",
+          startDate: "MM/YYYY",
+          endDate: "MM/YYYY",
+          description: "Brief description of your involvement",
+          bullets: [],
         },
       ],
     },

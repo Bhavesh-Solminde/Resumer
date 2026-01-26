@@ -5,6 +5,8 @@ export { default as BulletEditor } from "./BulletEditor";
 export { default as EmptyState } from "./EmptyState";
 export { default as MonthYearPicker } from "./MonthYearPicker";
 export { default as ConfirmDialog } from "./ConfirmDialog";
+export { default as SkillsToolbar } from "./SkillsToolbar";
+export { default as SkillPill } from "./SkillPill";
 export {
   default as SectionSettings,
   EDUCATION_SETTINGS,

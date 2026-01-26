@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { formatDate } from "../../../lib/dateUtils";
 
 // Style type for react-pdf
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,6 +15,8 @@ interface Theme {
   sectionSpacing?: number;
 }
 
+type DateLike = { month: number; year: number } | string | null | undefined;
+
 // Data interfaces
 interface HeaderData {
   fullName?: string;
@@ -21,6 +24,8 @@ interface HeaderData {
   email?: string;
   phone?: string;
   location?: string;
+  linkedin?: string;
+  website?: string;
 }
 
 interface SummaryData {
@@ -31,10 +36,11 @@ interface ExperienceItem {
   id?: string;
   title?: string;
   company?: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: DateLike;
+  endDate?: DateLike;
   location?: string;
   description?: string;
+  bullets?: string[];
 }
 
 interface ExperienceData {
@@ -45,9 +51,10 @@ interface EducationItem {
   id?: string;
   degree?: string;
   institution?: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: DateLike;
+  endDate?: DateLike;
   location?: string;
+  description?: string;
 }
 
 interface EducationData {
@@ -57,14 +64,24 @@ interface EducationData {
 interface SkillsData {
   title?: string;
   items?: string[];
+  categories?: Array<{
+    name: string;
+    items: string[];
+    isVisible?: boolean;
+  }>;
 }
 
 interface ProjectItem {
   id?: string;
   name?: string;
   date?: string;
+  startDate?: DateLike;
+  endDate?: DateLike;
   subtitle?: string;
   description?: string;
+  technologies?: string[];
+  bullets?: string[];
+  link?: string;
 }
 
 interface ProjectsData {
@@ -94,6 +111,12 @@ interface Section {
 interface ResumeData {
   sections: Section[];
   style: Theme;
+  sectionOrder?: string[];
+  sectionSettings?: Record<string, Record<string, boolean>>;
+}
+
+interface SectionSettingsMap {
+  [sectionType: string]: Record<string, boolean> | undefined;
 }
 
 interface PDFStyles {
@@ -106,6 +129,10 @@ interface PDFStyles {
   section: Style;
   sectionTitle: Style;
   paragraph: Style;
+  bulletList: Style;
+  bulletItem: Style;
+  bulletSymbol: Style;
+  bulletText: Style;
   experienceItem: Style;
   experienceHeader: Style;
   experienceTitle: Style;
@@ -114,6 +141,8 @@ interface PDFStyles {
   experienceLocation: Style;
   skillsContainer: Style;
   skillBadge: Style;
+  skillGroupTitle: Style;
+  inlineMeta: Style;
   projectItem: Style;
   projectName: Style;
   projectSubtitle: Style;
@@ -122,6 +151,7 @@ interface PDFStyles {
 interface SectionComponentProps {
   data: SectionData;
   styles: PDFStyles;
+  settings?: Record<string, boolean>;
 }
 
 // Create styles
@@ -181,6 +211,27 @@ const createStyles = (theme: Theme): PDFStyles =>
       lineHeight: 1.5,
       color: "#333333",
     },
+    bulletList: {
+      marginTop: 4,
+      marginLeft: 6,
+      gap: 2,
+    },
+    bulletItem: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 4,
+    },
+    bulletSymbol: {
+      fontSize: 10,
+      lineHeight: 1.4,
+      color: "#333333",
+    },
+    bulletText: {
+      fontSize: 10,
+      lineHeight: 1.4,
+      color: "#333333",
+      flexShrink: 1,
+    },
     experienceItem: {
       marginBottom: 12,
     },
@@ -222,6 +273,18 @@ const createStyles = (theme: Theme): PDFStyles =>
       fontSize: 9,
       color: theme.primaryColor || "#1e3a5f",
     },
+    skillGroupTitle: {
+      fontSize: 10,
+      fontWeight: "bold",
+      color: theme.primaryColor || "#1e3a5f",
+      marginTop: 4,
+      marginBottom: 4,
+    },
+    inlineMeta: {
+      fontSize: 9,
+      color: "#666666",
+      marginTop: 2,
+    },
     projectItem: {
       marginBottom: 10,
     },
@@ -256,6 +319,12 @@ const PDFHeader: React.FC<SectionComponentProps> = ({ data, styles }) => {
         {headerData.location && (
           <Text style={styles.contactItem}>• {headerData.location}</Text>
         )}
+        {headerData.linkedin && (
+          <Text style={styles.contactItem}>• {headerData.linkedin}</Text>
+        )}
+        {headerData.website && (
+          <Text style={styles.contactItem}>• {headerData.website}</Text>
+        )}
       </View>
     </View>
   );
@@ -273,8 +342,12 @@ const PDFSummary: React.FC<SectionComponentProps> = ({ data, styles }) => {
 };
 
 // Experience Component
-const PDFExperience: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFExperience: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const experienceData = data as ExperienceData;
+  const showCompany = settings?.showCompany ?? true;
+  const showLocation = settings?.showLocation ?? true;
+  const showPeriod = settings?.showPeriod ?? true;
+  const showBullets = settings?.showBullets ?? true;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Experience</Text>
@@ -286,16 +359,35 @@ const PDFExperience: React.FC<SectionComponentProps> = ({ data, styles }) => {
           <View style={styles.experienceHeader}>
             <View>
               <Text style={styles.experienceTitle}>{item.title}</Text>
-              <Text style={styles.experienceCompany}>{item.company}</Text>
+              {showCompany && (
+                <Text style={styles.experienceCompany}>{item.company}</Text>
+              )}
             </View>
             <View>
-              <Text style={styles.experienceDate}>
-                {item.startDate} - {item.endDate}
-              </Text>
-              <Text style={styles.experienceLocation}>{item.location}</Text>
+              {showPeriod && (
+                <Text style={styles.experienceDate}>
+                  {formatDate(item.startDate || null)}
+                  {item.endDate ? ` - ${formatDate(item.endDate)}` : ""}
+                </Text>
+              )}
+              {showLocation && (
+                <Text style={styles.experienceLocation}>{item.location}</Text>
+              )}
             </View>
           </View>
-          <Text style={styles.paragraph}>{item.description}</Text>
+          {item.description && (
+            <Text style={styles.paragraph}>{item.description}</Text>
+          )}
+          {showBullets && item.bullets && item.bullets.length > 0 && (
+            <View style={styles.bulletList}>
+              {item.bullets.map((bullet, index) => (
+                <View key={`${item.id}-bullet-${index}`} style={styles.bulletItem}>
+                  <Text style={styles.bulletSymbol}>•</Text>
+                  <Text style={styles.bulletText}>{bullet}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       ))}
     </View>
@@ -303,8 +395,11 @@ const PDFExperience: React.FC<SectionComponentProps> = ({ data, styles }) => {
 };
 
 // Education Component
-const PDFEducation: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFEducation: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const educationData = data as EducationData;
+  const showLocation = settings?.showLocation ?? true;
+  const showPeriod = settings?.showPeriod ?? true;
+  const showDescription = settings?.showDescription ?? false;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Education</Text>
@@ -316,12 +411,20 @@ const PDFEducation: React.FC<SectionComponentProps> = ({ data, styles }) => {
               <Text style={styles.experienceCompany}>{item.institution}</Text>
             </View>
             <View>
-              <Text style={styles.experienceDate}>
-                {item.startDate} - {item.endDate}
-              </Text>
-              <Text style={styles.experienceLocation}>{item.location}</Text>
+              {showPeriod && (
+                <Text style={styles.experienceDate}>
+                  {formatDate(item.startDate || null)}
+                  {item.endDate ? ` - ${formatDate(item.endDate)}` : ""}
+                </Text>
+              )}
+              {showLocation && (
+                <Text style={styles.experienceLocation}>{item.location}</Text>
+              )}
             </View>
           </View>
+          {showDescription && item.description && (
+            <Text style={styles.paragraph}>{item.description}</Text>
+          )}
         </View>
       ))}
     </View>
@@ -331,23 +434,47 @@ const PDFEducation: React.FC<SectionComponentProps> = ({ data, styles }) => {
 // Skills Component
 const PDFSkills: React.FC<SectionComponentProps> = ({ data, styles }) => {
   const skillsData = data as SkillsData;
+  const categories = (skillsData.categories || []).filter(
+    (category) => category.isVisible !== false,
+  );
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{skillsData.title || "Skills"}</Text>
-      <View style={styles.skillsContainer}>
-        {skillsData.items?.map((skill, index) => (
-          <Text key={index} style={styles.skillBadge}>
-            {skill}
-          </Text>
-        ))}
-      </View>
+      {categories.length > 0 ? (
+        <View>
+          {categories.map((category, index) => (
+            <View key={`${category.name}-${index}`}>
+              <Text style={styles.skillGroupTitle}>{category.name}</Text>
+              <View style={styles.skillsContainer}>
+                {category.items.map((skill, skillIndex) => (
+                  <Text key={`${skill}-${skillIndex}`} style={styles.skillBadge}>
+                    {skill}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.skillsContainer}>
+          {skillsData.items?.map((skill, index) => (
+            <Text key={index} style={styles.skillBadge}>
+              {skill}
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 };
 
 // Projects Component
-const PDFProjects: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFProjects: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const projectsData = data as ProjectsData;
+  const showTechnologies = settings?.showTechnologies ?? true;
+  const showLink = settings?.showLink ?? true;
+  const showBullets = settings?.showBullets ?? true;
+  const showPeriod = settings?.showPeriod ?? false;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Projects</Text>
@@ -355,10 +482,39 @@ const PDFProjects: React.FC<SectionComponentProps> = ({ data, styles }) => {
         <View key={item.id || index} style={styles.projectItem}>
           <View style={styles.experienceHeader}>
             <Text style={styles.projectName}>{item.name}</Text>
-            <Text style={styles.experienceDate}>{item.date}</Text>
+            {showPeriod && (
+              <Text style={styles.experienceDate}>
+                {item.date ||
+                  [formatDate(item.startDate || null), formatDate(item.endDate || null)]
+                    .filter(Boolean)
+                    .join(" - ")}
+              </Text>
+            )}
           </View>
-          <Text style={styles.projectSubtitle}>{item.subtitle}</Text>
-          <Text style={styles.paragraph}>{item.description}</Text>
+          {item.subtitle && (
+            <Text style={styles.projectSubtitle}>{item.subtitle}</Text>
+          )}
+          {item.description && (
+            <Text style={styles.paragraph}>{item.description}</Text>
+          )}
+          {showTechnologies && item.technologies && item.technologies.length > 0 && (
+            <Text style={styles.inlineMeta}>
+              {item.technologies.join(" • ")}
+            </Text>
+          )}
+          {showLink && item.link && (
+            <Text style={styles.inlineMeta}>{item.link}</Text>
+          )}
+          {showBullets && item.bullets && item.bullets.length > 0 && (
+            <View style={styles.bulletList}>
+              {item.bullets.map((bullet, bulletIndex) => (
+                <View key={`${item.id}-bullet-${bulletIndex}`} style={styles.bulletItem}>
+                  <Text style={styles.bulletSymbol}>•</Text>
+                  <Text style={styles.bulletText}>{bullet}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       ))}
     </View>
@@ -371,34 +527,42 @@ interface ResumePDFDocumentProps {
 }
 
 const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
-  const { sections, style } = data;
+  const { sections, style, sectionOrder, sectionSettings } = data;
   const styles = createStyles(style);
+  const settingsMap: SectionSettingsMap | undefined = sectionSettings;
+
+  const orderedSections = sectionOrder?.length
+    ? sectionOrder
+        .map((id) => sections.find((section) => section.id === id))
+        .filter((section): section is Section => Boolean(section))
+    : sections;
 
   const renderSection = (section: Section): React.ReactNode => {
+    const settings = settingsMap?.[section.type] || settingsMap?.[section.id];
     switch (section.type) {
       case "header":
         return (
-          <PDFHeader key={section.id} data={section.data} styles={styles} />
+          <PDFHeader key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       case "summary":
         return (
-          <PDFSummary key={section.id} data={section.data} styles={styles} />
+          <PDFSummary key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       case "experience":
         return (
-          <PDFExperience key={section.id} data={section.data} styles={styles} />
+          <PDFExperience key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       case "education":
         return (
-          <PDFEducation key={section.id} data={section.data} styles={styles} />
+          <PDFEducation key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       case "skills":
         return (
-          <PDFSkills key={section.id} data={section.data} styles={styles} />
+          <PDFSkills key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       case "projects":
         return (
-          <PDFProjects key={section.id} data={section.data} styles={styles} />
+          <PDFProjects key={section.id} data={section.data} styles={styles} settings={settings} />
         );
       default:
         return null;
@@ -408,7 +572,7 @@ const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {sections.map(renderSection)}
+        {orderedSections.map(renderSection)}
       </Page>
     </Document>
   );
