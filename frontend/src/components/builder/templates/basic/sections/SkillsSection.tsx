@@ -272,8 +272,8 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                   </>
                 )}
 
-                {/* Skills as pills */}
-                <div className="flex flex-wrap gap-1.5 items-center">
+                {/* Skills as comma-separated text */}
+                <div className="flex flex-wrap items-center">
                   {(category.items || []).map((skill, skillIndex) => (
                     <React.Fragment key={skillIndex}>
                       <SkillPill
@@ -292,10 +292,11 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                           focusedSkill?.skillIndex === skillIndex
                         }
                         placeholder="Skill"
+                        className="bg-transparent px-0 py-0 text-gray-700 rounded-none hover:bg-gray-100 min-w-0"
                       />
-                      {/* Separator dot between skills */}
+                      {/* Separator comma */}
                       {skillIndex < (category.items?.length || 0) - 1 && (
-                        <span className="text-gray-400 text-xs">•</span>
+                        <span className="text-gray-700 mr-1">,</span>
                       )}
                     </React.Fragment>
                   ))}

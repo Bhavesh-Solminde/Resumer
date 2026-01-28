@@ -48,7 +48,6 @@ interface ScanData {
   analysisResult?: {
     summary?: string;
     key_skills?: string[];
-    missing_keywords?: string[];
     formatting_issues?: string[];
     actionable_feedback?: string[];
   };
@@ -88,9 +87,6 @@ const Profile: React.FC = () => {
     return {
       summary: typeof r.summary === "string" ? r.summary : undefined,
       key_skills: Array.isArray(r.key_skills) ? r.key_skills : undefined,
-      missing_keywords: Array.isArray(r.missing_keywords)
-        ? r.missing_keywords
-        : undefined,
       formatting_issues: Array.isArray(r.formatting_issues)
         ? r.formatting_issues
         : undefined,

@@ -17,7 +17,6 @@ const ResumeAnalysisDisplay = lazy(() => import("../ResumeAnalysisDisplay"));
 interface AnalysisResult {
   summary?: string;
   key_skills?: string[];
-  missing_keywords?: string[];
   formatting_issues?: string[];
   actionable_feedback?: string[];
 }
@@ -145,8 +144,6 @@ const AnalysisDialog: React.FC<AnalysisDialogProps> = ({
                     score: scan.atsScore,
                     summary: scan.analysisResult.summary || "",
                     key_skills: scan.analysisResult.key_skills || [],
-                    missing_keywords:
-                      scan.analysisResult.missing_keywords || [],
                     formatting_issues:
                       scan.analysisResult.formatting_issues || [],
                     actionable_feedback:

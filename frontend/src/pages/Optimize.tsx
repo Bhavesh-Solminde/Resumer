@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useResumeStore } from "../store/Resume.store";
 import { useBuildStore } from "../store/Build.store";
 import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
 import {
   Card,
   CardContent,
@@ -18,10 +19,18 @@ import {
   Sparkles,
   Briefcase,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { motion } from "motion/react";
 import type { IOptimizationData } from "@resumer/shared-types";
+
+// Extended type to include JD-specific fields
+interface ExtendedOptimizationData extends IOptimizationData {
+  critical_missing_skills?: string[];
+  jd_keyword_match_percentage?: number;
+  potential_score_increase?: number;
+}
 
 type TabType = "general" | "jd";
 
@@ -61,7 +70,7 @@ const Optimize: React.FC = () => {
   };
 
   // Type assertion for optimizationResult
-  const result = optimizationResult as IOptimizationData | null;
+  const result = optimizationResult as ExtendedOptimizationData | null;
 
   return (
     <div className="min-h-screen w-full bg-background antialiased relative overflow-hidden p-4 md:p-8">
@@ -173,7 +182,9 @@ const Optimize: React.FC = () => {
               <Card className="bg-red-100 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-red-600 dark:text-red-400 text-lg">
-                    Before Score
+                    {activeTab === "jd"
+                      ? "Before Score (based on JD)"
+                      : "Before Score"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -209,6 +220,51 @@ const Optimize: React.FC = () => {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Critical Missing Skills (JD optimization only) */}
+            {activeTab === "jd" &&
+              result.critical_missing_skills &&
+              result.critical_missing_skills.length > 0 && (
+                <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-amber-700 dark:text-amber-400 text-lg flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Skills Gap - Not in Your Resume
+                      </CardTitle>
+                      {result.potential_score_increase ? (
+                        <div className="text-right">
+                          <span className="block text-xs uppercase text-amber-600/80 font-bold tracking-wider mb-1">
+                            Potential Score
+                          </span>
+                          <div className="flex items-baseline justify-end gap-2">
+                            <span className="text-3xl font-extrabold text-amber-700 dark:text-amber-400">
+                              {Math.min(
+                                100,
+                                (result.ats_score_after || 0) +
+                                  result.potential_score_increase,
+                              )}
+                            </span>
+                            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200">
+                              +{result.potential_score_increase} pts
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-amber-600 dark:text-amber-500/80 text-sm mb-4">
+                      The job description requires these skills, but they were
+                      not found in your resume. Consider acquiring these skills
+                      or highlighting relevant experience if you have it.
+                    </p>
+                    <div className="text-amber-800 dark:text-amber-300 text-sm font-medium leading-relaxed">
+                      {result.critical_missing_skills.join(", ")}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Comparison Grid */}
             <div className="grid gap-6">

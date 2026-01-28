@@ -60,37 +60,6 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ type }) => {
           <div className="h-1.5 w-1/2 bg-muted-foreground/20 rounded" />
         </div>
       );
-    case "languages":
-      return (
-        <div className="flex gap-2 px-3">
-          <div className="flex flex-col items-center gap-1">
-            <div className="h-2 w-12 bg-primary/20 rounded" />
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-3 w-1.5 rounded-sm",
-                    i < 4 ? "bg-primary/40" : "bg-muted-foreground/20"
-                  )}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    case "skills":
-    case "strengths":
-      return (
-        <div className="flex flex-wrap gap-1 px-2">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="h-4 px-2 bg-primary/10 rounded-full border border-primary/20"
-            />
-          ))}
-        </div>
-      );
     case "achievements":
       return (
         <div className="flex flex-col gap-1 w-full px-3">
