@@ -123,45 +123,92 @@ const DesignPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Page Margins */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            PAGE MARGINS: {style.pageMargins}
+          <label className="text-sm font-medium text-foreground flex justify-between">
+            <span>PAGE MARGINS (mm)</span>
+            <span className="text-xs text-muted-foreground">
+              {typeof style.pageMargins === "number" && style.pageMargins > 10
+                ? style.pageMargins
+                : 20}
+              mm
+            </span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">narrow</span>
             <input
               type="range"
-              min="1"
-              max="4"
+              min="10"
+              max="50"
               step="1"
-              value={style.pageMargins}
+              value={
+                typeof style.pageMargins === "number" && style.pageMargins > 10
+                  ? style.pageMargins
+                  : 20
+              }
               onChange={(e) =>
                 updateStyle({ pageMargins: parseInt(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <span className="text-xs text-muted-foreground">wide</span>
+            <input
+              type="number"
+              min="10"
+              max="50"
+              value={
+                typeof style.pageMargins === "number" && style.pageMargins > 10
+                  ? style.pageMargins
+                  : 20
+              }
+              onChange={(e) =>
+                updateStyle({ pageMargins: parseInt(e.target.value) })
+              }
+              className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
         </div>
 
         {/* Section Spacing */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            SECTION SPACING: {style.sectionSpacing}
+          <label className="text-sm font-medium text-foreground flex justify-between">
+            <span>SECTION SPACING (px)</span>
+            <span className="text-xs text-muted-foreground">
+              {typeof style.sectionSpacing === "number" &&
+              style.sectionSpacing > 5
+                ? style.sectionSpacing
+                : 16}
+              px
+            </span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">compact</span>
             <input
               type="range"
-              min="1"
-              max="4"
+              min="0"
+              max="50"
               step="1"
-              value={style.sectionSpacing}
+              value={
+                typeof style.sectionSpacing === "number" &&
+                style.sectionSpacing > 5
+                  ? style.sectionSpacing
+                  : 16
+              }
               onChange={(e) =>
                 updateStyle({ sectionSpacing: parseInt(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <span className="text-xs text-muted-foreground">spacious</span>
+            <input
+              type="number"
+              min="0"
+              max="50"
+              value={
+                typeof style.sectionSpacing === "number" &&
+                style.sectionSpacing > 5
+                  ? style.sectionSpacing
+                  : 16
+              }
+              onChange={(e) =>
+                updateStyle({ sectionSpacing: parseInt(e.target.value) })
+              }
+              className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
         </div>
 
@@ -178,7 +225,7 @@ const DesignPanel: React.FC = () => {
                   "ring-offset-2 ring-offset-background",
                   "hover:scale-110 focus:outline-none",
                   style.primaryColor === color.value &&
-                    "ring-2 ring-primary scale-110"
+                    "ring-2 ring-primary scale-110",
                 )}
                 style={{ backgroundColor: color.value }}
                 title={color.label}
@@ -211,47 +258,74 @@ const DesignPanel: React.FC = () => {
 
         {/* Font Size */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            FONT SIZE: {style.fontSize.toUpperCase()}
+          <label className="text-sm font-medium text-foreground flex justify-between">
+            <span>FONT SIZE (pt)</span>
+            <span className="text-xs text-muted-foreground">
+              {typeof style.fontSize === "number"
+                ? style.fontSize
+                : style.fontSize === "large"
+                  ? 12
+                  : style.fontSize === "small"
+                    ? 9
+                    : 11}
+              pt
+            </span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">A</span>
             <input
               type="range"
-              min="0"
-              max="2"
-              step="1"
-              value={Math.max(
-                0,
-                ["small", "medium", "large"].indexOf(style.fontSize) !== -1
-                  ? ["small", "medium", "large"].indexOf(style.fontSize)
-                  : 1
-              )}
+              min="8"
+              max="24"
+              step="0.5"
+              value={
+                typeof style.fontSize === "number"
+                  ? style.fontSize
+                  : style.fontSize === "large"
+                    ? 12
+                    : style.fontSize === "small"
+                      ? 9
+                      : 11
+              }
               onChange={(e) =>
-                updateStyle({
-                  fontSize:
-                    (["small", "medium", "large"] as const)[
-                      parseInt(e.target.value)
-                    ] || "medium",
-                })
+                updateStyle({ fontSize: parseFloat(e.target.value) })
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <span className="text-base text-muted-foreground">A</span>
+            <input
+              type="number"
+              min="8"
+              max="24"
+              step="0.5"
+              value={
+                typeof style.fontSize === "number"
+                  ? style.fontSize
+                  : style.fontSize === "large"
+                    ? 12
+                    : style.fontSize === "small"
+                      ? 9
+                      : 11
+              }
+              onChange={(e) =>
+                updateStyle({ fontSize: parseFloat(e.target.value) })
+              }
+              className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
         </div>
 
         {/* Line Height */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">
-            LINE HEIGHT: {style.lineHeight}
+          <label className="text-sm font-medium text-foreground flex justify-between">
+            <span>LINE HEIGHT</span>
+            <span className="text-xs text-muted-foreground">
+              {style.lineHeight}
+            </span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">condensed</span>
             <input
               type="range"
-              min="1.2"
-              max="2"
+              min="1.0"
+              max="2.5"
               step="0.1"
               value={style.lineHeight}
               onChange={(e) =>
@@ -259,7 +333,17 @@ const DesignPanel: React.FC = () => {
               }
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <span className="text-xs text-muted-foreground">spacious</span>
+            <input
+              type="number"
+              min="1.0"
+              max="2.5"
+              step="0.1"
+              value={style.lineHeight}
+              onChange={(e) =>
+                updateStyle({ lineHeight: parseFloat(e.target.value) })
+              }
+              className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            />
           </div>
         </div>
 
@@ -278,7 +362,7 @@ const DesignPanel: React.FC = () => {
                   "focus:outline-none",
                   style.background === pattern.id
                     ? "border-primary bg-primary/10"
-                    : "border-border bg-muted hover:border-primary/50"
+                    : "border-border bg-muted hover:border-primary/50",
                 )}
                 title={pattern.label}
               >

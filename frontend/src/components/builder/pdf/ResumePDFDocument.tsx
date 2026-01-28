@@ -480,25 +480,18 @@ const PDFSkills: React.FC<SectionComponentProps> = ({ data, styles }) => {
             <View key={`${category.name}-${index}`}>
               <Text style={styles.skillGroupTitle}>{category.name}</Text>
               <View style={styles.skillsContainer}>
-                {category.items.map((skill, skillIndex) => (
-                  <Text
-                    key={`${skill}-${skillIndex}`}
-                    style={styles.skillBadge}
-                  >
-                    {skill}
-                  </Text>
-                ))}
+                <Text style={styles.paragraph}>
+                  {category.items.join(", ")}
+                </Text>
               </View>
             </View>
           ))}
         </View>
       ) : (
         <View style={styles.skillsContainer}>
-          {skillsData.items?.map((skill, index) => (
-            <Text key={index} style={styles.skillBadge}>
-              {skill}
-            </Text>
-          ))}
+          <Text style={styles.paragraph}>
+            {skillsData.items?.join(", ")}
+          </Text>
         </View>
       )}
     </View>

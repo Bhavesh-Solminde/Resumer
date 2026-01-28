@@ -23,7 +23,6 @@ interface LastScan {
   analysisResult?: {
     summary?: string;
     key_skills?: string[];
-    missing_keywords?: string[];
     formatting_issues?: string[];
     actionable_feedback?: string[];
   };

@@ -27,7 +27,7 @@ interface PaginatedSection extends Section {
 interface Theme {
   pageMargins?: number;
   sectionSpacing?: number;
-  fontSize?: string;
+  fontSize?: number | string;
   fontFamily?: string;
   lineHeight?: number;
   primaryColor?: string;
@@ -41,26 +41,6 @@ interface ConfirmDialogState {
   onConfirm?: () => void;
   onCancel?: () => void;
 }
-
-const marginMap: Record<number, string> = {
-  1: "px-6",
-  2: "px-10",
-  3: "px-14",
-  4: "px-20",
-};
-
-const spacingMap: Record<number, string> = {
-  1: "space-y-2",
-  2: "space-y-4",
-  3: "space-y-6",
-  4: "space-y-8",
-};
-
-const fontSizeMap: Record<string, string> = {
-  small: "text-sm",
-  medium: "text-base",
-  large: "text-lg",
-};
 
 const ResumeEditor: React.FC = () => {
   const { confirmDialog, setConfirmDialog } = useBuildStore();
@@ -397,82 +377,110 @@ const ResumeEditor: React.FC = () => {
     <div className="flex-1 bg-muted/50 dark:bg-muted/20 min-h-screen pt-20 pb-10 px-4 overflow-y-auto">
       <div className="max-w-4xl mx-auto flex flex-col gap-8">
         {/* Render each page as a separate A4 container with its specific sections */}
-        {paginatedSections.map((pageSections, pageIndex) => (
-          <div
-            key={pageIndex}
-            className={cn(
-              "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
-              "min-h-[297mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
-              marginMap[style?.pageMargins ?? 2] || "px-10",
-              "py-8",
-              fontSizeMap[style?.fontSize ?? "medium"] || "text-base",
-            )}
-            style={{
-              fontFamily: style?.fontFamily || "Inter",
-              lineHeight: style?.lineHeight || 1.5,
-              // Fixed height for A4 visual
-              height: "297mm",
-            }}
-          >
-            {/* Background Pattern */}
-            {style?.background !== "plain" && style?.background && (
-              <div
-                className={cn(
-                  "absolute inset-0 pointer-events-none opacity-5",
-                  style.background === "dots" &&
-                    "bg-[radial-gradient(circle,_#000_1px,_transparent_1px)] bg-[length:20px_20px]",
-                  style.background === "lines" &&
-                    "bg-[linear-gradient(to_bottom,_#000_1px,_transparent_1px)] bg-[length:100%_20px]",
-                  style.background === "grid" &&
-                    "bg-[linear-gradient(#000_1px,_transparent_1px),_linear-gradient(90deg,_#000_1px,_transparent_1px)] bg-[length:20px_20px]",
-                )}
-              />
-            )}
+        {paginatedSections.map((pageSections, pageIndex) => {
+          // Resolve styles with defaults (handling both legacy string/small-int values and new precise numerical values)
+          const marginsMm =
+            typeof style?.pageMargins === "number" && style.pageMargins > 10
+              ? style.pageMargins
+              : 20; // Default 20mm
+          const fontSizePt =
+            typeof style?.fontSize === "number" ? style.fontSize : 11; // Default 11pt
+          const spacingPx =
+            typeof style?.sectionSpacing === "number" &&
+            style.sectionSpacing > 5
+              ? style.sectionSpacing
+              : 16; // Default 16px
 
-            {/* Sections for THIS page only */}
+          return (
             <div
+              key={pageIndex}
               className={cn(
-                spacingMap[style?.sectionSpacing ?? 2] || "space-y-4",
-                "relative",
+                "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
+                "min-h-[297mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
+                "py-8",
               )}
+              style={{
+                fontFamily: style?.fontFamily || "Inter",
+                lineHeight: style?.lineHeight || 1.5,
+                paddingLeft: `${marginsMm}mm`,
+                paddingRight: `${marginsMm}mm`,
+                fontSize: `${fontSizePt}pt`,
+                height: "297mm",
+              }}
             >
-              {pageSections.map((section) => renderSection(section))}
-            </div>
+              {/* Background Pattern */}
+              {style?.background !== "plain" && style?.background && (
+                <div
+                  className={cn(
+                    "absolute inset-0 pointer-events-none opacity-5",
+                    style.background === "dots" &&
+                      "bg-[radial-gradient(circle,_#000_1px,_transparent_1px)] bg-[length:20px_20px]",
+                    style.background === "lines" &&
+                      "bg-[linear-gradient(to_bottom,_#000_1px,_transparent_1px)] bg-[length:100%_20px]",
+                    style.background === "grid" &&
+                      "bg-[linear-gradient(#000_1px,_transparent_1px),_linear-gradient(90deg,_#000_1px,_transparent_1px)] bg-[length:20px_20px]",
+                  )}
+                />
+              )}
 
-            {/* Page Number */}
-            <div className="absolute bottom-2 right-4 text-[10px] text-muted-foreground">
-              Page {pageIndex + 1} of {paginatedSections.length}
+              {/* Sections for THIS page only */}
+              <div
+                className="relative flex flex-col"
+                style={{ gap: `${spacingPx}px` }}
+              >
+                {pageSections.map((section) => renderSection(section))}
+              </div>
+
+              {/* Page Number */}
+              <div className="absolute bottom-2 right-4 text-[10px] text-muted-foreground">
+                Page {pageIndex + 1} of {paginatedSections.length}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Hidden Measurement Container */}
         {/* This renders OFF-SCREEN but with EXACT widths/styles to enable accurate measurement */}
-        <div
-          ref={hiddenContainerRef}
-          className={cn(
-            "absolute top-0 left-0 -z-50 invisible pointer-events-none",
-            // Use standard A4 width constraints
-            "w-[210mm]",
-            // Apply Same Paddings & Fonts
-            marginMap[style?.pageMargins ?? 2] || "px-10",
-            "py-8",
-            fontSizeMap[style?.fontSize ?? "medium"] || "text-base",
-            spacingMap[style?.sectionSpacing ?? 2] || "space-y-4",
-          )}
-          style={{
-            fontFamily: style?.fontFamily || "Inter",
-            lineHeight: style?.lineHeight || 1.5,
-          }}
-          aria-hidden="true"
-        >
-          {sections?.map((section) => (
-            // Wrap in div to ensure we measure the full component including internal margins if any
-            <div key={section.id} data-section-id={section.id}>
-              {renderSection(section)}
+        {(() => {
+          const marginsMm =
+            typeof style?.pageMargins === "number" && style.pageMargins > 10
+              ? style.pageMargins
+              : 20;
+          const fontSizePt =
+            typeof style?.fontSize === "number" ? style.fontSize : 11;
+          const spacingPx =
+            typeof style?.sectionSpacing === "number" &&
+            style.sectionSpacing > 5
+              ? style.sectionSpacing
+              : 16;
+
+          return (
+            <div
+              ref={hiddenContainerRef}
+              className={cn(
+                "absolute top-0 left-0 -z-50 invisible pointer-events-none",
+                "w-[210mm]",
+                "py-8",
+                "flex flex-col",
+              )}
+              style={{
+                fontFamily: style?.fontFamily || "Inter",
+                lineHeight: style?.lineHeight || 1.5,
+                paddingLeft: `${marginsMm}mm`,
+                paddingRight: `${marginsMm}mm`,
+                fontSize: `${fontSizePt}pt`,
+                gap: `${spacingPx}px`,
+              }}
+              aria-hidden="true"
+            >
+              {sections?.map((section) => (
+                <div key={section.id} data-section-id={section.id}>
+                  {renderSection(section as PaginatedSection)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
 
       {/* Global Confirmation Dialog */}

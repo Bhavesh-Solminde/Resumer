@@ -57,30 +57,6 @@ export const defaultTemplates: TemplateConfigMap = {
     layout: "single-column",
     headerStyle: "centered",
   },
-  // TODO: Create template components at frontend/src/components/builder/templates/professional/
-  professional: {
-    id: "professional",
-    name: "Professional",
-    preview: "/templates/professional.png",
-    layout: "single-column",
-    headerStyle: "left-aligned",
-  },
-  // TODO: Create template components at frontend/src/components/builder/templates/elegant/
-  elegant: {
-    id: "elegant",
-    name: "Elegant",
-    preview: "/templates/elegant.png",
-    layout: "single-column",
-    headerStyle: "left-aligned",
-  },
-  // TODO: Create template components at frontend/src/components/builder/templates/minimal/
-  minimal: {
-    id: "minimal",
-    name: "Minimal",
-    preview: "/templates/minimal.png",
-    layout: "single-column",
-    headerStyle: "left-aligned",
-  },
   shraddha: {
     id: "shraddha",
     name: "Shraddha Khapra",
@@ -131,86 +107,6 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
       ],
     },
   },
-  languages: {
-    type: "languages",
-    label: "Languages",
-    icon: "Globe",
-    data: {
-      items: [
-        { id: uuidv4(), language: "English", proficiency: "Native" },
-        { id: uuidv4(), language: "Spanish", proficiency: "Intermediate" },
-      ],
-    },
-  },
-  awards: {
-    type: "awards",
-    label: "Awards",
-    icon: "Trophy",
-    data: {
-      items: [
-        {
-          id: uuidv4(),
-          title: "Award Title",
-          issuer: "Issuing Organization",
-          date: "MM/YYYY",
-          description: "",
-        },
-      ],
-    },
-  },
-  references: {
-    type: "references",
-    label: "References",
-    icon: "Users",
-    data: {
-      items: [
-        {
-          id: uuidv4(),
-          name: "Reference Name",
-          title: "Title",
-          company: "Company",
-          email: "email@example.com",
-          phone: "",
-        },
-      ],
-    },
-  },
-  publications: {
-    type: "publications",
-    label: "Publications",
-    icon: "BookOpen",
-    data: {
-      items: [
-        {
-          id: uuidv4(),
-          title: "Publication Title",
-          publisher: "Publisher",
-          date: "MM/YYYY",
-          link: "",
-        },
-      ],
-    },
-  },
-  socialLinks: {
-    type: "socialLinks",
-    label: "Find Me Online",
-    icon: "Link",
-    data: {
-      items: [
-        { id: uuidv4(), platform: "LinkedIn", url: "" },
-        { id: uuidv4(), platform: "GitHub", url: "" },
-        { id: uuidv4(), platform: "Portfolio", url: "" },
-      ],
-    },
-  },
-  strengths: {
-    type: "strengths",
-    label: "Strengths",
-    icon: "Zap",
-    data: {
-      items: ["Strength 1", "Strength 2", "Strength 3", "Strength 4"],
-    },
-  },
   achievements: {
     type: "achievements",
     label: "Achievements",
@@ -230,15 +126,6 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
           date: "",
         },
       ],
-    },
-  },
-  custom: {
-    type: "custom",
-    label: "Custom Section",
-    icon: "Plus",
-    data: {
-      title: "Custom Section",
-      content: "Add your custom content here.",
     },
   },
 });

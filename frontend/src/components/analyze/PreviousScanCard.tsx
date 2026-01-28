@@ -15,7 +15,6 @@ const ResumeAnalysisDisplay = lazy(() => import("../ResumeAnalysisDisplay"));
 interface AnalysisResultData {
   summary?: string;
   key_skills?: string[];
-  missing_keywords?: string[];
   formatting_issues?: string[];
   actionable_feedback?: string[];
 }
@@ -115,8 +114,6 @@ const PreviousScanCard: React.FC<PreviousScanCardProps> = memo(
                 score: lastScan.atsScore,
                 summary: lastScan.analysisResult.summary || "",
                 key_skills: lastScan.analysisResult.key_skills || [],
-                missing_keywords:
-                  lastScan.analysisResult.missing_keywords || [],
                 formatting_issues:
                   lastScan.analysisResult.formatting_issues || [],
                 actionable_feedback:

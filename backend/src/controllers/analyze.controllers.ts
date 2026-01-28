@@ -43,13 +43,36 @@ interface IExtractedResume {
 }
 
 /**
- * Analysis result from Gemini AI
+ * Quality metrics extracted by Gemini (used for internal score calculation)
+ */
+interface IQualityMetrics {
+  is_contact_info_complete: boolean;
+  bullet_points_count: number;
+  quantified_bullet_points_count: number;
+  action_verbs_used: string[];
+  weak_words_found: string[];
+  spelling_errors: string[];
+  missing_sections: string[];
+}
+
+/**
+ * Raw response from Gemini AI (without score)
+ */
+interface IGeminiResponse {
+  quality_metrics: IQualityMetrics;
+  executive_summary: string;
+  top_keywords: string[];
+  actionable_feedback: string[];
+  extractedResume: IExtractedResume;
+}
+
+/**
+ * Final analysis result (with calculated score)
  */
 interface IAnalysisData {
   score: number;
   summary: string;
   key_skills: string[];
-  missing_keywords: string[];
   formatting_issues: string[];
   actionable_feedback: string[];
   extractedResume: IExtractedResume;
@@ -58,6 +81,163 @@ interface IAnalysisData {
 // Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
 const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+// ============================================================================
+// ATS Score Calculation
+// ============================================================================
+
+/** Strong action verbs that improve ATS scores */
+const STRONG_ACTION_VERBS = new Set([
+  "achieved", "accelerated", "accomplished", "administered", "analyzed",
+  "architected", "automated", "boosted", "built", "collaborated",
+  "consolidated", "created", "decreased", "delivered", "designed",
+  "developed", "devised", "directed", "drove", "eliminated",
+  "engineered", "enhanced", "established", "exceeded", "executed",
+  "expanded", "expedited", "facilitated", "formulated", "generated",
+  "grew", "headed", "implemented", "improved", "increased",
+  "initiated", "innovated", "integrated", "introduced", "launched",
+  "led", "leveraged", "maintained", "managed", "maximized",
+  "mentored", "migrated", "minimized", "modernized", "negotiated",
+  "optimized", "orchestrated", "organized", "overhauled", "oversaw",
+  "pioneered", "planned", "produced", "programmed", "proposed",
+  "redesigned", "reduced", "refactored", "reformed", "remodeled",
+  "replaced", "resolved", "restructured", "revamped", "saved",
+  "scaled", "secured", "simplified", "spearheaded", "standardized",
+  "streamlined", "strengthened", "supervised", "surpassed", "trained",
+  "transformed", "upgraded", "utilized"
+]);
+
+/**
+ * Calculate ATS score based on quality metrics extracted by Gemini
+ * @param metrics - Quality metrics from Gemini analysis
+ * @returns Calculated ATS score (0-100)
+ */
+function calculateATSScore(metrics: IQualityMetrics): number {
+  let score = 0;
+
+  // 1. Contact Information (15 points)
+  // Complete contact info is crucial for recruiters
+  if (metrics.is_contact_info_complete) {
+    score += 15;
+  } else {
+    score += 5; // Partial credit if some info exists
+  }
+
+  // 2. Bullet Points Quantity (15 points)
+  // Ideal: 15-25 bullets for a strong resume
+  const bulletCount = metrics.bullet_points_count;
+  if (bulletCount >= 15 && bulletCount <= 30) {
+    score += 15;
+  } else if (bulletCount >= 10 && bulletCount < 15) {
+    score += 12;
+  } else if (bulletCount >= 5 && bulletCount < 10) {
+    score += 8;
+  } else if (bulletCount > 0) {
+    score += 4;
+  }
+
+  // 3. Quantified Achievements (20 points)
+  // Most important: measurable impact with numbers
+  const quantifiedCount = metrics.quantified_bullet_points_count;
+  const quantifiedRatio = bulletCount > 0 ? quantifiedCount / bulletCount : 0;
+  if (quantifiedRatio >= 0.5) {
+    score += 20; // 50%+ bullets are quantified
+  } else if (quantifiedRatio >= 0.3) {
+    score += 15;
+  } else if (quantifiedRatio >= 0.15) {
+    score += 10;
+  } else if (quantifiedCount > 0) {
+    score += 5;
+  }
+
+  // 4. Action Verbs Usage (15 points)
+  const actionVerbCount = metrics.action_verbs_used.filter((verb) =>
+    STRONG_ACTION_VERBS.has(verb.toLowerCase())
+  ).length;
+  if (actionVerbCount >= 10) {
+    score += 15;
+  } else if (actionVerbCount >= 6) {
+    score += 12;
+  } else if (actionVerbCount >= 3) {
+    score += 8;
+  } else if (actionVerbCount > 0) {
+    score += 4;
+  }
+
+  // 5. Weak Words Penalty (-10 points max)
+  const weakWordsCount = metrics.weak_words_found.length;
+  if (weakWordsCount === 0) {
+    score += 10; // Bonus for no weak words
+  } else if (weakWordsCount <= 2) {
+    score += 6;
+  } else if (weakWordsCount <= 5) {
+    score += 2;
+  }
+  // More than 5 weak words = 0 points for this category
+
+  // 6. Spelling/Grammar (10 points)
+  const spellingErrors = metrics.spelling_errors.length;
+  if (spellingErrors === 0) {
+    score += 10;
+  } else if (spellingErrors <= 2) {
+    score += 6;
+  } else if (spellingErrors <= 5) {
+    score += 3;
+  }
+  // More than 5 errors = 0 points
+
+  // 7. Section Completeness (15 points)
+  // Standard sections: Skills, Experience, Education, Projects, Summary
+  const missingSections = metrics.missing_sections.length;
+  if (missingSections === 0) {
+    score += 15;
+  } else if (missingSections === 1) {
+    score += 10;
+  } else if (missingSections === 2) {
+    score += 5;
+  }
+  // More than 2 missing = 0 points
+
+  // Clamp score between 0 and 100
+  return Math.max(0, Math.min(100, score));
+}
+
+/**
+ * Generate formatting issues from quality metrics
+ */
+function generateFormattingIssues(metrics: IQualityMetrics): string[] {
+  const issues: string[] = [];
+
+  if (!metrics.is_contact_info_complete) {
+    issues.push("Missing essential contact information (email, phone, or location)");
+  }
+
+  if (metrics.bullet_points_count < 10) {
+    issues.push("Resume has too few bullet points - aim for 15-25 achievement bullets");
+  }
+
+  const quantifiedRatio =
+    metrics.bullet_points_count > 0
+      ? metrics.quantified_bullet_points_count / metrics.bullet_points_count
+      : 0;
+  if (quantifiedRatio < 0.3) {
+    issues.push("Less than 30% of bullets contain quantified metrics - add more numbers and percentages");
+  }
+
+  if (metrics.weak_words_found.length > 0) {
+    issues.push(`Found weak words: ${metrics.weak_words_found.slice(0, 5).join(", ")}`);
+  }
+
+  if (metrics.spelling_errors.length > 0) {
+    issues.push(`Potential spelling issues: ${metrics.spelling_errors.slice(0, 3).join(", ")}`);
+  }
+
+  if (metrics.missing_sections.length > 0) {
+    issues.push(`Missing standard sections: ${metrics.missing_sections.join(", ")}`);
+  }
+
+  return issues;
+}
 
 /**
  * Analyze resume using AI and save to database
@@ -93,20 +273,26 @@ You are an expert Technical Recruiter, Resume Parser, and ATS Specialist.
 Analyze the following resume text and extract ALL information into a structured format.
 
 CRITICAL INSTRUCTIONS:
-1. Generate a UUID (like "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for EVERY "id" field
-2. Use EXACT field names as specified - DO NOT substitute (e.g., use "title" not "role", use "name" not "title" for projects)
-3. Dates should be in "MM/YYYY" format or "Present" for current positions
-4. If information is not found, use empty string "" for text fields and empty array [] for arrays
-5. Extract bullet points from descriptions as separate items in "bullets" array
+1. Generate a UUID (like "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for EVERY "id" field.
+2. Use EXACT field names as specified.
+3. Dates should be in "MM/YYYY" format or "Present".
+4. If info is missing, use empty strings or arrays.
+5. **DO NOT output a score.** Instead, extract the raw quality metrics listed below.
 
-Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+Return ONLY a raw JSON object (no markdown) with this exact structure:
 {
-  "score": number (0-100, ATS compatibility score),
-  "summary": "Professional summary of the candidate based on their resume",
-  "key_skills": ["skill1", "skill2", ...],
-  "missing_keywords": ["keyword1", "keyword2", ...] (common ATS keywords missing from resume),
-  "formatting_issues": ["issue1", "issue2", ...],
-  "actionable_feedback": ["tip1", "tip2", ...],
+  "quality_metrics": {
+    "is_contact_info_complete": boolean,
+    "bullet_points_count": integer,
+    "quantified_bullet_points_count": integer,
+    "action_verbs_used": ["List", "of", "unique", "strong", "verbs", "found"],
+    "weak_words_found": ["List", "of", "words", "like", "helped", "responsible for", "worked on", "various"],
+    "spelling_errors": ["List", "of", "potential", "typos"],
+    "missing_sections": ["List", "of", "standard", "sections", "missing"]
+  },
+  "executive_summary": "Professional summary of the candidate's strengths based on the resume content",
+  "top_keywords": ["List", "of", "top", "5-10", "hard", "skills", "found"],
+  "actionable_feedback": ["Specific tip 1", "Specific tip 2"],
   "extractedResume": {
     "header": {
       "fullName": "John Doe",
@@ -118,7 +304,7 @@ Return ONLY a raw JSON object (no markdown, no backticks) with this exact struct
       "website": "johndoe.com"
     },
     "summary": {
-      "content": "Professional summary paragraph from the resume"
+      "content": "Professional summary paragraph"
     },
     "experience": [
       {
@@ -135,68 +321,76 @@ Return ONLY a raw JSON object (no markdown, no backticks) with this exact struct
     "education": [
       {
         "id": "uuid-here",
-        "degree": "Bachelor of Science in Computer Science",
+        "degree": "Degree Name",
         "institution": "University Name",
         "location": "City, Country",
         "startDate": "MM/YYYY",
         "endDate": "MM/YYYY",
         "gpa": "3.8/4.0",
-        "description": "Relevant coursework or honors"
+        "description": "Relevant coursework"
       }
     ],
     "projects": [
       {
         "id": "uuid-here",
         "name": "Project Name",
-        "subtitle": "Tech Stack or Type",
+        "subtitle": "Tech Stack",
         "date": "MM/YYYY",
-        "description": "What the project does",
+        "description": "Description",
         "bullets": ["Feature 1", "Feature 2"],
         "link": "github.com/project"
       }
     ],
     "skills": {
       "title": "Skills",
-      "items": ["JavaScript", "Python", "React", "Node.js"]
+      "items": ["Skill 1", "Skill 2"]
     },
     "certifications": [
       {
         "id": "uuid-here",
-        "name": "AWS Certified Developer",
-        "issuer": "Amazon Web Services",
+        "name": "Cert Name",
+        "issuer": "Issuer",
         "date": "MM/YYYY",
-        "expiryDate": "MM/YYYY or empty if no expiry",
+        "expiryDate": "",
         "credentialId": "ABC123"
       }
     ],
     "achievements": [
       {
         "id": "uuid-here",
-        "title": "Achievement Title",
-        "description": "What was achieved",
+        "title": "Achievement",
+        "description": "Description",
         "date": "MM/YYYY"
       }
     ],
     "extracurricular": [
       {
         "id": "uuid-here",
-        "title": "Role/Position",
-        "organization": "Organization Name",
+        "title": "Role",
+        "organization": "Org",
         "startDate": "MM/YYYY",
         "endDate": "MM/YYYY",
-        "description": "Brief description",
-        "bullets": ["Activity 1", "Activity 2"]
+        "description": "Description",
+        "bullets": ["Activity"]
       }
     ]
   }
 }
 
-FIELD NAME RULES (CRITICAL - DO NOT DEVIATE):
-- Experience: use "title" for job title, NOT "role" or "position"
-- Projects: use "name" for project name, NOT "title"
-- Education: use "gpa" NOT "score" or "grade"
-- All dates: use "startDate" and "endDate", NOT "start" and "end"
-- Skills: use flat "items" array, NOT categorized objects
+QUALITY METRICS EXTRACTION RULES:
+- is_contact_info_complete: true if Email, Phone, AND Location are ALL present
+- bullet_points_count: Total count of bullet points in Experience AND Projects sections
+- quantified_bullet_points_count: Count of bullets containing metrics (%, $, numbers, +, k, M, x improvement)
+- action_verbs_used: Extract unique strong verbs that start bullets (e.g., "Developed", "Led", "Implemented")
+- weak_words_found: Find weak phrases like "helped", "responsible for", "worked on", "assisted", "various", "etc"
+- spelling_errors: List potential typos or misspellings found
+- missing_sections: Check for missing standard sections (Skills, Experience, Education, Projects, Summary)
+
+FIELD NAME RULES (CRITICAL):
+- Experience: use "title", NOT "role"
+- Projects: use "name", NOT "title"
+- Education: use "gpa"
+- Skills: use flat "items" array
 
 RESUME TEXT:
 ${resumeText}
@@ -234,18 +428,39 @@ ${resumeText}
         .replace(/```/g, "")
         .trim();
 
-      const analysisData: IAnalysisData = JSON.parse(cleanJson);
+      const geminiResponse: IGeminiResponse = JSON.parse(cleanJson);
+
+      // Calculate ATS score internally using quality metrics
+      const atsScore = calculateATSScore(geminiResponse.quality_metrics);
+
+      // Generate formatting issues from quality metrics
+      const formattingIssues = generateFormattingIssues(
+        geminiResponse.quality_metrics,
+      );
+
+      // Transform Gemini response to final analysis data
+      const analysisData: IAnalysisData = {
+        score: atsScore,
+        summary: geminiResponse.executive_summary,
+        key_skills: geminiResponse.top_keywords,
+        formatting_issues: formattingIssues,
+        actionable_feedback: geminiResponse.actionable_feedback,
+        extractedResume: geminiResponse.extractedResume,
+      };
 
       // Save to DB: Create a history record
       const resumeScan = await ResumeScan.create({
         originalName: req.file?.originalname,
         pdfUrl: cloudinaryUrl,
         owner: req.user!._id,
-        atsScore: analysisData.score,
-        analysisResult: analysisData as unknown as Record<string, unknown>,
+        atsScore: atsScore,
+        analysisResult: {
+          ...analysisData,
+          quality_metrics: geminiResponse.quality_metrics, // Store raw metrics for debugging
+        } as unknown as Record<string, unknown>,
         resumeText: resumeText,
       });
-      console.log(analysisData);
+      console.log("ATS Score:", atsScore, "Quality Metrics:", geminiResponse.quality_metrics);
 
       await User.updateOne(
         { _id: req.user!._id },
