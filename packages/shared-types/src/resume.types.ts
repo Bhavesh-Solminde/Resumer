@@ -9,7 +9,7 @@ import type { Section, SectionType } from "./sections.types.js";
 // Theme Types
 // ============================================================================
 
-export type FontSize = "small" | "medium" | "large";
+// export type FontSize = "small" | "medium" | "large";
 export type BackgroundPattern = "plain" | "dots" | "lines" | "grid";
 
 export interface IStyle {
@@ -17,7 +17,7 @@ export interface IStyle {
   /** TODO: Add accentColor picker to DesignPanel - currently only used in ShraddhaHeader for highlight backgrounds */
   accentColor: string;
   fontFamily: string;
-  fontSize: FontSize;
+  fontSize: number; // Changed from FontSize enum to number
   pageMargins: number;
   sectionSpacing: number;
   lineHeight: number;
@@ -28,7 +28,7 @@ export const DEFAULT_THEME: IStyle = {
   primaryColor: "#1e3a5f",
   accentColor: "#3b82f6",
   fontFamily: "Inter",
-  fontSize: "medium",
+  fontSize: 11, // Default to 11pt
   pageMargins: 2,
   sectionSpacing: 2,
   lineHeight: 1.5,

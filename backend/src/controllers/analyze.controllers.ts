@@ -449,6 +449,14 @@ ${resumeText}
       };
 
       // Save to DB: Create a history record
+      // Redact detailed metrics from long-term storage
+      const { quality_metrics, ...safeResponse } = geminiResponse;
+      // Compute simple flags or summary if needed
+      const metricsSummary = {
+        hasTypos: (quality_metrics?.spelling_errors?.length || 0) > 0,
+        missingSectionsCount: quality_metrics?.missing_sections?.length || 0,
+      };
+
       const resumeScan = await ResumeScan.create({
         originalName: req.file?.originalname,
         pdfUrl: cloudinaryUrl,
@@ -456,11 +464,12 @@ ${resumeText}
         atsScore: atsScore,
         analysisResult: {
           ...analysisData,
-          quality_metrics: geminiResponse.quality_metrics, // Store raw metrics for debugging
+          metricsSummary, // Store redacted summary
+          // quality_metrics omitted intentionally
         } as unknown as Record<string, unknown>,
         resumeText: resumeText,
       });
-      console.log("ATS Score:", atsScore, "Quality Metrics:", geminiResponse.quality_metrics);
+      console.log("ATS Score:", atsScore); // redacted log
 
       await User.updateOne(
         { _id: req.user!._id },

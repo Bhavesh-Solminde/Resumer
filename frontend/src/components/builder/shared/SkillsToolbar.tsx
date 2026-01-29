@@ -6,6 +6,7 @@ interface SkillsToolbarProps {
   onAddSkill: () => void;
   onAddGroup: () => void;
   onDelete?: () => void;
+  onDeleteSection?: () => void;
   onSettings?: () => void;
   showDelete?: boolean;
   showSettings?: boolean;
@@ -20,6 +21,7 @@ const SkillsToolbar: React.FC<SkillsToolbarProps> = ({
   onAddSkill,
   onAddGroup,
   onDelete,
+  onDeleteSection,
   onSettings,
   showDelete = true,
   showSettings = false,
@@ -28,7 +30,7 @@ const SkillsToolbar: React.FC<SkillsToolbarProps> = ({
   return (
     <div
       className={cn(
-        "absolute left-1/2 -translate-x-1/2 bottom-full pb-1 z-40",
+        "absolute left-1/2 -translate-x-1/2 bottom-full pb-1 z-50",
         className,
       )}
     >
@@ -73,6 +75,20 @@ const SkillsToolbar: React.FC<SkillsToolbarProps> = ({
           >
             <Trash2 className="w-3.5 h-3.5 text-red-500" />
           </button>
+        )}
+
+        {/* Delete Section */}
+        {onDeleteSection && (
+          <>
+            <div className="w-px h-4 bg-gray-200 mx-1" />
+            <button
+              onClick={onDeleteSection}
+              className="p-1.5 rounded hover:bg-red-50 group border border-transparent hover:border-red-100"
+              title="Delete Entire Section"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-700 fill-red-50" />
+            </button>
+          </>
         )}
 
         {/* Settings */}

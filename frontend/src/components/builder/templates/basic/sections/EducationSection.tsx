@@ -62,6 +62,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const updateSectionSettings = useBuildStore(
     (state) => state.updateSectionSettings,
   );
@@ -220,6 +221,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
                 onAddEntry={handleAddItem}
                 onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
                 showSettings={true}
                 onSettings={() => setSettingsOpen(item.id)}
               />

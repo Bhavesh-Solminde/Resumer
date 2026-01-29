@@ -56,6 +56,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
     | ((dialog: ConfirmDialogState) => void)
     | undefined;
@@ -170,6 +171,7 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
                 onAddEntry={handleAddItem}
                 onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
               />
             )}
 

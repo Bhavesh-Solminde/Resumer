@@ -89,6 +89,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -197,9 +198,10 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
               <ItemToolbar
                 position="left"
                 showCalendar={true}
-                className="-left-14"
+                className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
                 onOpenCalendar={() =>
                   setCalendarOpen(calendarOpen === item.id ? null : item.id)
                 }

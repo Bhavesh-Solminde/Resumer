@@ -37,6 +37,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
     | ((dialog: ConfirmDialogState) => void)
     | undefined;
@@ -104,7 +105,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
         </div>
       )}
 
-      <ul className="space-y-1 list-disc ml-4">
+      <ul className="space-y-1 list-disc ml-4 overflow-hidden">
         {itemsToRender.map((item) => (
           <li
             key={item.id}
@@ -117,9 +118,10 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
               <ItemToolbar
                 position="left"
                 showCalendar={false}
-                className="-left-14"
+                className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
               />
             )}
 
@@ -127,7 +129,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
               value={item.title || ""}
               onChange={(val) => handleFieldChange(item.id, "title", val)}
               placeholder="Achievement"
-              className="text-gray-800"
+              className="text-gray-800 wrap-break-word"
               as="span"
             />
             {item.description && (

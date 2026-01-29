@@ -126,7 +126,7 @@ const DesignPanel: React.FC = () => {
           <label className="text-sm font-medium text-foreground flex justify-between">
             <span>PAGE MARGINS (mm)</span>
             <span className="text-xs text-muted-foreground">
-              {typeof style.pageMargins === "number" && style.pageMargins > 10
+              {typeof style.pageMargins === "number" && style.pageMargins >= 10
                 ? style.pageMargins
                 : 20}
               mm
@@ -139,13 +139,18 @@ const DesignPanel: React.FC = () => {
               max="50"
               step="1"
               value={
-                typeof style.pageMargins === "number" && style.pageMargins > 10
+                typeof style.pageMargins === "number" && style.pageMargins >= 10
                   ? style.pageMargins
                   : 20
               }
-              onChange={(e) =>
-                updateStyle({ pageMargins: parseInt(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    pageMargins: Math.max(10, Math.min(50, val)),
+                  });
+                }
+              }}
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <input
@@ -153,13 +158,18 @@ const DesignPanel: React.FC = () => {
               min="10"
               max="50"
               value={
-                typeof style.pageMargins === "number" && style.pageMargins > 10
+                typeof style.pageMargins === "number" && style.pageMargins >= 10
                   ? style.pageMargins
                   : 20
               }
-              onChange={(e) =>
-                updateStyle({ pageMargins: parseInt(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    pageMargins: Math.max(10, Math.min(50, val)),
+                  });
+                }
+              }}
               className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
@@ -171,7 +181,7 @@ const DesignPanel: React.FC = () => {
             <span>SECTION SPACING (px)</span>
             <span className="text-xs text-muted-foreground">
               {typeof style.sectionSpacing === "number" &&
-              style.sectionSpacing > 5
+              style.sectionSpacing >= 0
                 ? style.sectionSpacing
                 : 16}
               px
@@ -185,13 +195,18 @@ const DesignPanel: React.FC = () => {
               step="1"
               value={
                 typeof style.sectionSpacing === "number" &&
-                style.sectionSpacing > 5
+                style.sectionSpacing >= 0
                   ? style.sectionSpacing
                   : 16
               }
-              onChange={(e) =>
-                updateStyle({ sectionSpacing: parseInt(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    sectionSpacing: Math.max(0, Math.min(50, val)),
+                  });
+                }
+              }}
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <input
@@ -200,13 +215,18 @@ const DesignPanel: React.FC = () => {
               max="50"
               value={
                 typeof style.sectionSpacing === "number" &&
-                style.sectionSpacing > 5
+                style.sectionSpacing >= 0
                   ? style.sectionSpacing
                   : 16
               }
-              onChange={(e) =>
-                updateStyle({ sectionSpacing: parseInt(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    sectionSpacing: Math.max(0, Math.min(50, val)),
+                  });
+                }
+              }}
               className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
@@ -286,9 +306,14 @@ const DesignPanel: React.FC = () => {
                       ? 9
                       : 11
               }
-              onChange={(e) =>
-                updateStyle({ fontSize: parseFloat(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    fontSize: Math.max(8, Math.min(24, val)),
+                  });
+                }
+              }}
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <input
@@ -305,9 +330,14 @@ const DesignPanel: React.FC = () => {
                       ? 9
                       : 11
               }
-              onChange={(e) =>
-                updateStyle({ fontSize: parseFloat(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    fontSize: Math.max(8, Math.min(24, val)),
+                  });
+                }
+              }}
               className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
@@ -328,9 +358,14 @@ const DesignPanel: React.FC = () => {
               max="2.5"
               step="0.1"
               value={style.lineHeight}
-              onChange={(e) =>
-                updateStyle({ lineHeight: parseFloat(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    lineHeight: Math.max(1.0, Math.min(2.5, val)),
+                  });
+                }
+              }}
               className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <input
@@ -339,9 +374,14 @@ const DesignPanel: React.FC = () => {
               max="2.5"
               step="0.1"
               value={style.lineHeight}
-              onChange={(e) =>
-                updateStyle({ lineHeight: parseFloat(e.target.value) })
-              }
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) {
+                  updateStyle({
+                    lineHeight: Math.max(1.0, Math.min(2.5, val)),
+                  });
+                }
+              }}
               className="w-14 h-8 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
