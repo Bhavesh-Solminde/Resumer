@@ -27,12 +27,45 @@ interface PaginatedSection extends Section {
 interface Theme {
   pageMargins?: number;
   sectionSpacing?: number;
-  fontSize?: number | string;
+  fontSize?: number; // Removed | string
   fontFamily?: string;
   lineHeight?: number;
   primaryColor?: string;
   background?: string;
 }
+
+// Helper to normalize style values (e.g., legacy string fonts)
+const normalizeStyle = (style: any): Theme => {
+  if (!style) return {};
+  const normalized = { ...style };
+  
+  // Normalize fontSize
+  if (typeof normalized.fontSize === "string") {
+    const parsed = parseFloat(normalized.fontSize);
+    normalized.fontSize = !isNaN(parsed) ? parsed : 11;
+  }
+  
+  return normalized;
+};
+
+// Helper to resolve spacing to pixels
+// Unifies logic between pagination (measurement) and rendering
+const resolveSpacingPx = (style: Theme | undefined | null): number => {
+  const val = style?.sectionSpacing;
+  
+  // If it's a large numeric value (> 5), treat as px
+  if (typeof val === "number" && val > 5) {
+    return val;
+  }
+  
+  // Legacy/Level mapping (0-5)
+  // undefined defaults to 16px
+  if (val === undefined || val === null) return 16;
+  
+  // If small number, map to pixel values (approx tailwind space-y)
+  const levels = [0, 4, 8, 16, 24, 32];
+  return levels[val] ?? 16;
+};
 
 interface ConfirmDialogState {
   isOpen: boolean;
@@ -52,7 +85,7 @@ const ResumeEditor: React.FC = () => {
 
   const {
     sections,
-    style,
+    style: rawStyle,
     template = DEFAULT_TEMPLATE,
     sectionSettings = {},
   } = useBuildStore(
@@ -63,6 +96,8 @@ const ResumeEditor: React.FC = () => {
       sectionSettings: state.sectionSettings,
     })),
   );
+
+  const style = React.useMemo(() => normalizeStyle(rawStyle), [rawStyle]);
 
   // Pagination Logic
   React.useEffect(() => {
@@ -96,10 +131,7 @@ const ResumeEditor: React.FC = () => {
       const verticalPaddingPx = 4 * rootFontSize; // py-8 = 4rem
 
       // 3. Get Section Spacing
-      const spacingLevel = style?.sectionSpacing ?? 2;
-      // spacingMap: 1->space-y-2 (0.5rem), 2->space-y-4 (1rem), etc.
-      const spacingRem = spacingLevel * 0.5;
-      const spacingPx = spacingRem * rootFontSize;
+      const spacingPx = resolveSpacingPx(style); // Unified spacing logic (px)
 
       const items = Array.from(container.children) as HTMLElement[];
       const maxContentHeight = pageHeightPx - verticalPaddingPx;
@@ -385,11 +417,7 @@ const ResumeEditor: React.FC = () => {
               : 20; // Default 20mm
           const fontSizePt =
             typeof style?.fontSize === "number" ? style.fontSize : 11; // Default 11pt
-          const spacingPx =
-            typeof style?.sectionSpacing === "number" &&
-            style.sectionSpacing > 5
-              ? style.sectionSpacing
-              : 16; // Default 16px
+          const spacingPx = resolveSpacingPx(style); // Consistent resolver
 
           return (
             <div
@@ -448,11 +476,7 @@ const ResumeEditor: React.FC = () => {
               : 20;
           const fontSizePt =
             typeof style?.fontSize === "number" ? style.fontSize : 11;
-          const spacingPx =
-            typeof style?.sectionSpacing === "number" &&
-            style.sectionSpacing > 5
-              ? style.sectionSpacing
-              : 16;
+          const spacingPx = resolveSpacingPx(style);
 
           return (
             <div

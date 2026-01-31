@@ -16,7 +16,9 @@ interface ResumeState {
   resumePdf: FormData | null;
 
   isOptimizing: boolean;
-  optimizationResult: IOptimizationData | null;
+  optimizationResult: IOptimizationData | null; // Deprecated, kept for interface compat if needed
+  optimizationResultGeneral: IOptimizationData | null;
+  optimizationResultJD: IOptimizationData | null;
 }
 
 /**
@@ -44,6 +46,8 @@ const initialState: ResumeState = {
   resumePdf: null,
   isOptimizing: false,
   optimizationResult: null,
+  optimizationResultGeneral: null,
+  optimizationResultJD: null,
 };
 
 /**
@@ -211,7 +215,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       const response = await axiosInstance.post<
         ApiResponse<{ analysisResult: IOptimizationData }>
       >("/resume/optimize/general");
-      set({ optimizationResult: response.data.data.analysisResult });
+      const result = response.data.data.analysisResult;
+      set({ 
+        optimizationResult: result,
+        optimizationResultGeneral: result
+      });
       toast.success("Resume optimized successfully!");
     } catch (error) {
       console.error("Error optimizing resume:", error);
@@ -231,7 +239,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       const response = await axiosInstance.post<
         ApiResponse<{ analysisResult: IOptimizationData }>
       >("/resume/optimize/jd", { jobDescription });
-      set({ optimizationResult: response.data.data.analysisResult });
+      const result = response.data.data.analysisResult;
+      set({ 
+        optimizationResult: result,
+        optimizationResultJD: result
+      });
       toast.success("Resume optimized for JD successfully!");
     } catch (error) {
       console.error("Error optimizing resume for JD:", error);
@@ -242,7 +254,11 @@ export const useResumeStore = create<ResumeStore>((set) => ({
   },
 
   loadFakeData: () => {
-    set({ optimizationResult: DEMO_OPTIMIZATION_RESULT });
+    set({ 
+      optimizationResult: DEMO_OPTIMIZATION_RESULT,
+      optimizationResultGeneral: DEMO_OPTIMIZATION_RESULT, 
+      optimizationResultJD: DEMO_OPTIMIZATION_RESULT
+    });
     toast.success("Demo data loaded for Aarav Patel!");
   },
 }));

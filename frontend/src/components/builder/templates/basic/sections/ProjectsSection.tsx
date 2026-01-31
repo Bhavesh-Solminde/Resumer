@@ -58,6 +58,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   // Filter items for pagination if indices are provided
@@ -180,6 +181,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 onAddEntry={handleAddItem}
                 onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
               />
             )}
 
@@ -222,9 +224,10 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-teal-600 hover:text-teal-700"
+                      className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 hover:underline"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{item.link.includes("github") ? "GitHub" : "Live"}</span>
                     </a>
                   )}
                 </div>

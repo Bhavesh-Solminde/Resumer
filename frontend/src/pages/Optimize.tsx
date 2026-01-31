@@ -40,7 +40,8 @@ const Optimize: React.FC = () => {
     optimizeGeneral,
     optimizeJD,
     isOptimizing,
-    optimizationResult,
+    optimizationResultGeneral,
+    optimizationResultJD,
     loadFakeData,
   } = useResumeStore();
   const { loadOptimizedResume } = useBuildStore();
@@ -69,8 +70,11 @@ const Optimize: React.FC = () => {
     }
   };
 
+  // Determine which result to show based on active tab
+  const activeResult = activeTab === "general" ? optimizationResultGeneral : optimizationResultJD;
+  
   // Type assertion for optimizationResult
-  const result = optimizationResult as ExtendedOptimizationData | null;
+  const result = activeResult as ExtendedOptimizationData | null;
 
   return (
     <div className="min-h-screen w-full bg-background antialiased relative overflow-hidden p-4 md:p-8">

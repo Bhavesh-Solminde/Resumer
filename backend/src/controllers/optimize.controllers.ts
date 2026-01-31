@@ -224,10 +224,15 @@ export const optimizeResume = asyncHandler(
       } catch {
         throw new ApiError(400, "Failed to parse PDF file");
       }
-      // If uploading new file, try to get score from last scan anyway
-      const lastScan = await ResumeScan.findOne({ owner: req.user._id }).sort({
+      // Only reuse score if the uploaded file matches the last scan
+      const lastScan = await ResumeScan.findOne({
+        owner: req.user._id,
+        // Match by filename as stable identifier
+        originalName: req.file.originalname,
+      }).sort({
         createdAt: -1,
       });
+
       if (lastScan?.atsScore) {
         atsScoreBefore = lastScan.atsScore;
       }

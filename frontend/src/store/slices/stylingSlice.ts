@@ -7,7 +7,7 @@
 import type { StateCreator } from "zustand";
 import type {
   IStyle as IStyle,
-  FontSize,
+  // FontSize, // Removed
   BackgroundPattern,
 } from "@resumer/shared-types";
 import type { BuildState, BuildActions } from "../Build.store";
@@ -37,7 +37,7 @@ export const defaultStyle: IStyle = {
   primaryColor: "#1e3a5f",
   accentColor: "#3b82f6",
   fontFamily: "Inter",
-  fontSize: "medium" as FontSize,
+  fontSize: 11, // converted to number
   pageMargins: 2,
   sectionSpacing: 2,
   lineHeight: 1.5,

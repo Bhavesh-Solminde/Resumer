@@ -42,6 +42,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
   themeColor,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -134,9 +135,10 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
               <ItemToolbar
                 position="left"
                 showCalendar={false}
-                className="-left-14"
+                className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() => removeSection(sectionId!)}
               />
             )}
 

@@ -41,6 +41,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const removeSection = useBuildStore((state) => state.removeSection);
   const [isHovered, setIsHovered] = useState(false);
   const [focusedSkill, setFocusedSkill] = useState<{
     groupIndex: number;
@@ -219,11 +220,12 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {isHovered && !displayItemIndices && (
+      {isHovered && (
         <SkillsToolbar
           onAddSkill={handleAddSkill}
           onAddGroup={handleAddGroup}
           onDelete={handleDeleteFocusedSkill}
+          onDeleteSection={() => removeSection(sectionId!)}
           showDelete={focusedSkill !== null}
         />
       )}
