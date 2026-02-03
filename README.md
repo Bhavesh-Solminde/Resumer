@@ -17,9 +17,9 @@
 
 ---
 
-## ✨ Features
+##  Features
 
-### 📊 AI-Powered Resume Analysis
+###  AI-Powered Resume Analysis
 
 - **ATS Score Calculation** — Get an instant Applicant Tracking System compatibility score (0-100)
 - **Structured Feedback** — Receive detailed analysis including summary, key skills, missing keywords, formatting issues, and actionable tips
@@ -35,7 +35,7 @@
   
 </div>
 
-### 🚀 Smart Optimization Engine
+###  Smart Optimization Engine
 <div align="center">
 <img src="./frontend/public/Optimmize(dark).jpg" alt="Optimization Dark" width="800" />
 </div>
@@ -44,7 +44,7 @@
 - **Before/After Comparison** — Visual red/green diff comparison showing exactly what changed and why
 - **One-Click Copy** — Copy optimized sections directly to your clipboard
 
-### 🛠️ Resume Builder
+###  Resume Builder
 <div align="center">
 <img src="./frontend/public/ResumeBuilder.jpg" alt="Resume Builder" width="800" />
 </div>
@@ -55,14 +55,14 @@
 - **Undo/Redo Support** — Full history tracking powered by Zundo temporal middleware
 - **PDF Export** — Generate polished, ATS-friendly PDF resumes with `@react-pdf/renderer`
 
-### 👤 User Profile & History
+###  User Profile & History
 
 - **Secure Authentication** — JWT-based auth with OAuth support (Google, GitHub)
 - **Scan History** — Access all previous resume analyses and optimizations
 - **Resume Library** — Manage multiple resume versions for different job applications
 - **Cloud Storage** — All resumes securely stored on Cloudinary with automatic thumbnail generation
 
-### 🎨 Modern UI/UX
+###  Modern UI/UX
 
 - **Dark/Light Theme** — Seamless theme switching with CSS variables
 - **Responsive Design** — Fully responsive layouts for desktop, tablet, and mobile
@@ -71,7 +71,7 @@
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 resumer/
@@ -103,7 +103,7 @@ resumer/
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer          | Technology                                                  |
 | -------------- | ----------------------------------------------------------- |
@@ -120,7 +120,7 @@ resumer/
 
 ---
 
-## 📡 API Reference
+##  API Reference
 
 ### Authentication
 
@@ -162,7 +162,7 @@ resumer/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -242,7 +242,7 @@ pnpm --filter frontend build
 
 ---
 
-## 🎨 Design System
+##  Design System
 
 ### Color Tokens
 
@@ -268,7 +268,7 @@ The app uses semantic CSS variables for seamless light/dark theme switching:
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 ├── frontend/
@@ -333,7 +333,7 @@ The app uses semantic CSS variables for seamless light/dark theme switching:
 
 ---
 
-## 🔒 Security
+##  Security
 
 - **JWT in HttpOnly Cookies** — Tokens are never exposed to JavaScript
 - **Password Hashing** — bcrypt with salt rounds
@@ -344,7 +344,7 @@ The app uses semantic CSS variables for seamless light/dark theme switching:
 
 ---
 
-## 🧪 Testing & Quality
+##  Testing & Quality
 
 - **TypeScript Strict Mode** — Full type safety across frontend and backend
 - **ESLint** — Configured for both workspaces
@@ -353,7 +353,7 @@ The app uses semantic CSS variables for seamless light/dark theme switching:
 
 ---
 
-## 📦 Deployment
+##  Deployment
 
 ### Frontend (Vercel)
 
@@ -371,7 +371,7 @@ pnpm --filter backend build
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details.
 
@@ -383,7 +383,7 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
 
