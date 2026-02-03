@@ -19,7 +19,7 @@
 
 ##  Features
 
-### 📊 AI-Powered Resume Analysis
+###  AI-Powered Resume Analysis
 
 - **ATS Score Calculation** — Get an instant Applicant Tracking System compatibility score (0-100)
 - **Structured Feedback** — Receive detailed analysis including summary, key skills, missing keywords, formatting issues, and actionable tips
