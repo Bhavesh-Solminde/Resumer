@@ -37,14 +37,6 @@ const normalizeStyle = (style: any): Theme => {
     const parsed = parseFloat(normalized.fontSize);
     if (!Number.isNaN(parsed)) {
       normalized.fontSize = parsed;
-    } else {
-      const token = normalized.fontSize.toLowerCase();
-      const legacyMap: Record<string, number> = {
-        small: 10.5,
-        medium: 11,
-        large: 12.5,
-      };
-      normalized.fontSize = legacyMap[token] ?? normalized.fontSize;
     }
   }
   
@@ -56,13 +48,6 @@ const resolveFontSizePt = (fontSize: number | string | undefined): number => {
   if (typeof fontSize === "string") {
     const parsed = parseFloat(fontSize);
     if (!Number.isNaN(parsed)) return parsed;
-    const token = fontSize.toLowerCase();
-    const legacyMap: Record<string, number> = {
-      small: 10.5,
-      medium: 11,
-      large: 12.5,
-    };
-    return legacyMap[token] ?? 11;
   }
   return 11;
 };
