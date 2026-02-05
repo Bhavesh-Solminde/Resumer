@@ -97,6 +97,9 @@ export type {
   HeaderStyle,
   ITemplateConfig,
   TemplateConfigMap,
+  ITemplateColors,
+  ITemplateLayout,
+  ITemplateTheme,
   // TODO: Uncomment when store is refactored to use this interface
   // IResumeData,
   IConfirmDialog,
@@ -109,7 +112,7 @@ export type {
   IBuildState,
 } from "./resume.types.js";
 
-export { DEFAULT_THEME } from "./resume.types.js";
+export { DEFAULT_THEME, templateThemes, getTemplateTheme } from "./resume.types.js";
 
 // Build Types (MongoDB schema)
 // TODO: Uncomment when backend is refactored to use shared-types

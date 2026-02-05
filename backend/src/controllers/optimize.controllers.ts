@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { createHash } from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import pdf from "pdf-parse/lib/pdf-parse.js";
 import asyncHandler from "../utils/asyncHandler.js";
@@ -72,6 +73,9 @@ interface IGeminiJdOptimizeResponse {
 
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
 const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+const computeContentHash = (input: Buffer | string): string =>
+  createHash("sha256").update(input).digest("hex");
 
 // ============================================================================
 // ATS Score Calculation (shared with analyze.controllers.ts)
@@ -216,6 +220,7 @@ export const optimizeResume = asyncHandler(
 
     let resumeText = "";
     let atsScoreBefore = 0; // Will be fetched from last analysis
+    let contentHash: string | null = null;
 
     if (req.file) {
       try {
@@ -224,14 +229,12 @@ export const optimizeResume = asyncHandler(
       } catch {
         throw new ApiError(400, "Failed to parse PDF file");
       }
-      // Only reuse score if the uploaded file matches the last scan
+      contentHash = computeContentHash(req.file.buffer);
+      // Only reuse score if the uploaded file matches a previous scan by content
       const lastScan = await ResumeScan.findOne({
         owner: req.user._id,
-        // Match by filename as stable identifier
-        originalName: req.file.originalname,
-      }).sort({
-        createdAt: -1,
-      });
+        contentHash,
+      }).sort({ createdAt: -1 });
 
       if (lastScan?.atsScore) {
         atsScoreBefore = lastScan.atsScore;
@@ -256,6 +259,9 @@ export const optimizeResume = asyncHandler(
       }
       // Get the "before" score from the last analysis
       atsScoreBefore = lastScan.atsScore || 0;
+      contentHash =
+        lastScan.contentHash ||
+        (lastScan.resumeText ? computeContentHash(lastScan.resumeText) : null);
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
@@ -717,9 +723,6 @@ ${resumeText}
       };
 
       console.log("JD Optimization - Before:", atsScoreBefore, "After:", atsScoreAfter);
-      console.log("Critical Missing Skills:", geminiResponse.critical_missing_skills);
-      console.log("Potential Score Boost:", potentialScoreIncrease);
-
       req.aiAnalysisResult = {
         ...analysisData,
         quality_metrics_before: geminiResponse.quality_metrics_before,
@@ -756,11 +759,13 @@ export const saveResumeScan = asyncHandler(
     let pdfUrl: string | undefined;
     let originalName: string | undefined;
     let thumbnail: string | null = null;
+    let contentHash: string | null = null;
 
     if (req.file && req.cloudinaryResult) {
       pdfUrl = req.cloudinaryResult.secure_url;
       originalName = req.file.originalname;
       thumbnail = pdfUrl ? pdfUrl.replace(/\.pdf$/i, ".jpg") : null;
+      contentHash = computeContentHash(req.file.buffer);
     } else {
       const lastScan = await ResumeScan.findOne({ owner: userId }).sort({
         createdAt: -1,
@@ -774,11 +779,15 @@ export const saveResumeScan = asyncHandler(
       pdfUrl = lastScan.pdfUrl;
       originalName = lastScan.originalName;
       thumbnail = lastScan.thumbnail;
+      contentHash =
+        lastScan.contentHash ||
+        (req.resumeText ? computeContentHash(req.resumeText) : null);
     }
 
     const newScan = await ResumeScan.create({
       owner: userId,
       originalName,
+      contentHash,
       pdfUrl,
       thumbnail,
       atsScore:

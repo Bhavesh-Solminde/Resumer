@@ -6,6 +6,8 @@ import {
   BulletEditor,
   EmptyState,
   MonthYearPicker,
+  SectionSettings,
+  PROJECT_SETTINGS,
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
@@ -58,10 +60,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
+  const updateSectionSettings = useBuildStore(
+    (state) => state.updateSectionSettings,
+  );
+  const removeSectionWithConfirm = useBuildStore(
+    (state) => state.removeSectionWithConfirm,
+  );
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState<string | null>(null);
 
   const sectionSettings: Required<ProjectsSectionSettings> = {
     showTechnologies: true,
@@ -98,6 +107,11 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       endDate: null,
     };
     updateSectionData(sectionId, { items: [...data, newItem] });
+  };
+
+  const handleSettingsChange = (key: string, value: boolean) => {
+    if (!sectionId) return;
+    updateSectionSettings(sectionId, { [key]: value } as any);
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -177,6 +191,11 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 onAddEntry={handleAddItem}
                 onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
+                onDeleteSection={() =>
+                  removeSectionWithConfirm(sectionId!, "projects")
+                }
+                onSettings={() => setSettingsOpen(item.id)}
+                showSettings={true}
               />
             )}
 
@@ -200,6 +219,18 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
               </div>
             )}
 
+            {settingsOpen === item.id && (
+              <div className="absolute left-8 top-8 z-50">
+                <SectionSettings
+                  isOpen={true}
+                  title="Project Settings"
+                  settings={PROJECT_SETTINGS}
+                  onChange={handleSettingsChange}
+                  onClose={() => setSettingsOpen(null)}
+                />
+              </div>
+            )}
+
             <div>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
@@ -219,9 +250,14 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700"
+                      className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 hover:underline"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      <ExternalLink className="w-3 h-3" />
+                      <span>
+                        {item.link.toLowerCase().includes("github")
+                          ? "GitHub link"
+                          : "Live"}
+                      </span>
                     </a>
                   )}
                 </div>

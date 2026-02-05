@@ -14,6 +14,7 @@ export interface IAnalysisResult {
 
 export interface IResumeScan {
   originalName: string;
+  contentHash?: string | null;
   pdfUrl: string;
   thumbnail: string | null;
   owner: Types.ObjectId;
@@ -37,6 +38,10 @@ const ResumeScanSchema = new Schema<IResumeScan>(
     originalName: {
       type: String, // e.g., "Bhavesh_Resume_Final.pdf"
       required: true,
+    },
+    contentHash: {
+      type: String, // Hash of uploaded content or extracted text
+      default: null,
     },
     pdfUrl: {
       type: String, // Cloudinary URL
@@ -82,6 +87,8 @@ const ResumeScanSchema = new Schema<IResumeScan>(
 
 // Compound index for faster history queries (filtering by owner, sorting by date)
 ResumeScanSchema.index({ owner: 1, createdAt: -1 });
+// Content hash lookup for same-resume matching
+ResumeScanSchema.index({ owner: 1, contentHash: 1, createdAt: -1 });
 
 const ResumeScan = mongoose.model<IResumeScan>("ResumeScan", ResumeScanSchema);
 export default ResumeScan;

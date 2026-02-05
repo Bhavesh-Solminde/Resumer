@@ -72,6 +72,79 @@ export const defaultTemplates: TemplateConfigMap = {
 // ============================================================================
 
 export const createSectionTemplates = (): SectionTemplateMap => ({
+  summary: {
+    type: "summary",
+    label: "Professional Summary",
+    icon: "User",
+    data: {
+      content: "A brief professional summary highlighting your key qualifications, experience, and career objectives.",
+    },
+  },
+  experience: {
+    type: "experience",
+    label: "Work Experience",
+    icon: "Briefcase",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          title: "Job Title",
+          company: "Company Name",
+          location: "City, Country",
+          startDate: "MM/YYYY",
+          endDate: "Present",
+          description: "Describe your responsibilities and achievements in this role.",
+          bullets: [],
+        },
+      ],
+    },
+  },
+  education: {
+    type: "education",
+    label: "Education",
+    icon: "GraduationCap",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          degree: "Degree Name",
+          institution: "University/College Name",
+          location: "City, Country",
+          startDate: "MM/YYYY",
+          endDate: "MM/YYYY",
+          gpa: "",
+          description: "",
+        },
+      ],
+    },
+  },
+  projects: {
+    type: "projects",
+    label: "Projects",
+    icon: "Code",
+    data: {
+      items: [
+        {
+          id: uuidv4(),
+          name: "Project Name",
+          subtitle: "Project Type",
+          date: "MM/YYYY",
+          description: "Brief description of the project and your role.",
+          bullets: [],
+          link: "",
+        },
+      ],
+    },
+  },
+  skills: {
+    type: "skills",
+    label: "Skills",
+    icon: "Zap",
+    data: {
+      title: "Skills",
+      items: ["Skill 1", "Skill 2", "Skill 3", "Skill 4", "Skill 5"],
+    },
+  },
   certifications: {
     type: "certifications",
     label: "Certifications",

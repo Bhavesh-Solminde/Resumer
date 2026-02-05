@@ -6,6 +6,8 @@ import {
   BulletEditor,
   EmptyState,
   MonthYearPicker,
+  SectionSettings,
+  PROJECT_SETTINGS,
 } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
@@ -58,13 +60,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const removeSection = useBuildStore((state) => state.removeSection);
+  const updateSectionSettings = useBuildStore(
+    (state) => state.updateSectionSettings,
+  );
+  const removeSectionWithConfirm = useBuildStore((state) => state.removeSectionWithConfirm);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   // Filter items for pagination if indices are provided
   const itemsToRender = displayItemIndices
     ? data.filter((_, index) => displayItemIndices.includes(index))
     : data;
+  const [settingsOpen, setSettingsOpen] = useState<string | null>(null);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
@@ -140,7 +146,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   const handleBulletsChange = (itemId: string, bullets: string[]) => {
     handleFieldChange(itemId, "bullets", bullets);
   };
+const handleSettingsChange = (key: string, value: boolean) => {
+    if (!sectionId) return;
+    updateSectionSettings(sectionId, { [key]: value } as any);
+  };
 
+  
   // Skip empty check if we are in pagination mode (controlled display)
   if (!displayItemIndices && (!data || data.length === 0)) {
     return (
@@ -181,7 +192,9 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                 onAddEntry={handleAddItem}
                 onOpenCalendar={() => setCalendarOpen(item.id)}
                 onDelete={() => handleDeleteItem(item.id)}
-                onDeleteSection={() => removeSection(sectionId!)}
+                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "projects")}
+                onSettings={() => setSettingsOpen(item.id)}
+                showSettings={true}
               />
             )}
 
@@ -201,6 +214,18 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                   }}
                   onChange={(dates) => handleDateChange(item.id, dates)}
                   onClose={() => setCalendarOpen(null)}
+                />
+              </div>
+            )}
+
+            {settingsOpen === item.id && (
+              <div className="absolute left-8 top-8 z-50">
+                <SectionSettings
+                  isOpen={true}
+                  title="Project Settings"
+                  settings={PROJECT_SETTINGS}
+                  onChange={handleSettingsChange}
+                  onClose={() => setSettingsOpen(null)}
                 />
               </div>
             )}
@@ -227,7 +252,11 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
                       className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 hover:underline"
                     >
                       <ExternalLink className="w-3 h-3" />
-                      <span>{item.link.includes("github") ? "GitHub" : "Live"}</span>
+                      <span>
+                        {item.link.toLowerCase().includes("github")
+                          ? "GitHub link"
+                          : "Live"}
+                      </span>
                     </a>
                   )}
                 </div>

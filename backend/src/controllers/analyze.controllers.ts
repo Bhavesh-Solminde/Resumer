@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { createHash } from "crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import ENV from "../env.js";
 import pdf from "pdf-parse/lib/pdf-parse.js";
@@ -77,6 +78,9 @@ interface IAnalysisData {
   actionable_feedback: string[];
   extractedResume: IExtractedResume;
 }
+
+const computeContentHash = (input: Buffer | string): string =>
+  createHash("sha256").update(input).digest("hex");
 
 // Setup Google Gemini AI
 const ai = new GoogleGenerativeAI(ENV.GEMINI_API_KEY);
@@ -450,15 +454,18 @@ ${resumeText}
 
       // Save to DB: Create a history record
       // Redact detailed metrics from long-term storage
-      const { quality_metrics, ...safeResponse } = geminiResponse;
+      const { quality_metrics } = geminiResponse;
       // Compute simple flags or summary if needed
       const metricsSummary = {
         hasTypos: (quality_metrics?.spelling_errors?.length || 0) > 0,
         missingSectionsCount: quality_metrics?.missing_sections?.length || 0,
       };
 
+      const contentHash = computeContentHash(req.file.buffer);
+
       const resumeScan = await ResumeScan.create({
         originalName: req.file?.originalname,
+        contentHash,
         pdfUrl: cloudinaryUrl,
         owner: req.user!._id,
         atsScore: atsScore,
@@ -469,8 +476,6 @@ ${resumeText}
         } as unknown as Record<string, unknown>,
         resumeText: resumeText,
       });
-      console.log("ATS Score:", atsScore); // redacted log
-
       await User.updateOne(
         { _id: req.user!._id },
         { $push: { resumeHistory: resumeScan._id } },

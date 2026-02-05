@@ -143,6 +143,157 @@ export interface ITemplateConfig {
 export type TemplateConfigMap = Record<TemplateId, ITemplateConfig>;
 
 // ============================================================================
+// Template Theme Configuration
+// ============================================================================
+
+/**
+ * Color palette for a template theme
+ */
+export interface ITemplateColors {
+  primary: string;
+  accent: string;
+  text: string;
+  muted: string;
+  border: string;
+  headerBg: string;
+}
+
+/**
+ * Layout configuration for a template
+ */
+export interface ITemplateLayout {
+  headerAlign: "left" | "center";
+  headerBorderStyle: "bottom" | "left" | "none";
+  sectionBorderStyle: "bottom" | "none";
+}
+
+/**
+ * Complete template theme definition
+ */
+export interface ITemplateTheme {
+  id: TemplateId;
+  name: string;
+  colors: ITemplateColors;
+  layout: ITemplateLayout;
+}
+
+/**
+ * Pre-defined template themes matching editor templates
+ * These serve as defaults when user hasn't customized primaryColor
+ */
+export const templateThemes: Record<string, ITemplateTheme> = {
+  basic: {
+    id: "basic",
+    name: "Basic",
+    colors: {
+      primary: "#0d9488",    // teal-600
+      accent: "#0f766e",     // teal-700
+      text: "#1f2937",       // gray-800
+      muted: "#6b7280",      // gray-500
+      border: "#0d9488",     // teal-600
+      headerBg: "transparent",
+    },
+    layout: {
+      headerAlign: "center",
+      headerBorderStyle: "bottom",
+      sectionBorderStyle: "bottom",
+    },
+  },
+  modern: {
+    id: "modern",
+    name: "Modern",
+    colors: {
+      primary: "#4f46e5",    // indigo-600
+      accent: "#4338ca",     // indigo-700
+      text: "#111827",       // gray-900
+      muted: "#6b7280",      // gray-500
+      border: "#e5e7eb",     // gray-200
+      headerBg: "transparent",
+    },
+    layout: {
+      headerAlign: "left",
+      headerBorderStyle: "left",
+      sectionBorderStyle: "bottom",
+    },
+  },
+  shraddha: {
+    id: "shraddha",
+    name: "Shraddha Khapra",
+    colors: {
+      primary: "#0ea5e9",    // sky-500
+      accent: "#0284c7",     // sky-600
+      text: "#0f172a",       // slate-900
+      muted: "#64748b",      // slate-500
+      border: "#e2e8f0",     // slate-200
+      headerBg: "#f0f9ff",   // sky-50
+    },
+    layout: {
+      headerAlign: "center",
+      headerBorderStyle: "bottom",
+      sectionBorderStyle: "bottom",
+    },
+  },
+  professional: {
+    id: "professional",
+    name: "Professional",
+    colors: {
+      primary: "#1e3a5f",
+      accent: "#3b82f6",
+      text: "#1f2937",
+      muted: "#6b7280",
+      border: "#1e3a5f",
+      headerBg: "transparent",
+    },
+    layout: {
+      headerAlign: "left",
+      headerBorderStyle: "bottom",
+      sectionBorderStyle: "bottom",
+    },
+  },
+  elegant: {
+    id: "elegant",
+    name: "Elegant",
+    colors: {
+      primary: "#7c3aed",    // violet-600
+      accent: "#6d28d9",     // violet-700
+      text: "#1f2937",
+      muted: "#6b7280",
+      border: "#7c3aed",
+      headerBg: "transparent",
+    },
+    layout: {
+      headerAlign: "center",
+      headerBorderStyle: "bottom",
+      sectionBorderStyle: "bottom",
+    },
+  },
+  minimal: {
+    id: "minimal",
+    name: "Minimal",
+    colors: {
+      primary: "#374151",    // gray-700
+      accent: "#4b5563",     // gray-600
+      text: "#111827",
+      muted: "#9ca3af",
+      border: "#d1d5db",
+      headerBg: "transparent",
+    },
+    layout: {
+      headerAlign: "left",
+      headerBorderStyle: "none",
+      sectionBorderStyle: "bottom",
+    },
+  },
+};
+
+/**
+ * Get template theme by ID with fallback to basic
+ */
+export const getTemplateTheme = (templateId?: string): ITemplateTheme => {
+  return templateThemes[templateId || "basic"] || templateThemes.basic;
+};
+
+// ============================================================================
 // Resume Data (Core State)
 // ============================================================================
 

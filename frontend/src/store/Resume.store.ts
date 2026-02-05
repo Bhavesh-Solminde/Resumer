@@ -30,6 +30,7 @@ interface ResumeActions {
   optimizeGeneral: () => Promise<void>;
   optimizeJD: (jobDescription: string) => Promise<void>;
   loadFakeData: () => void;
+  setOptimizationResult: (result: IOptimizationData) => void;
 }
 
 /**
@@ -260,5 +261,13 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       optimizationResultJD: DEMO_OPTIMIZATION_RESULT
     });
     toast.success("Demo data loaded for Aarav Patel!");
+  },
+
+  // Set optimization result directly (used when loading from history)
+  setOptimizationResult: (result: IOptimizationData) => {
+    set({
+      optimizationResult: result,
+      optimizationResultGeneral: result,
+    });
   },
 }));

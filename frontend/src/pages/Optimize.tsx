@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useResumeStore } from "../store/Resume.store";
 import { useBuildStore } from "../store/Build.store";
+import { useHistoryStore } from "../store/History.store";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import {
@@ -20,6 +21,8 @@ import {
   Briefcase,
   FileText,
   AlertTriangle,
+  History,
+  X,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { motion } from "motion/react";
@@ -36,6 +39,9 @@ type TabType = "general" | "jd";
 
 const Optimize: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const scanIdFromUrl = searchParams.get("scanId");
+
   const {
     optimizeGeneral,
     optimizeJD,
@@ -43,11 +49,43 @@ const Optimize: React.FC = () => {
     optimizationResultGeneral,
     optimizationResultJD,
     loadFakeData,
+    setOptimizationResult,
   } = useResumeStore();
-  const { loadOptimizedResume } = useBuildStore();
+  const { loadOptimizedResume, setSourceScanId } = useBuildStore();
+  const { fetchScanDetails, selectedScan, isLoadingDetails, clearSelectedScan } = useHistoryStore();
+
   const [activeTab, setActiveTab] = useState<TabType>("general");
   const [jobDescription, setJobDescription] = useState<string>("");
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [viewingHistory, setViewingHistory] = useState<boolean>(false);
+  const [historyScanId, setHistoryScanId] = useState<string | null>(null);
+
+  // Load historical scan if scanId is in URL
+  useEffect(() => {
+    if (scanIdFromUrl) {
+      setViewingHistory(true);
+      setHistoryScanId(scanIdFromUrl);
+      fetchScanDetails(scanIdFromUrl);
+    }
+  }, [scanIdFromUrl, fetchScanDetails]);
+
+  // When historical scan is loaded, transform it to optimization result format
+  useEffect(() => {
+    if (viewingHistory && selectedScan && selectedScan._id === historyScanId) {
+      // Transform the historical scan's analysisResult to our optimization format
+      const analysisResult = selectedScan.analysisResult as ExtendedOptimizationData;
+      if (analysisResult) {
+        setOptimizationResult(analysisResult);
+      }
+    }
+  }, [selectedScan, viewingHistory, historyScanId, setOptimizationResult]);
+
+  const handleClearHistory = () => {
+    setViewingHistory(false);
+    setHistoryScanId(null);
+    clearSelectedScan();
+    setSearchParams({});
+  };
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -65,6 +103,10 @@ const Optimize: React.FC = () => {
 
   const handleBuildOptimizedResume = () => {
     if (result?.optimizedResume) {
+      // Store the source scan ID for linking the build to this optimization
+      if (historyScanId) {
+        setSourceScanId(historyScanId);
+      }
       loadOptimizedResume(result.optimizedResume);
       navigate("/resume/build");
     }
@@ -82,6 +124,45 @@ const Optimize: React.FC = () => {
         <h1 className="text-4xl md:text-5xl font-bold text-foreground text-center mb-8">
           Optimize Your Resume
         </h1>
+
+        {/* History Viewing Banner */}
+        {viewingHistory && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-3xl mx-auto mb-6"
+          >
+            <div className="flex items-center justify-between gap-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <History className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                    Viewing Historical Optimization
+                  </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    {selectedScan?.originalName} • {selectedScan?.createdAt ? new Date(selectedScan.createdAt).toLocaleDateString() : ""}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearHistory}
+                className="border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Run New Optimization
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Loading state for history */}
+        {isLoadingDetails && viewingHistory && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">

@@ -7,16 +7,19 @@ import React, {
   ChangeEvent,
   FormEvent,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/Auth.store";
 import { useHistoryStore } from "../store/History.store";
 import { motion } from "framer-motion";
 import { Button } from "../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { FileText, Sparkles, Loader2 } from "lucide-react";
 
 // Import components
 import UserProfileCard from "../components/profile/UserProfileCard";
 import EditProfileCard from "../components/profile/EditProfileCard";
 import SecurityCard from "../components/profile/SecurityCard";
-import ResumeHistoryGrid from "../components/profile/ResumeHistoryGrid";
+import HistoryCard from "../components/profile/HistoryCard";
 
 // Lazy load the heavy dialog
 const AnalysisDialog = lazy(
@@ -28,15 +31,6 @@ interface ProfileFormData {
   email: string;
   currentPassword: string;
   newPassword: string;
-}
-
-// Type adapters for component compatibility
-interface ResumeHistoryItem {
-  _id: string;
-  originalName: string;
-  atsScore: number;
-  createdAt: string;
-  thumbnail?: string;
 }
 
 interface ScanData {
@@ -54,29 +48,26 @@ interface ScanData {
 }
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const { authUser, logout, updateProfile, updatePassword } = useAuthStore();
 
   // Get new actions and state from HistoryStore
   const {
-    isLoadingHistory,
-    userResumeHistory: rawUserResumeHistory,
-    resumeScanHistory,
+    isLoadingAnalysis,
+    isLoadingOptimization,
+    analysisHistory,
+    optimizationHistory,
+    fetchAnalysisHistory,
+    fetchOptimizationHistory,
     fetchScanDetails,
     selectedScan: rawSelectedScan,
     isLoadingDetails,
     clearSelectedScan,
+    deleteScan,
   } = useHistoryStore();
 
-  // Convert store types to component-expected types
-  const userResumeHistory: ResumeHistoryItem[] | null = rawUserResumeHistory
-    ? rawUserResumeHistory.map((item) => ({
-        _id: item._id,
-        originalName: item.originalName,
-        atsScore: item.atsScore ?? 0,
-        createdAt: item.createdAt ?? "",
-        thumbnail: item.thumbnail ?? undefined,
-      }))
-    : null;
+  // Combine history counts for stats
+  const totalHistoryCount = (analysisHistory?.length || 0) + (optimizationHistory?.length || 0);
 
   // Helper to safely extract analysis result properties
   const extractAnalysisResult = (
@@ -115,9 +106,11 @@ const Profile: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Fetch both histories on mount
   useEffect(() => {
-    resumeScanHistory();
-  }, [resumeScanHistory]);
+    fetchAnalysisHistory();
+    fetchOptimizationHistory();
+  }, [fetchAnalysisHistory, fetchOptimizationHistory]);
 
   // Form State
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -200,7 +193,7 @@ const Profile: React.FC = () => {
           <UserProfileCard
             authUser={authUser}
             logout={logout}
-            resumeHistoryCount={(userResumeHistory || []).length}
+            resumeHistoryCount={totalHistoryCount}
             handleAvatarClick={handleAvatarClick}
             fileInputRef={fileInputRef}
             handleAvatarChange={handleAvatarChange}
@@ -219,20 +212,93 @@ const Profile: React.FC = () => {
           />
         </div>
 
-        {/* Right Column: Resume History */}
+        {/* Right Column: Resume History with Tabs */}
         <div className="w-full md:w-2/3 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Scan History</h2>
-            <Button variant="outline" size="sm">
-              View All
-            </Button>
-          </div>
+          <Tabs defaultValue="analysis" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="analysis" className="gap-2">
+                  <FileText className="w-4 h-4" />
+                  Analysis History
+                </TabsTrigger>
+                <TabsTrigger value="optimization" className="gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Optimization History
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          <ResumeHistoryGrid
-            userResumeHistory={userResumeHistory}
-            isLoading={isLoadingHistory}
-            onScanClick={handleScanClick}
-          />
+            {/* Analysis History Tab */}
+            <TabsContent value="analysis">
+              {isLoadingAnalysis ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : !analysisHistory || analysisHistory.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No analysis history yet.</p>
+                  <p className="text-sm">Upload a resume to get started.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {analysisHistory.map((item, i) => (
+                    <HistoryCard
+                      key={item._id}
+                      item={{
+                        _id: item._id,
+                        originalName: item.originalName,
+                        atsScore: item.atsScore,
+                        createdAt: item.createdAt,
+                        thumbnail: item.thumbnail,
+                        type: item.type,
+                      }}
+                      cardType="analysis"
+                      onClick={() => handleScanClick(item._id)}
+                      onDelete={(id) => deleteScan(id, "analysis")}
+                      isLarge={i === 0}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Optimization History Tab */}
+            <TabsContent value="optimization">
+              {isLoadingOptimization ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : !optimizationHistory || optimizationHistory.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No optimization history yet.</p>
+                  <p className="text-sm">Optimize a resume to see it here.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {optimizationHistory.map((item, i) => (
+                    <HistoryCard
+                      key={item._id}
+                      item={{
+                        _id: item._id,
+                        originalName: item.originalName,
+                        atsScore: item.atsScore,
+                        createdAt: item.createdAt,
+                        thumbnail: item.thumbnail,
+                        type: item.type,
+                      }}
+                      cardType="optimization"
+                      onClick={() => handleScanClick(item._id)}
+                      onDelete={(id) => deleteScan(id, "optimization")}
+                      onNavigate={() => navigate(`/resume/optimize?scanId=${item._id}`)}
+                      isLarge={i === 0}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </motion.div>
 
