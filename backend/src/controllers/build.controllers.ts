@@ -7,6 +7,7 @@ import ResumeBuild, {
   IResumeContent,
   ILayout,
 } from "../models/resumeBuild.model.js";
+import ResumeScan from "../models/resumeScan.model.js";
 // Type augmentation from ../types/express.d.ts is applied globally
 
 // ============================================================================
@@ -39,7 +40,22 @@ export const storeBuiltResume = asyncHandler(
 
     // Validate sourceScanId if provided
     let validSourceScanId = null;
-    if (sourceScanId && mongoose.Types.ObjectId.isValid(sourceScanId)) {
+    if (sourceScanId) {
+      // Check if it's a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(sourceScanId)) {
+        throw new ApiError(400, "Invalid sourceScanId format");
+      }
+
+      // Load the scan and verify ownership
+      const scan = await ResumeScan.findById(sourceScanId);
+      if (!scan) {
+        throw new ApiError(400, "Source scan not found");
+      }
+
+      if (scan.userId.toString() !== req.user!._id.toString()) {
+        throw new ApiError(403, "You are not authorized to use this scan");
+      }
+
       validSourceScanId = sourceScanId;
     }
 

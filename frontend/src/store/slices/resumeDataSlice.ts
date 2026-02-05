@@ -147,7 +147,7 @@ export const createResumeDataSlice: StateCreator<
 
   // Remove a section with confirmation dialog
   removeSectionWithConfirm: (sectionId, sectionType) => {
-    const { sections, sectionOrder, setConfirmDialog } = get() as BuildState & BuildActions;
+    const { sections, setConfirmDialog } = get() as BuildState & BuildActions;
     const section = sections.find((s) => s.id === sectionId);
     if (section?.locked) return;
 
@@ -163,11 +163,23 @@ export const createResumeDataSlice: StateCreator<
       confirmText: "Delete",
       cancelText: "Cancel",
       onConfirm: () => {
+        // Read fresh state at execution time to avoid stale closures
+        const currentState = get() as BuildState & BuildActions;
+        const currentSections = currentState.sections;
+        const currentSectionOrder = currentState.sectionOrder;
+        const currentSection = currentSections.find((s) => s.id === sectionId);
+        
+        // Re-check if section is locked before deleting
+        if (currentSection?.locked) {
+          currentState.setConfirmDialog(null);
+          return;
+        }
+        
         set({
-          sections: sections.filter((s) => s.id !== sectionId),
-          sectionOrder: sectionOrder.filter((id) => id !== sectionId),
+          sections: currentSections.filter((s) => s.id !== sectionId),
+          sectionOrder: currentSectionOrder.filter((id) => id !== sectionId),
         });
-        setConfirmDialog(null);
+        currentState.setConfirmDialog(null);
       },
       onCancel: () => {
         setConfirmDialog(null);

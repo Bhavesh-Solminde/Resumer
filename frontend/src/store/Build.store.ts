@@ -260,7 +260,6 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
         ...templatesSlice,
         ...uiSlice,
         ...autosaveSlice,
-        ...uiSlice,
 
         // Load optimized resume from AI optimization
         loadOptimizedResume: (optimizedResume: IOptimizedResume) => {

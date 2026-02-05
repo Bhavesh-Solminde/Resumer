@@ -1,7 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { formatDate } from "../../../lib/dateUtils";
-import type { IStyle, ITemplateTheme } from "@resumer/shared-types";
+import type { IStyle, ITemplateTheme, ICertificationItem, IAchievementItem, IExtracurricularItem } from "@resumer/shared-types";
 import { getTemplateTheme } from "@resumer/shared-types";
 
 // Style type for react-pdf
@@ -84,42 +84,16 @@ interface ProjectsData {
   items?: ProjectItem[];
 }
 
-interface CertificationItem {
-  id?: string;
-  name?: string;
-  issuer?: string;
-  date?: string;
-  expiryDate?: string;
-  credentialId?: string;
-}
-
 interface CertificationsData {
-  items?: CertificationItem[];
-}
-
-interface AchievementItem {
-  id?: string;
-  title?: string;
-  description?: string;
-  date?: string;
+  items?: ICertificationItem[];
 }
 
 interface AchievementsData {
-  items?: AchievementItem[];
-}
-
-interface ExtracurricularItem {
-  id?: string;
-  title?: string;
-  organization?: string;
-  startDate?: DateLike;
-  endDate?: DateLike;
-  description?: string;
-  bullets?: string[];
+  items?: IAchievementItem[];
 }
 
 interface ExtracurricularData {
-  items?: ExtracurricularItem[];
+  items?: IExtracurricularItem[];
 }
 
 type SectionData =

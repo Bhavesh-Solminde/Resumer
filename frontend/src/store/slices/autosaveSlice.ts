@@ -9,6 +9,7 @@
  * - Error handling with retry
  */
 
+import React from "react";
 import type { StateCreator } from "zustand";
 import { axiosInstance, getApiErrorMessage } from "../../lib/axios";
 import { toast } from "react-hot-toast";
@@ -207,13 +208,23 @@ export const createAutosaveSlice: StateCreator<
         })
       );
 
-      // Show error toast
-      toast.error(`${errorMessage}. Click here to retry.`, {
-        duration: 10000,
-        onClick: () => {
-          get().retryFailedSave();
-        },
-      } as Parameters<typeof toast.error>[1]);
+      // Show error toast with custom element for retry functionality
+      toast.custom((t) =>
+        React.createElement(
+          'div',
+          {
+            className: 'flex items-center gap-2 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg cursor-pointer',
+            onClick: () => {
+              get().retryFailedSave();
+              toast.dismiss(t.id);
+            },
+          },
+          React.createElement('span', null, `${errorMessage}. Click to retry.`)
+        ),
+        {
+          duration: 10000,
+        }
+      );
 
       return false;
     }

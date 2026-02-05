@@ -50,7 +50,6 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
   className,
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const displayName = item.originalName || item.title || "Untitled";
   const displayDate = item.updatedAt || item.createdAt;
@@ -84,6 +83,13 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
     setShowDeleteDialog(true);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (onClick && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   const confirmDelete = () => {
     onDelete?.(item._id);
     setShowDeleteDialog(false);
@@ -93,8 +99,9 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
     <>
       <div
         onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onKeyDown={handleKeyDown}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
         className={cn(
           "cursor-pointer group relative rounded-xl transition-all duration-200 hover:shadow-lg bg-card border border-border",
           isLarge && "md:col-span-2",
@@ -102,11 +109,11 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         )}
       >
         {/* Delete Button */}
-        {showDeleteButton && isHovered && (
+        {showDeleteButton && (
           <Button
             variant="destructive"
             size="icon"
-            className="absolute top-2 right-2 z-10 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 z-10 h-7 w-7 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
             onClick={handleDelete}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -114,11 +121,11 @@ const HistoryCard: React.FC<HistoryCardProps> = ({
         )}
 
         {/* Navigate Button (for optimization history) */}
-        {onNavigate && isHovered && (
+        {onNavigate && (
           <Button
             variant="secondary"
             size="icon"
-            className="absolute top-2 right-10 z-10 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-10 z-10 h-7 w-7 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
             onClick={(e) => {
               e.stopPropagation();
               onNavigate();
