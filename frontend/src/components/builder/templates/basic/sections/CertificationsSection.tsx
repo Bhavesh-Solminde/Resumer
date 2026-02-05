@@ -29,6 +29,8 @@ interface CertificationsSectionProps {
   sectionType?: string;
   settings?: CertificationsSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 /**
@@ -40,9 +42,11 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
   sectionType = "certifications",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const removeSection = useBuildStore((state) => state.removeSection);
+  const removeSectionWithConfirm = useBuildStore((state) => state.removeSectionWithConfirm);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -55,6 +59,11 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
     showCredentialId: true,
     ...settings,
   };
+
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
 
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
@@ -105,10 +114,13 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
     setCalendarOpen(null);
   };
 
-  if (data.length === 0) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader title="Certifications" themeColor={themeColor} />
+        {!hideHeader && (
+          <SectionHeader title="Certifications" themeColor={themeColor} />
+        )}
         <EmptyState
           title="No certifications added"
           description="Click to add your certifications"
@@ -121,15 +133,20 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader title="Certifications" themeColor={themeColor} />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader title="Certifications" themeColor={themeColor} />
+        </div>
+      )}
 
       <div className="space-y-3">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
             className="relative group border-l-2 border-gray-200 pl-3 py-1"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar
@@ -138,7 +155,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                 className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
-                onDeleteSection={() => removeSection(sectionId!)}
+                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "certifications")}
               />
             )}
 

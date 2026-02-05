@@ -30,10 +30,12 @@ import {
   createStylingSlice,
   createTemplatesSlice,
   createUISlice,
+  createAutosaveSlice,
   createDefaultSectionSettings,
   defaultStyle,
   defaultTemplates,
   createSectionTemplates,
+  autosaveInitialState,
   type ResumeDataState,
   type ResumeDataActions,
   type StylingState,
@@ -42,6 +44,8 @@ import {
   type TemplatesActions,
   type UIState,
   type UIActions,
+  type AutosaveState,
+  type AutosaveActions,
 } from "./slices";
 
 // ============================================================================
@@ -51,11 +55,13 @@ import {
 export type BuildState = ResumeDataState &
   StylingState &
   TemplatesState &
-  UIState;
+  UIState &
+  AutosaveState;
 export type BuildActions = ResumeDataActions &
   StylingActions &
   TemplatesActions &
-  UIActions & {
+  UIActions &
+  AutosaveActions & {
     loadOptimizedResume: (optimizedResume: IOptimizedResume) => void;
   };
 
@@ -198,6 +204,9 @@ const initializeBuilderState = (): BuildState => {
     isLoading: false,
     isExporting: false,
     confirmDialog: null,
+
+    // Autosave
+    ...autosaveInitialState,
   };
 };
 
@@ -239,6 +248,7 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
       const stylingSlice = createStylingSlice(set, get, api);
       const templatesSlice = createTemplatesSlice(set, get, api);
       const uiSlice = createUISlice(set, get, api);
+      const autosaveSlice = createAutosaveSlice(set, get, api);
 
       return {
         // Spread initial state
@@ -248,6 +258,8 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
         ...resumeDataSlice,
         ...stylingSlice,
         ...templatesSlice,
+        ...uiSlice,
+        ...autosaveSlice,
         ...uiSlice,
 
         // Load optimized resume from AI optimization

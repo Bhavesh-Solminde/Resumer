@@ -37,7 +37,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const removeSection = useBuildStore((state) => state.removeSection);
+  const removeSectionWithConfirm = useBuildStore((state) => state.removeSectionWithConfirm);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog) as
     | ((dialog: ConfirmDialogState) => void)
     | undefined;
@@ -121,7 +121,7 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
                 className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
-                onDeleteSection={() => removeSection(sectionId!)}
+                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "achievements")}
               />
             )}
 

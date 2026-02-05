@@ -15,6 +15,7 @@ import ResumeBuild, {
 
 interface CreateResumeBody {
   title?: string;
+  sourceScanId?: string;
 }
 
 interface UpdateResumeBody {
@@ -34,11 +35,18 @@ interface UpdateResumeBody {
  */
 export const storeBuiltResume = asyncHandler(
   async (req: Request, res: Response) => {
-    const { title } = req.body as CreateResumeBody;
+    const { title, sourceScanId } = req.body as CreateResumeBody;
+
+    // Validate sourceScanId if provided
+    let validSourceScanId = null;
+    if (sourceScanId && mongoose.Types.ObjectId.isValid(sourceScanId)) {
+      validSourceScanId = sourceScanId;
+    }
 
     const newResume = await ResumeBuild.create({
       userId: req.user!._id,
       title: title || "Untitled Resume",
+      sourceScanId: validSourceScanId,
       content: {
         personalInfo: {
           fullName: req.user!.fullName || "",

@@ -20,3 +20,13 @@ export type { TemplatesState, TemplatesActions } from "./templatesSlice";
 
 export { createUISlice } from "./uiSlice";
 export type { UIState, UIActions } from "./uiSlice";
+
+export {
+  createAutosaveSlice,
+  autosaveInitialState,
+} from "./autosaveSlice";
+export type {
+  AutosaveState,
+  AutosaveActions,
+  BuildHistoryItem,
+} from "./autosaveSlice";

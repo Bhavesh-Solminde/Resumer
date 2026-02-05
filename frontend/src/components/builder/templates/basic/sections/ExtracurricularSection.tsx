@@ -76,6 +76,8 @@ interface ExtracurricularSectionProps {
   sectionType?: string;
   settings?: ExtracurricularSectionSettings;
   themeColor?: string;
+  hideHeader?: boolean;
+  displayItemIndices?: number[];
 }
 
 /**
@@ -87,9 +89,11 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   sectionType = "extracurricular",
   settings = {},
   themeColor,
+  hideHeader = false,
+  displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const removeSection = useBuildStore((state) => state.removeSection);
+  const removeSectionWithConfirm = useBuildStore((state) => state.removeSectionWithConfirm);
   const setConfirmDialog = useBuildStore((state) => state.setConfirmDialog);
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
@@ -102,6 +106,11 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
     showBullets: true,
     ...settings,
   };
+
+  // Filter items for pagination if indices are provided
+  const itemsToRender = displayItemIndices
+    ? data.filter((_, index) => displayItemIndices.includes(index))
+    : data;
 
   const handleFieldChange = (itemId: string, field: string, value: string) => {
     if (!sectionId) return;
@@ -162,13 +171,16 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
     setCalendarOpen(null);
   };
 
-  if (data.length === 0) {
+  // Skip empty check if we are in pagination mode (controlled display)
+  if (!displayItemIndices && data.length === 0) {
     return (
       <div className="mb-4">
-        <SectionHeader
-          title="Extracurricular Activities"
-          themeColor={themeColor}
-        />
+        {!hideHeader && (
+          <SectionHeader
+            title="Extracurricular Activities"
+            themeColor={themeColor}
+          />
+        )}
         <EmptyState
           title="No activities added"
           description="Click to add extracurricular activities"
@@ -181,18 +193,23 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
 
   return (
     <div className="mb-4">
-      <SectionHeader
-        title="Extracurricular Activities"
-        themeColor={themeColor}
-      />
+      {!hideHeader && (
+        <div data-pagination-header>
+          <SectionHeader
+            title="Extracurricular Activities"
+            themeColor={themeColor}
+          />
+        </div>
+      )}
 
       <div className="space-y-4">
-        {data.map((item) => (
+        {itemsToRender.map((item) => (
           <div
             key={item.id}
             className="relative group"
             onMouseEnter={() => setHoveredItemId(item.id)}
             onMouseLeave={() => setHoveredItemId(null)}
+            data-pagination-item
           >
             {hoveredItemId === item.id && (
               <ItemToolbar
@@ -201,7 +218,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
                 className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
-                onDeleteSection={() => removeSection(sectionId!)}
+                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "extracurricular")}
                 onOpenCalendar={() =>
                   setCalendarOpen(calendarOpen === item.id ? null : item.id)
                 }

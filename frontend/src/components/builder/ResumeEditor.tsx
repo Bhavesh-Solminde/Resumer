@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./shared";
 import type {
   Section as SharedSection,
   SectionSettingsMap,
+  IStyle,
 } from "@resumer/shared-types";
 
 // Fallback imports for legacy section types
@@ -24,15 +25,7 @@ interface PaginatedSection extends Section {
   displayItemIndices?: number[];
 }
 
-interface Theme {
-  pageMargins?: number;
-  sectionSpacing?: number;
-  fontSize?: number; // Removed | string
-  fontFamily?: string;
-  lineHeight?: number;
-  primaryColor?: string;
-  background?: string;
-}
+type Theme = Partial<IStyle> & { fontSize?: number | string };
 
 // Helper to normalize style values (e.g., legacy string fonts)
 const normalizeStyle = (style: any): Theme => {
@@ -42,10 +35,36 @@ const normalizeStyle = (style: any): Theme => {
   // Normalize fontSize
   if (typeof normalized.fontSize === "string") {
     const parsed = parseFloat(normalized.fontSize);
-    normalized.fontSize = !isNaN(parsed) ? parsed : 11;
+    if (!Number.isNaN(parsed)) {
+      normalized.fontSize = parsed;
+    } else {
+      const token = normalized.fontSize.toLowerCase();
+      const legacyMap: Record<string, number> = {
+        small: 10.5,
+        medium: 11,
+        large: 12.5,
+      };
+      normalized.fontSize = legacyMap[token] ?? normalized.fontSize;
+    }
   }
   
   return normalized;
+};
+
+const resolveFontSizePt = (fontSize: number | string | undefined): number => {
+  if (typeof fontSize === "number") return fontSize;
+  if (typeof fontSize === "string") {
+    const parsed = parseFloat(fontSize);
+    if (!Number.isNaN(parsed)) return parsed;
+    const token = fontSize.toLowerCase();
+    const legacyMap: Record<string, number> = {
+      small: 10.5,
+      medium: 11,
+      large: 12.5,
+    };
+    return legacyMap[token] ?? 11;
+  }
+  return 11;
 };
 
 // Helper to resolve spacing to pixels
@@ -415,8 +434,7 @@ const ResumeEditor: React.FC = () => {
             typeof style?.pageMargins === "number" && style.pageMargins > 10
               ? style.pageMargins
               : 20; // Default 20mm
-          const fontSizePt =
-            typeof style?.fontSize === "number" ? style.fontSize : 11; // Default 11pt
+          const fontSizePt = resolveFontSizePt(style?.fontSize); // Default 11pt
           const spacingPx = resolveSpacingPx(style); // Consistent resolver
 
           return (
@@ -474,8 +492,7 @@ const ResumeEditor: React.FC = () => {
             typeof style?.pageMargins === "number" && style.pageMargins > 10
               ? style.pageMargins
               : 20;
-          const fontSizePt =
-            typeof style?.fontSize === "number" ? style.fontSize : 11;
+          const fontSizePt = resolveFontSizePt(style?.fontSize);
           const spacingPx = resolveSpacingPx(style);
 
           return (

@@ -43,7 +43,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   displayItemIndices,
 }) => {
   const updateSectionData = useBuildStore((state) => state.updateSectionData);
-  const removeSection = useBuildStore((state) => state.removeSection);
+  const removeSectionWithConfirm = useBuildStore((state) => state.removeSectionWithConfirm);
   const [isHovered, setIsHovered] = useState(false);
   const [focusedSkill, setFocusedSkill] = useState<{
     groupIndex: number;
@@ -209,6 +209,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
             onAddSkill={handleAddSkill}
             onAddGroup={handleAddGroup}
             onDelete={handleDeleteFocusedSkill}
+            onDeleteSection={() => removeSectionWithConfirm(sectionId!, "skills")}
             showDelete={false}
           />
         )}
@@ -236,7 +237,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
           onAddSkill={handleAddSkill}
           onAddGroup={handleAddGroup}
           onDelete={handleDeleteFocusedSkill}
-          onDeleteSection={() => removeSection(sectionId!)}
+          onDeleteSection={() => removeSectionWithConfirm(sectionId!, "skills")}
           showDelete={focusedSkill !== null}
         />
       )}

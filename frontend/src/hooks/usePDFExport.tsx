@@ -2,15 +2,10 @@ import { useCallback, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import ResumePDFDocument from "../components/builder/pdf/ResumePDFDocument";
 import toast from "react-hot-toast";
+import type { IStyle } from "@resumer/shared-types";
 
 // Style interface matching ResumePDFDocument
-interface Style {
-  pageMargins?: number;
-  fontSize?: "small" | "medium" | "large";
-  lineHeight?: number;
-  primaryColor?: string;
-  sectionSpacing?: number;
-}
+type Style = IStyle;
 
 // Header data interface
 interface HeaderData {
@@ -38,6 +33,7 @@ interface Section {
 interface ResumeData {
   sections: Section[];
   style: Style;
+  template?: string;
   [key: string]: unknown;
 }
 

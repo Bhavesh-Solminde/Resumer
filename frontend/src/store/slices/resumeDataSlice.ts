@@ -31,6 +31,7 @@ export interface ResumeDataActions {
   // Section CRUD
   addSection: (sectionType: SectionType) => void;
   removeSection: (sectionId: string) => void;
+  removeSectionWithConfirm: (sectionId: string, sectionType?: string) => void;
   reorderSections: (newOrder: string[]) => void;
   updateSectionData: (
     sectionId: string,
@@ -132,7 +133,7 @@ export const createResumeDataSlice: StateCreator<
     });
   },
 
-  // Remove a section
+  // Remove a section (direct, without confirmation)
   removeSection: (sectionId) => {
     const { sections, sectionOrder } = get();
     const section = sections.find((s) => s.id === sectionId);
@@ -141,6 +142,36 @@ export const createResumeDataSlice: StateCreator<
     set({
       sections: sections.filter((s) => s.id !== sectionId),
       sectionOrder: sectionOrder.filter((id) => id !== sectionId),
+    });
+  },
+
+  // Remove a section with confirmation dialog
+  removeSectionWithConfirm: (sectionId, sectionType) => {
+    const { sections, sectionOrder, setConfirmDialog } = get() as BuildState & BuildActions;
+    const section = sections.find((s) => s.id === sectionId);
+    if (section?.locked) return;
+
+    // Format section type for display (capitalize first letter)
+    const sectionName = sectionType 
+      ? sectionType.charAt(0).toUpperCase() + sectionType.slice(1) 
+      : "Section";
+
+    setConfirmDialog({
+      title: `Delete ${sectionName}`,
+      message: `Are you sure you want to delete this ${sectionName.toLowerCase()} section? This action cannot be undone.`,
+      variant: "danger",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: () => {
+        set({
+          sections: sections.filter((s) => s.id !== sectionId),
+          sectionOrder: sectionOrder.filter((id) => id !== sectionId),
+        });
+        setConfirmDialog(null);
+      },
+      onCancel: () => {
+        setConfirmDialog(null);
+      },
     });
   },
 

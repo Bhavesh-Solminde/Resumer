@@ -1,19 +1,15 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { formatDate } from "../../../lib/dateUtils";
+import type { IStyle, ITemplateTheme } from "@resumer/shared-types";
+import { getTemplateTheme } from "@resumer/shared-types";
 
 // Style type for react-pdf
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Style = any;
 
 // Theme interface
-interface Theme {
-  pageMargins?: number;
-  fontSize?: "small" | "medium" | "large";
-  lineHeight?: number;
-  primaryColor?: string;
-  sectionSpacing?: number;
-}
+type Theme = Partial<IStyle> & { fontSize?: number | string };
 
 type DateLike = { month: number; year: number } | string | null | undefined;
 
@@ -88,13 +84,54 @@ interface ProjectsData {
   items?: ProjectItem[];
 }
 
+interface CertificationItem {
+  id?: string;
+  name?: string;
+  issuer?: string;
+  date?: string;
+  expiryDate?: string;
+  credentialId?: string;
+}
+
+interface CertificationsData {
+  items?: CertificationItem[];
+}
+
+interface AchievementItem {
+  id?: string;
+  title?: string;
+  description?: string;
+  date?: string;
+}
+
+interface AchievementsData {
+  items?: AchievementItem[];
+}
+
+interface ExtracurricularItem {
+  id?: string;
+  title?: string;
+  organization?: string;
+  startDate?: DateLike;
+  endDate?: DateLike;
+  description?: string;
+  bullets?: string[];
+}
+
+interface ExtracurricularData {
+  items?: ExtracurricularItem[];
+}
+
 type SectionData =
   | HeaderData
   | SummaryData
   | ExperienceData
   | EducationData
   | SkillsData
-  | ProjectsData;
+  | ProjectsData
+  | CertificationsData
+  | AchievementsData
+  | ExtracurricularData;
 
 interface Section {
   id: string;
@@ -104,13 +141,17 @@ interface Section {
     | "experience"
     | "education"
     | "skills"
-    | "projects";
+    | "projects"
+    | "certifications"
+    | "achievements"
+    | "extracurricular";
   data: SectionData;
 }
 
 interface ResumeData {
   sections: Section[];
   style: Theme;
+  template?: string;
   sectionOrder?: string[];
   sectionSettings?: Record<string, Record<string, boolean>>;
 }
@@ -143,6 +184,7 @@ interface PDFStyles {
   skillBadge: Style;
   skillGroupTitle: Style;
   inlineMeta: Style;
+  linkText: Style;
   projectItem: Style;
   projectName: Style;
   projectSubtitle: Style;
@@ -155,6 +197,7 @@ interface SectionComponentProps {
 }
 
 const pxToPt = (px: number) => px * 0.75;
+const MM_TO_PT = 2.83465;
 
 const horizontalPaddingPx: Record<number, number> = {
   1: 24, // px-6
@@ -170,69 +213,146 @@ const sectionSpacingPx: Record<number, number> = {
   4: 32, // space-y-8
 };
 
-// Create styles
-const createStyles = (theme: Theme): PDFStyles =>
-  StyleSheet.create({
+const resolveFontSizePt = (fontSize?: number | string): number => {
+  if (typeof fontSize === "number") return fontSize;
+  if (typeof fontSize === "string") {
+    const parsed = parseFloat(fontSize);
+    if (!Number.isNaN(parsed)) return parsed;
+    const token = fontSize.toLowerCase();
+    const legacyMap: Record<string, number> = {
+      small: 10.5,
+      medium: 11,
+      large: 12.5,
+    };
+    return legacyMap[token] ?? 11;
+  }
+  return 11;
+};
+
+const resolveHorizontalPaddingPt = (pageMargins?: number): number => {
+  if (typeof pageMargins !== "number") return pxToPt(40);
+  if (pageMargins >= 10) return pageMargins * MM_TO_PT;
+  const px = horizontalPaddingPx[pageMargins] ?? 40;
+  return pxToPt(px);
+};
+
+const resolveSectionSpacingPt = (sectionSpacing?: number): number => {
+  if (typeof sectionSpacing !== "number") return pxToPt(16);
+  if (sectionSpacing > 5) return pxToPt(sectionSpacing);
+  const px = sectionSpacingPx[sectionSpacing] ?? 16;
+  return pxToPt(px);
+};
+
+// Web-safe font family mapping
+// Maps editor fontFamily names to react-pdf compatible font names
+const WEB_SAFE_FONTS: Record<string, string> = {
+  "Inter": "Helvetica",
+  "Arial": "Helvetica",
+  "Helvetica": "Helvetica",
+  "Times New Roman": "Times-Roman",
+  "Times": "Times-Roman",
+  "Georgia": "Times-Roman",
+  "Courier New": "Courier",
+  "Courier": "Courier",
+  "Verdana": "Helvetica",
+  "Tahoma": "Helvetica",
+  "Trebuchet MS": "Helvetica",
+};
+
+const resolveFont = (fontFamily?: string): string => {
+  if (!fontFamily) return "Helvetica";
+  return WEB_SAFE_FONTS[fontFamily] || "Helvetica";
+};
+
+const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => {
+  // Get template theme from shared config
+  const templateTheme: ITemplateTheme = getTemplateTheme(templateId);
+  const colors = templateTheme.colors;
+  const layout = templateTheme.layout;
+  
+  const headerAlign = layout.headerAlign;
+  const isShraddha = templateId === "shraddha";
+  const isModern = templateId === "modern";
+  const isBasic = templateId === "basic";
+
+  // Section headers and divider lines use style.primaryColor if set, otherwise template default
+  const primaryColor = theme.primaryColor || colors.primary;
+  
+  // Resolve font from style.fontFamily
+  const fontFamily = resolveFont(theme.fontFamily);
+
+  return StyleSheet.create({
     page: {
       flexDirection: "column",
       backgroundColor: "#ffffff",
-      paddingHorizontal: pxToPt(
-        horizontalPaddingPx[theme.pageMargins || 2] || 40,
-      ),
-      paddingVertical: pxToPt(32), // matches py-8
-      fontFamily: "Helvetica",
-      fontSize:
-        theme.fontSize === "small"
-          ? 10.5
-          : theme.fontSize === "large"
-            ? 13.5
-            : 12,
+      paddingHorizontal: resolveHorizontalPaddingPt(theme.pageMargins),
+      paddingVertical: pxToPt(32),
+      fontFamily: fontFamily,
+      fontSize: resolveFontSizePt(theme.fontSize),
       lineHeight: theme.lineHeight || 1.5,
     },
     header: {
-      textAlign: "center",
-      marginBottom: 20,
+      textAlign: headerAlign,
+      alignItems: headerAlign === "center" ? "center" : "flex-start",
+      marginBottom: 16,
+      // Border style based on template layout config
+      borderBottomWidth: layout.headerBorderStyle === "bottom" ? 2 : 0,
+      borderBottomColor: primaryColor,
+      paddingBottom: layout.headerBorderStyle === "bottom" ? 12 : 0,
+      // Modern has left border instead
+      borderLeftWidth: layout.headerBorderStyle === "left" ? 4 : 0,
+      borderLeftColor: layout.headerBorderStyle === "left" ? primaryColor : "transparent",
+      paddingLeft: layout.headerBorderStyle === "left" ? 12 : 0,
     },
     name: {
-      fontSize: 24,
+      fontSize: isShraddha ? 24 : (isModern ? 26 : 22),
       fontWeight: "bold",
-      color: theme.primaryColor || "#1e3a5f",
-      marginBottom: 4,
+      fontFamily: fontFamily,
+      color: "black",
+      marginBottom: 6,
+      textAlign: headerAlign,
+      lineHeight: 1.2,
     },
     title: {
-      fontSize: 14,
-      color: theme.primaryColor || "#1e3a5f",
-      marginBottom: 8,
+      fontSize: isModern ? 14 : 12,
+      fontFamily: fontFamily,
+      color: colors.muted,
+      marginBottom: 10,
+      textAlign: headerAlign,
+      lineHeight: 1.3,
     },
     contactInfo: {
       flexDirection: "row",
-      justifyContent: "center",
+      justifyContent: headerAlign === "center" ? "center" : "flex-start",
       flexWrap: "wrap",
       gap: 8,
       fontSize: 10,
-      color: "#666666",
+      color: colors.muted,
     },
     contactItem: {
-      marginHorizontal: 6,
+      marginHorizontal: 4,
     },
     section: {
-      marginBottom: pxToPt(sectionSpacingPx[theme.sectionSpacing || 2] || 16),
+      marginBottom: resolveSectionSpacingPt(theme.sectionSpacing),
     },
     sectionTitle: {
       fontSize: 11,
       fontWeight: "bold",
-      color: theme.primaryColor || "#1e3a5f",
+      fontFamily: fontFamily,
+      color: primaryColor,
       textTransform: "uppercase",
       letterSpacing: 1,
       marginBottom: 8,
       paddingBottom: 4,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.primaryColor || "#1e3a5f",
+      borderBottomWidth: layout.sectionBorderStyle === "bottom" ? 1 : 0,
+      borderBottomColor: primaryColor,
+      backgroundColor: "white",
+      padding: isShraddha ? 6 : 0,
     },
     paragraph: {
       fontSize: 10,
       lineHeight: 1.5,
-      color: "#333333",
+      color: colors.text,
     },
     bulletList: {
       marginTop: 4,
@@ -247,12 +367,12 @@ const createStyles = (theme: Theme): PDFStyles =>
     bulletSymbol: {
       fontSize: 10,
       lineHeight: 1.4,
-      color: "#333333",
+      color: colors.text,
     },
     bulletText: {
       fontSize: 10,
       lineHeight: 1.4,
-      color: "#333333",
+      color: colors.text,
       flexShrink: 1,
     },
     experienceItem: {
@@ -266,20 +386,20 @@ const createStyles = (theme: Theme): PDFStyles =>
     experienceTitle: {
       fontSize: 11,
       fontWeight: "bold",
-      color: "#333333",
+      color: colors.text,
     },
     experienceCompany: {
       fontSize: 10,
-      color: theme.primaryColor || "#1e3a5f",
+      color: colors.text,
     },
     experienceDate: {
       fontSize: 9,
-      color: "#666666",
+      color: colors.muted,
       textAlign: "right",
     },
     experienceLocation: {
       fontSize: 9,
-      color: "#666666",
+      color: colors.muted,
       textAlign: "right",
     },
     skillsContainer: {
@@ -290,22 +410,29 @@ const createStyles = (theme: Theme): PDFStyles =>
     skillBadge: {
       paddingHorizontal: 10,
       paddingVertical: 4,
-      borderRadius: 12,
+      borderRadius: isShraddha ? 4 : 12,
       borderWidth: 1,
-      borderColor: theme.primaryColor || "#1e3a5f",
+      borderColor: primaryColor,
       fontSize: 9,
-      color: theme.primaryColor || "#1e3a5f",
+      color: primaryColor,
+      backgroundColor: isShraddha ? colors.headerBg : "transparent",
     },
     skillGroupTitle: {
       fontSize: 10,
       fontWeight: "bold",
-      color: theme.primaryColor || "#1e3a5f",
+      color: primaryColor,
       marginTop: 4,
       marginBottom: 4,
     },
     inlineMeta: {
       fontSize: 9,
-      color: "#666666",
+      color: colors.muted,
+      marginTop: 2,
+    },
+    linkText: {
+      fontSize: 9,
+      color: primaryColor,
+      textDecoration: "none",
       marginTop: 2,
     },
     projectItem: {
@@ -314,14 +441,15 @@ const createStyles = (theme: Theme): PDFStyles =>
     projectName: {
       fontSize: 11,
       fontWeight: "bold",
-      color: theme.primaryColor || "#1e3a5f",
+      color: colors.text,
     },
     projectSubtitle: {
       fontSize: 9,
-      color: "#666666",
+      color: colors.muted,
       marginBottom: 4,
     },
   }) as PDFStyles;
+};
 
 // Header Component
 const PDFHeader: React.FC<SectionComponentProps> = ({ data, styles }) => {
@@ -542,9 +670,126 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
               </Text>
             )}
           {showLink && item.link && (
-            <Text style={styles.inlineMeta}>{item.link}</Text>
+            <Link
+              src={
+                item.link.startsWith("http")
+                  ? item.link
+                  : `https://${item.link}`
+              }
+              style={styles.linkText}
+            >
+              {item.link.toLowerCase().includes("github")
+                ? "GitHub link"
+                : "Live"}
+            </Link>
           )}
           {showBullets && item.bullets && item.bullets.length > 0 && (
+            <View style={styles.bulletList}>
+              {item.bullets.map((bullet, bulletIndex) => (
+                <View
+                  key={`${item.id ?? index}-bullet-${bulletIndex}`}
+                  style={styles.bulletItem}
+                >
+                  <Text style={styles.bulletSymbol}>•</Text>
+                  <Text style={styles.bulletText}>{bullet}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// Certifications Component
+const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles }) => {
+  const certificationsData = data as CertificationsData;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Certifications</Text>
+      {certificationsData.items?.map((item, index) => (
+        <View key={item.id || index} style={styles.experienceItem}>
+          <View style={styles.experienceHeader}>
+            <View>
+              <Text style={styles.experienceTitle}>{item.name}</Text>
+              {item.issuer && (
+                <Text style={styles.experienceCompany}>{item.issuer}</Text>
+              )}
+            </View>
+            <View>
+              {item.date && (
+                <Text style={styles.experienceDate}>{item.date}</Text>
+              )}
+              {item.expiryDate && (
+                <Text style={styles.experienceLocation}>
+                  {item.expiryDate}
+                </Text>
+              )}
+            </View>
+          </View>
+          {item.credentialId && (
+            <Text style={styles.inlineMeta}>
+              Credential ID: {item.credentialId}
+            </Text>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
+
+// Achievements Component
+const PDFAchievements: React.FC<SectionComponentProps> = ({ data, styles }) => {
+  const achievementsData = data as AchievementsData;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Achievements</Text>
+      <View style={styles.bulletList}>
+        {achievementsData.items?.map((item, index) => (
+          <View key={item.id || index} style={styles.bulletItem}>
+            <Text style={styles.bulletSymbol}>•</Text>
+            <Text style={styles.bulletText}>
+              {item.title}
+              {item.description ? ` - ${item.description}` : ""}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+// Extracurricular Component
+const PDFExtracurricular: React.FC<SectionComponentProps> = ({ data, styles }) => {
+  const extracurricularData = data as ExtracurricularData;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Extracurricular Activities</Text>
+      {extracurricularData.items?.map((item, index) => (
+        <View key={item.id || index} style={styles.experienceItem}>
+          <View style={styles.experienceHeader}>
+            <View>
+              <Text style={styles.experienceTitle}>{item.title}</Text>
+              {item.organization && (
+                <Text style={styles.experienceCompany}>
+                  {item.organization}
+                </Text>
+              )}
+            </View>
+            <View>
+              {(item.startDate || item.endDate) && (
+                <Text style={styles.experienceDate}>
+                  {formatDate(item.startDate || null)}
+                  {item.endDate ? ` - ${formatDate(item.endDate)}` : ""}
+                </Text>
+              )}
+            </View>
+          </View>
+          {item.description && (
+            <Text style={styles.paragraph}>{item.description}</Text>
+          )}
+          {item.bullets && item.bullets.length > 0 && (
             <View style={styles.bulletList}>
               {item.bullets.map((bullet, bulletIndex) => (
                 <View
@@ -569,8 +814,8 @@ interface ResumePDFDocumentProps {
 }
 
 const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
-  const { sections, style, sectionOrder, sectionSettings } = data;
-  const styles = createStyles(style);
+  const { sections, style, sectionOrder, sectionSettings, template } = data;
+  const styles = createStyles(style, template);
   const settingsMap: SectionSettingsMap | undefined = sectionSettings;
 
   const orderedSections = sectionOrder?.length
@@ -630,6 +875,33 @@ const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
       case "projects":
         return (
           <PDFProjects
+            key={section.id}
+            data={section.data}
+            styles={styles}
+            settings={settings}
+          />
+        );
+      case "certifications":
+        return (
+          <PDFCertifications
+            key={section.id}
+            data={section.data}
+            styles={styles}
+            settings={settings}
+          />
+        );
+      case "achievements":
+        return (
+          <PDFAchievements
+            key={section.id}
+            data={section.data}
+            styles={styles}
+            settings={settings}
+          />
+        );
+      case "extracurricular":
+        return (
+          <PDFExtracurricular
             key={section.id}
             data={section.data}
             styles={styles}
