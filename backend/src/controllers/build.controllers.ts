@@ -52,7 +52,7 @@ export const storeBuiltResume = asyncHandler(
         throw new ApiError(400, "Source scan not found");
       }
 
-      if (scan.userId.toString() !== req.user!._id.toString()) {
+      if (scan.owner.toString() !== req.user!._id.toString()) {
         throw new ApiError(403, "You are not authorized to use this scan");
       }
 

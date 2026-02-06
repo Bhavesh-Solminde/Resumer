@@ -213,10 +213,20 @@ export const createAutosaveSlice: StateCreator<
         React.createElement(
           'div',
           {
-            className: 'flex items-center gap-2 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg cursor-pointer',
+            className: 'flex items-center gap-2 bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-300',
+            role: 'button',
+            tabIndex: 0,
+            'aria-label': `${errorMessage}. Click to retry.`,
             onClick: () => {
               get().retryFailedSave();
               toast.dismiss(t.id);
+            },
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                get().retryFailedSave();
+                toast.dismiss(t.id);
+              }
             },
           },
           React.createElement('span', null, `${errorMessage}. Click to retry.`)

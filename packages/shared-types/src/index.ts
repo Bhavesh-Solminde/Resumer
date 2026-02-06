@@ -33,13 +33,34 @@ export type {
   IJwtPayload,
 } from "./user.types.js";
 
+// Subscription & Credit Types
+export type {
+  SubscriptionTier,
+  SubscriptionStatus,
+  CreditOperationType,
+  IPlanConfig,
+  IUser,
+  ISignupRequest,
+  ILoginRequest,
+  ISubscriptionStatus,
+  ICreateSubscriptionResponse,
+  IVerifyPaymentResponse,
+  IPaymentLogEntry,
+  IMonthlyUsageEntry,
+  IUsageStats,
+  IContactFormRequest,
+  IFaqItem,
+} from "./subscription.types.js";
+
+export {
+  CREDIT_COSTS,
+  PLAN_CONFIGS,
+} from "./subscription.types.js";
+
 // Scan Types
 export type {
   ResumeScanType,
-  // TODO: Uncomment when backend is refactored to use shared-types
-  // IResumeScan,
-  // IAnalysisScan,
-  // IOptimizationScan,
+  IResumeScan,
   IResumeScanSummary,
   ICreateScanRequest,
   IOptimizeRequest,
@@ -87,7 +108,6 @@ export type {
 
 // Resume Types
 export type {
-  FontSize,
   BackgroundPattern,
   IStyle,
   ISectionSettings,

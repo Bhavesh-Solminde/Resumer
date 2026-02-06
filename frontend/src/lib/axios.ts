@@ -66,8 +66,16 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  (error: AxiosError) => {
-    // Can handle 401 unauthorized globally here
+  (error: AxiosError<ApiErrorResponse>) => {
+    // Redirect to pricing page when user has insufficient credits
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.message?.toLowerCase().includes("insufficient credits")
+    ) {
+      // Use window.location for navigation outside React tree
+      window.location.href = "/pricing";
+      return new Promise(() => {}); // Never resolve — page is navigating away
+    }
     return Promise.reject(error);
   }
 );

@@ -4,6 +4,21 @@ import bcrypt from "bcrypt";
 import ENV from "../env.js";
 
 /**
+ * Monthly usage tracking subdocument
+ */
+export interface IMonthlyUsage {
+  month: string; // "YYYY-MM"
+  creditsUsed: number;
+  operationType: "analysis" | "optimization_general" | "optimization_jd";
+  operationCount: number;
+}
+
+/**
+ * Subscription tier type
+ */
+export type SubscriptionTier = "free" | "basic" | "pro" | "enterprise";
+
+/**
  * User document interface
  */
 export interface IUser {
@@ -13,6 +28,13 @@ export interface IUser {
   avatar: string;
   refreshToken: string | null;
   resumeHistory: Types.ObjectId[];
+
+  // Credits (one-time purchase, never expire)
+  credits: number;
+  totalCreditsUsed: number;
+  subscriptionTier: SubscriptionTier; // Tracks highest plan purchased (free/basic/pro)
+  monthlyUsage: IMonthlyUsage[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +46,7 @@ export interface IUserMethods {
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): Promise<string>;
   generateRefreshToken(): Promise<string>;
+  hasCredits(amount: number): boolean;
 }
 
 /**
@@ -69,9 +92,41 @@ const UserSchema = new Schema<IUser, UserModel, IUserMethods>(
         ref: "ResumeScan",
       },
     ],
+
+    // ── Credits (one-time purchase, never expire) ──
+    credits: {
+      type: Number,
+      default: 20, // Free tier default
+      min: 0,
+    },
+    totalCreditsUsed: {
+      type: Number,
+      default: 0,
+    },
+    subscriptionTier: {
+      type: String,
+      enum: ["free", "basic", "pro", "enterprise"],
+      default: "free",
+    },
+    monthlyUsage: [
+      {
+        month: { type: String, required: true },
+        creditsUsed: { type: Number, default: 0 },
+        operationType: {
+          type: String,
+          enum: ["analysis", "optimization_general", "optimization_jd"],
+          required: true,
+        },
+        operationCount: { type: Number, default: 0 },
+      },
+    ],
   },
   { timestamps: true }
 );
+
+// ── Indexes ──
+UserSchema.index({ credits: 1 });
+UserSchema.index({ "monthlyUsage.month": 1 });
 
 UserSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
@@ -106,6 +161,10 @@ UserSchema.methods.generateRefreshToken = async function (): Promise<string> {
     // Type assertion needed because ENV values are strings, but jwt expects specific types
     { expiresIn: ENV.REFRESH_TOKEN_EXPIRY } as SignOptions
   );
+};
+
+UserSchema.methods.hasCredits = function (amount: number): boolean {
+  return this.credits >= amount;
 };
 
 const User = mongoose.model<IUser, UserModel>("User", UserSchema);

@@ -6,6 +6,7 @@ import type {
   IOptimizationData,
   ApiResponse,
 } from "@resumer/shared-types";
+import { useSubscriptionStore } from "./Subscription.store";
 
 /**
  * Resume store state interface
@@ -13,7 +14,6 @@ import type {
 interface ResumeState {
   isAnalyzing: boolean;
   analysisResult: ApiResponse<{ analysisResult: IAnalysisResult }> | null;
-  resumePdf: FormData | null;
 
   isOptimizing: boolean;
   optimizationResult: IOptimizationData | null; // Deprecated, kept for interface compat if needed
@@ -44,7 +44,6 @@ export type ResumeStore = ResumeState & ResumeActions;
 const initialState: ResumeState = {
   isAnalyzing: false,
   analysisResult: null,
-  resumePdf: null,
   isOptimizing: false,
   optimizationResult: null,
   optimizationResultGeneral: null,
@@ -180,9 +179,6 @@ export const useResumeStore = create<ResumeStore>((set) => ({
     const formData = new FormData();
     formData.append("resume", selectedFile);
 
-    // Save pdf for later optimizing
-    set({ resumePdf: formData });
-
     try {
       const response = await axiosInstance.post<
         ApiResponse<{ analysisResult: IAnalysisResult }>
@@ -193,6 +189,8 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       });
       set({ analysisResult: response.data });
       toast.success("Resume analyzed successfully!");
+      // Refresh credit count after successful analysis
+      useSubscriptionStore.getState().fetchStatus();
     } catch (error) {
       console.error("Error analyzing resume:", error);
       set({ analysisResult: null });
@@ -222,6 +220,8 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         optimizationResultGeneral: result
       });
       toast.success("Resume optimized successfully!");
+      // Refresh credit count after successful optimization
+      useSubscriptionStore.getState().fetchStatus();
     } catch (error) {
       console.error("Error optimizing resume:", error);
       toast.error(getApiErrorMessage(error, "Failed to optimize resume."));
@@ -235,6 +235,7 @@ export const useResumeStore = create<ResumeStore>((set) => ({
       toast.error("Please enter a job description.");
       return;
     }
+
     set({ isOptimizing: true });
     try {
       const response = await axiosInstance.post<
@@ -246,6 +247,8 @@ export const useResumeStore = create<ResumeStore>((set) => ({
         optimizationResultJD: result
       });
       toast.success("Resume optimized for JD successfully!");
+      // Refresh credit count after successful JD optimization
+      useSubscriptionStore.getState().fetchStatus();
     } catch (error) {
       console.error("Error optimizing resume for JD:", error);
       toast.error(getApiErrorMessage(error, "Failed to optimize resume."));

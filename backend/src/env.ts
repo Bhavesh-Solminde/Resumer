@@ -20,6 +20,17 @@ interface IEnv {
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
+  // Razorpay
+  RAZORPAY_KEY_ID: string;
+  RAZORPAY_KEY_SECRET: string;
+  RAZORPAY_WEBHOOK_SECRET: string;
+  // Email (Nodemailer)
+  SMTP_HOST: string;
+  SMTP_PORT: string;
+  SMTP_USER: string;
+  SMTP_PASS: string;
+  SMTP_FROM: string;
+  ADMIN_EMAIL: string;
 }
 
 const ENV: IEnv = {
@@ -38,6 +49,17 @@ const ENV: IEnv = {
   GOOGLE_CLIENT_ID: `${process.env.GOOGLE_CLIENT_ID}`,
   GOOGLE_CLIENT_SECRET: `${process.env.GOOGLE_CLIENT_SECRET}`,
   GOOGLE_CALLBACK_URL: `${process.env.GOOGLE_CALLBACK_URL}`,
+  // Razorpay
+  RAZORPAY_KEY_ID: `${process.env.RAZORPAY_KEY_ID}`,
+  RAZORPAY_KEY_SECRET: `${process.env.RAZORPAY_KEY_SECRET}`,
+  RAZORPAY_WEBHOOK_SECRET: `${process.env.RAZORPAY_WEBHOOK_SECRET}`,
+  // Email
+  SMTP_HOST: `${process.env.SMTP_HOST}`,
+  SMTP_PORT: `${process.env.SMTP_PORT}`,
+  SMTP_USER: `${process.env.SMTP_USER}`,
+  SMTP_PASS: `${process.env.SMTP_PASS}`,
+  SMTP_FROM: `${process.env.SMTP_FROM}`,
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL || "bhaveshsolminde@gmail.com",
 };
 
 export default ENV;
