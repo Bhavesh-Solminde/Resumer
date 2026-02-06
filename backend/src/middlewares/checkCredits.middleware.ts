@@ -26,55 +26,30 @@ const checkCredits = (
         throw new ApiError(401, "Unauthorized: User not authenticated");
       }
 
-      const user = await User.findById(req.user._id).select(
-        "credits subscriptionTier",
+      // Backfill credits for users created before credit system.
+      await User.updateOne(
+        { _id: req.user._id, credits: { $exists: false } },
+        { $set: { credits: 20, totalCreditsUsed: 0, subscriptionTier: "free" } },
       );
 
-      if (!user) {
-        throw new ApiError(404, "User not found");
-      }
+      // Atomic check-and-deduct: filter guarantees sufficient balance
+      const result = await User.findOneAndUpdate(
+        { _id: req.user._id, credits: { $gte: requiredCredits } },
+        { $inc: { credits: -requiredCredits, totalCreditsUsed: requiredCredits } },
+        { new: true, projection: { credits: 1 } },
+      );
 
-      // Backfill credits for users created before credit system.
-      // Mongoose defaults only apply on document creation, not reads.
-      if (user.credits == null) {
-        await User.updateOne(
-          { _id: req.user._id, credits: { $exists: false } },
-          {
-            $set: {
-              credits: 20,
-              totalCreditsUsed: 0,
-              subscriptionTier: "free",
-            },
-          },
-        );
-        user.credits = 20;
-        user.subscriptionTier = "free" as typeof user.subscriptionTier;
-      }
-
-      // Ensure credits field exists (migration safety for pre-existing users)
-      const currentCredits = user.credits ?? 20;
-
-      // Check credit balance
-      if (currentCredits < requiredCredits) {
+      if (!result) {
+        // Either user not found or insufficient credits — disambiguate:
+        const user = await User.findById(req.user._id).select("credits");
+        if (!user) throw new ApiError(404, "User not found");
         throw new ApiError(
           403,
-          `Insufficient credits. You need ${requiredCredits} credits but have ${currentCredits}. Buy more credits to continue.`,
+          `Insufficient credits. You need ${requiredCredits} credits but have ${user.credits ?? 0}. Buy more credits to continue.`,
         );
       }
 
-      // ── Eagerly deduct credits ──
-      const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
-
-      // Atomic deduction + lifetime tracking
-      await User.updateOne(
-        { _id: req.user._id },
-        {
-          $inc: {
-            credits: -requiredCredits,
-            totalCreditsUsed: requiredCredits,
-          },
-        },
-      );
+      const currentMonth = new Date().toISOString().slice(0, 7);
 
       // Upsert monthly usage tracking
       const monthlyUpdate = await User.updateOne(
