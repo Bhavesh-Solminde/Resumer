@@ -15,7 +15,7 @@ export const ResumeScanHistory = asyncHandler(
     const { type } = req.query as { type?: string };
 
     // Build filter based on type query param
-    const filter: { owner: typeof req.user!._id; type?: string } = {
+    const filter: Record<string, unknown> = {
       owner: req.user!._id,
     };
 

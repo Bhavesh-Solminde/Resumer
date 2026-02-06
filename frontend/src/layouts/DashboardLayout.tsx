@@ -1,11 +1,17 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { FloatingDock } from "../components/ui/floating-dock";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
 import BottomNav from "../components/BottomNav";
 import { FileText, Zap, PenTool, Users, User } from "lucide-react";
 
 const DashboardLayout = () => {
+  const location = useLocation();
+  
+  // Hide footer on specific routes
+  const hideFooterRoutes = ["/resume/analyze", "/resume/optimize", "/recruiter"];
+  const shouldShowFooter = !hideFooterRoutes.includes(location.pathname);
   const navItems = [
     {
       title: "Analyze",
@@ -47,9 +53,11 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      <main>
+      <main className="min-h-[calc(100vh-16rem)]">
         <Outlet />
       </main>
+
+      {shouldShowFooter && <Footer />}
 
       {/* Desktop Navigation */}
       <div className="hidden md:flex fixed bottom-8 left-0 right-0 justify-center z-50 pointer-events-none">

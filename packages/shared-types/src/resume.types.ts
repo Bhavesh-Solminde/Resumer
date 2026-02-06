@@ -140,7 +140,7 @@ export interface ITemplateConfig {
   description?: string;
 }
 
-export type TemplateConfigMap = Record<TemplateId, ITemplateConfig>;
+export type TemplateConfigMap = Partial<Record<TemplateId, ITemplateConfig>>;
 
 // ============================================================================
 // Template Theme Configuration

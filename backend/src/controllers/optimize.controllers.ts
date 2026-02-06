@@ -19,6 +19,7 @@ type IOptimizationResult = IOptimizationData;
 
 interface OptimizeJdBody {
   jobDescription?: string;
+  scanId?: string; // Optional: optimize a specific historical scan
 }
 
 /**
@@ -214,6 +215,8 @@ export const uploadToCloudinaryMiddleware = asyncHandler(
 
 export const optimizeResume = asyncHandler(
   async (req: Request, _res: Response, next: NextFunction) => {
+    console.log("[Optimize] Starting general optimization...");
+    
     if (!req.user || !req.user._id) {
       throw new ApiError(401, "Unauthorized: User not authenticated");
     }
@@ -221,8 +224,13 @@ export const optimizeResume = asyncHandler(
     let resumeText = "";
     let atsScoreBefore = 0; // Will be fetched from last analysis
     let contentHash: string | null = null;
+    const scanId = (req.body as { scanId?: string }).scanId;
+
+    console.log("[Optimize] User ID:", req.user._id);
+    console.log("[Optimize] Scan ID from body:", scanId);
 
     if (req.file) {
+      // Priority 1: Fresh file upload
       try {
         const pdfData = await pdf(req.file.buffer);
         resumeText = pdfData.text;
@@ -239,22 +247,51 @@ export const optimizeResume = asyncHandler(
       if (lastScan?.atsScore) {
         atsScoreBefore = lastScan.atsScore;
       }
+    } else if (scanId) {
+      // Priority 2: Optimize a specific historical scan by ID
+      const targetScan = await ResumeScan.findOne({
+        _id: scanId,
+        owner: req.user._id,
+      });
+      if (!targetScan) {
+        throw new ApiError(404, "Scan not found or does not belong to you.");
+      }
+      if (!targetScan.resumeText) {
+        throw new ApiError(
+          400,
+          "Resume text not found in this scan. Please re-upload your resume.",
+        );
+      }
+      resumeText = targetScan.resumeText;
+      atsScoreBefore = targetScan.atsScore || 0;
+      contentHash =
+        targetScan.contentHash ||
+        (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
     } else {
+      // Priority 3: Fall back to latest scan
+      console.log("[Optimize] No file upload or scanId, fetching latest scan from DB...");
       const lastScan = await ResumeScan.findOne({ owner: req.user._id }).sort({
         createdAt: -1,
       });
+      
+      console.log("[Optimize] Last scan found:", lastScan ? "YES" : "NO");
+      
       if (!lastScan) {
         throw new ApiError(
           400,
-          "No resume found. Please upload a resume first.",
+          "No resume found. Please analyze a resume first.",
         );
       }
+      
+      console.log("[Optimize] Last scan has resumeText:", !!lastScan.resumeText);
+      console.log("[Optimize] Resume text length:", lastScan.resumeText?.length || 0);
+      
       if (lastScan.resumeText) {
         resumeText = lastScan.resumeText;
       } else {
         throw new ApiError(
           400,
-          "Resume text not found in history. Please re-upload your resume.",
+          "Resume text not found in history. Please re-analyze your resume.",
         );
       }
       // Get the "before" score from the last analysis
@@ -419,7 +456,9 @@ ${resumeText}
     `;
 
     try {
+      console.log("[Optimize] Sending request to Gemini AI...");
       const geminiResult = await model.generateContent(prompt);
+      console.log("[Optimize] Gemini AI responded successfully");
 
       let responseText = "";
       if (typeof geminiResult?.response?.text === "function") {
@@ -430,15 +469,19 @@ ${resumeText}
         responseText =
           geminiResult.response.candidates[0].content.parts[0].text;
       } else {
+        console.error("[Optimize] Unexpected Gemini response format:", JSON.stringify(geminiResult, null, 2));
         throw new Error("Unexpected response format from Gemini AI");
       }
 
+      console.log("[Optimize] Response text length:", responseText.length);
       const cleanJson = responseText
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .trim();
 
+      console.log("[Optimize] Parsing JSON response...");
       const geminiResponse: IGeminiOptimizeResponse = JSON.parse(cleanJson);
+      console.log("[Optimize] JSON parsed successfully");
 
       // Calculate ATS score for OPTIMIZED resume using quality metrics
       // "Before" score comes from the last analysis (fetched from DB above)
@@ -462,8 +505,13 @@ ${resumeText}
       req.resumeText = resumeText;
       next();
     } catch (error: unknown) {
-      const err = error as { message?: string };
-      console.error("Request to AI failed:", error);
+      const err = error as { message?: string; stack?: string };
+      console.error("[Optimize General] ERROR Details:", {
+        message: err.message,
+        name: (error as Error).name,
+        stack: err.stack,
+        fullError: error
+      });
       throw new ApiError(
         500,
         err.message || "An error occurred while optimizing the resume",
@@ -483,6 +531,7 @@ export const optimizeJd = asyncHandler(
     next: NextFunction,
   ) => {
     const { jobDescription } = req.body;
+    const scanId = req.body.scanId;
     if (!jobDescription) {
       throw new ApiError(400, "Job Description is required");
     }
@@ -494,13 +543,31 @@ export const optimizeJd = asyncHandler(
     let resumeText = "";
 
     if (req.file) {
+      // Priority 1: Fresh file upload
       try {
         const pdfData = await pdf(req.file.buffer);
         resumeText = pdfData.text;
       } catch {
         throw new ApiError(400, "Failed to parse PDF file");
       }
+    } else if (scanId) {
+      // Priority 2: Specific historical scan
+      const targetScan = await ResumeScan.findOne({
+        _id: scanId,
+        owner: req.user._id,
+      });
+      if (!targetScan) {
+        throw new ApiError(404, "Scan not found or does not belong to you.");
+      }
+      if (!targetScan.resumeText) {
+        throw new ApiError(
+          400,
+          "Resume text not found in this scan. Please re-upload your resume.",
+        );
+      }
+      resumeText = targetScan.resumeText;
     } else {
+      // Priority 3: Fall back to latest scan
       const lastScan = await ResumeScan.findOne({ owner: req.user._id }).sort({
         createdAt: -1,
       });

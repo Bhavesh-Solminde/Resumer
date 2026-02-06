@@ -1,9 +1,10 @@
 import React from "react";
-import { Moon, Sun, LogOut, User, Loader2 } from "lucide-react";
+import { Moon, Sun, LogOut, User, Loader2, CreditCard } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { Button } from "../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../store/Auth.store";
+import CreditBadge from "./CreditBadge";
 
 const Header: React.FC = () => {
   const { setTheme, theme } = useTheme();
@@ -26,6 +27,20 @@ const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          <Link to="/pricing" title="View pricing plans">
+            <CreditBadge />
+          </Link>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden sm:inline-flex gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/pricing")}
+          >
+            <CreditCard className="h-4 w-4" />
+            <span>Pricing</span>
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"

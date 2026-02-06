@@ -12,11 +12,18 @@ export interface IUserDocument extends Document {
   avatar: string;
   refreshToken: string | null;
   resumeHistory: Types.ObjectId[];
+
+  // Credits
+  credits: number;
+  totalCreditsUsed: number;
+  subscriptionTier: "free" | "basic" | "pro" | "enterprise";
+
   createdAt: Date;
   updatedAt: Date;
   isPasswordCorrect(password: string): Promise<boolean>;
   generateAccessToken(): Promise<string>;
   generateRefreshToken(): Promise<string>;
+  hasCredits(amount: number): boolean;
 }
 
 /**

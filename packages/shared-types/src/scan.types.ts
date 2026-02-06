@@ -11,26 +11,24 @@ import type { IAnalysisResult, IOptimizationResult } from "./api.types.js";
 export type ResumeScanType = "analysis" | "optimization";
 
 /**
- * Base resume scan interface
- *
- * ⚠️ ISSUE: Backend defines this locally in models/resumeScan.model.ts instead of importing
- * TODO: Refactor backend to import from shared-types OR delete this duplicate
+ * Base resume scan interface (frontend-safe version with string IDs)
  */
-// export interface IResumeScan {
-//   _id: string;
-//   originalName: string;
-//   pdfUrl: string;
-//   thumbnail: string | null;
-//   owner: string;
-//   atsScore: number;
-//   resumeText: string;
-//   analysisResult: IAnalysisResult | IOptimizationResult;
-//   type: ResumeScanType;
-//   gOptimized: string;
-//   jdOptimized: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
+export interface IResumeScan {
+  _id: string;
+  originalName: string;
+  contentHash?: string | null;
+  pdfUrl: string;
+  thumbnail: string | null;
+  owner: string;
+  atsScore: number;
+  resumeText: string;
+  analysisResult: IAnalysisResult | IOptimizationResult;
+  type: ResumeScanType;
+  gOptimized: IOptimizationResult | null;
+  jdOptimized: IOptimizationResult | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 /**
  * Analysis scan (discriminated)
