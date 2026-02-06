@@ -4,6 +4,8 @@ import {
   trackFaqVote,
   getFaqAnalytics,
 } from "../controllers/faq.controllers.js";
+import verifyJWT from "../middlewares/auth.middleware.js";
+import isAdmin from "../middlewares/isAdmin.middleware.js";
 
 const faqRouter = Router();
 
@@ -11,7 +13,7 @@ const faqRouter = Router();
 faqRouter.post("/:faqId/view", trackFaqView);
 faqRouter.post("/:faqId/vote", trackFaqVote);
 
-// Analytics (could be protected later for admin)
-faqRouter.get("/analytics", getFaqAnalytics);
+// Analytics (protected - admin only)
+faqRouter.get("/analytics", verifyJWT, isAdmin, getFaqAnalytics);
 
 export default faqRouter;

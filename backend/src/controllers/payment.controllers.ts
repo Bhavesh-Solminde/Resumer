@@ -115,6 +115,22 @@ export const verifyPayment = asyncHandler(
 
     const creditsToAdd = PLAN_CONFIG[plan].credits;
 
+    // Idempotency: skip if credits were already granted for this payment
+    const existingLog = await PaymentLog.findOne({
+      razorpay_payment_id,
+      status: "success",
+    });
+    if (existingLog) {
+      const user = await User.findById(req.user._id).select("credits subscriptionTier");
+      if (!user) throw new ApiError(404, "User not found");
+      return res.status(200).json(
+        new ApiResponse(200, "Payment already processed", {
+          subscriptionTier: user.subscriptionTier,
+          credits: user.credits,
+        }),
+      );
+    }
+
     // ADD credits to existing balance (not replace) and update tier
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -163,13 +179,14 @@ export const handleRazorpayWebhook = asyncHandler(
   async (req: Request, res: Response) => {
     const webhookSecret = ENV.RAZORPAY_WEBHOOK_SECRET;
 
-    // Verify webhook signature
+    // Verify webhook signature using raw body buffer
     const signature = req.headers["x-razorpay-signature"] as string;
-    const body = JSON.stringify(req.body);
+    // req.body is a Buffer when express.raw() middleware is used
+    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
 
     const expectedSignature = crypto
       .createHmac("sha256", webhookSecret)
-      .update(body)
+      .update(rawBody)
       .digest("hex");
 
     if (signature !== expectedSignature) {
@@ -177,8 +194,10 @@ export const handleRazorpayWebhook = asyncHandler(
       return res.status(400).json({ error: "Invalid signature" });
     }
 
-    const event = req.body.event as string;
-    const payload = req.body.payload;
+    // Parse body if it's a Buffer (from express.raw)
+    const bodyData = Buffer.isBuffer(req.body) ? JSON.parse(rawBody.toString("utf-8")) : req.body;
+    const event = bodyData.event as string;
+    const payload = bodyData.payload;
 
     console.log(`Razorpay webhook received: ${event}`);
 

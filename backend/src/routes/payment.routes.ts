@@ -1,4 +1,5 @@
 import { Router } from "express";
+import express from "express";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import {
   createSubscription,
@@ -11,7 +12,12 @@ import {
 const paymentRouter = Router();
 
 // Webhook (no auth - Razorpay calls this directly, verified via signature)
-paymentRouter.post("/webhook", handleRazorpayWebhook);
+// Use raw body for webhook signature verification
+paymentRouter.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  handleRazorpayWebhook
+);
 
 // Authenticated routes
 paymentRouter.post("/subscribe", verifyJWT, createSubscription);
