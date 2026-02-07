@@ -4,7 +4,8 @@ const GoogleLoginButton: React.FC = () => {
   const handleGoogleLogin = () => {
     // Redirects the browser to your Backend's Google Auth endpoint
     // The backend will handle the handshake and redirect back to /analyze with the token
-    window.location.href = "http://localhost:3000/api/v1/auth/google";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   return (
@@ -14,7 +15,7 @@ const GoogleLoginButton: React.FC = () => {
     >
       <span className="absolute left-0 inset-y-0 flex items-center pl-3">
         {/* Google Icon SVG */}
-        <img className="h-5 w-5" src="\Google__G__logo.svg.webp" alt="G" />
+        <img className="h-5 w-5" src="/Google__G__logo.svg.webp" alt="G" />
       </span>
       Continue with Google
     </button>
