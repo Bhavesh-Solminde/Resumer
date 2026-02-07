@@ -15,7 +15,7 @@ const GoogleLoginButton: React.FC = () => {
     >
       <span className="absolute left-0 inset-y-0 flex items-center pl-3">
         {/* Google Icon SVG */}
-        <img className="h-5 w-5" src="\Google__G__logo.svg.webp" alt="G" />
+        <img className="h-5 w-5" src="/Google__G__logo.svg.webp" alt="G" />
       </span>
       Continue with Google
     </button>
