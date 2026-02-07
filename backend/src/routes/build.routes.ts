@@ -22,7 +22,7 @@ buildRouter.get("/build/history", verifyJWT, fetchBuildHistory);
 // Get Specific Resume (Full Data)
 buildRouter.get("/build/:id", verifyJWT, fetchResumeById);
 
-// Delete
+// Delete.
 buildRouter.delete("/build/:id", verifyJWT, deleteResume);
 
 export default buildRouter;
