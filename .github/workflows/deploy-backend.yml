@@ -58,29 +58,20 @@ jobs:
         run: |
           mkdir -p deploy-package
           
-          # Copy backend dist and necessary files
-          cp -r backend/dist deploy-package/
-          cp backend/web.config deploy-package/
+          # Copy compiled backend code
+          cp -r backend/dist deploy-package/dist
           
-          # Copy shared-types dist (needed at runtime)
-          mkdir -p deploy-package/shared-types
-          cp -r packages/shared-types/dist deploy-package/shared-types/
-          cp packages/shared-types/package.json deploy-package/shared-types/
+          # Copy backend package.json (for npm install on Azure)
+          cp backend/package.json deploy-package/package.json
           
-          # Copy root package.json and lock file for Azure to install deps
-          cp package.json deploy-package/
-          cp pnpm-lock.yaml deploy-package/
-          cp pnpm-workspace.yaml deploy-package/
+          # Copy shared-types package (needed at runtime)
+          mkdir -p deploy-package/node_modules/@resumer/shared-types
+          cp -r packages/shared-types/dist deploy-package/node_modules/@resumer/shared-types/dist
+          cp packages/shared-types/package.json deploy-package/node_modules/@resumer/shared-types/package.json
           
-          # Create a minimal backend package structure
-          mkdir -p deploy-package/backend
-          mv deploy-package/dist deploy-package/backend/
-          mv deploy-package/web.config deploy-package/backend/
-          cp backend/package.json deploy-package/backend/
-          
-          # Create packages directory
-          mkdir -p deploy-package/packages
-          mv deploy-package/shared-types deploy-package/packages/
+          # Install only production dependencies for backend
+          cd deploy-package
+          npm install --omit=dev --ignore-scripts
           
       - name: Create deployment archive
         run: |
@@ -93,6 +84,7 @@ jobs:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./deploy.zip
+          startup-command: 'node dist/server.js'
           
       - name: Deployment Summary
         run: |
