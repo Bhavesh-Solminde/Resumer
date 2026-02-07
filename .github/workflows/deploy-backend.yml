@@ -78,11 +78,6 @@ jobs:
           mv deploy-package/web.config deploy-package/backend/
           cp backend/package.json deploy-package/backend/
           
-          # Copy Azure deployment scripts
-          cp backend/.deployment deploy-package/backend/
-          cp backend/deploy.sh deploy-package/backend/
-          chmod +x deploy-package/backend/deploy.sh
-          
           # Create packages directory
           mkdir -p deploy-package/packages
           mv deploy-package/shared-types deploy-package/packages/
