@@ -25,14 +25,14 @@ jobs:
           node-version: '20'
           
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
           
       - name: Get pnpm store directory
         shell: bash
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"
           
       - name: Cache pnpm store
         uses: actions/cache@v4
@@ -60,7 +60,6 @@ jobs:
           
           # Copy backend dist and necessary files
           cp -r backend/dist deploy-package/
-          cp backend/package.json deploy-package/
           cp backend/web.config deploy-package/
           
           # Copy shared-types dist (needed at runtime)
@@ -78,6 +77,11 @@ jobs:
           mv deploy-package/dist deploy-package/backend/
           mv deploy-package/web.config deploy-package/backend/
           cp backend/package.json deploy-package/backend/
+          
+          # Copy Azure deployment scripts
+          cp backend/.deployment deploy-package/backend/
+          cp backend/deploy.sh deploy-package/backend/
+          chmod +x deploy-package/backend/deploy.sh
           
           # Create packages directory
           mkdir -p deploy-package/packages

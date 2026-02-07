@@ -14,7 +14,7 @@ echo "Starting Azure deployment for Resumer Backend..."
 cd ..
 
 echo "Installing dependencies with pnpm..."
-npm install -g pnpm
+npm install -g pnpm@9
 pnpm install --frozen-lockfile
 
 echo "Building shared-types package..."

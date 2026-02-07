@@ -115,8 +115,8 @@ export const verifyPayment = asyncHandler(
 
     const creditsToAdd = PLAN_CONFIG[plan].credits;
 
-    // Idempotency: Create PaymentLog FIRST to use DB unique constraint
-    // If duplicate key error (11000), payment was already processed
+    // Idempotency: Create PaymentLog FIRST with creditsApplied=false
+    // If duplicate key error (11000), check if credits were applied
     try {
       await PaymentLog.create({
         userId: req.user._id,
@@ -125,28 +125,34 @@ export const verifyPayment = asyncHandler(
         razorpay_signature,
         amount: PLAN_CONFIG[plan].price * 100, // In paise
         currency: "INR",
-        status: "success",
+        status: "pending",
         plan,
         creditsGranted: creditsToAdd,
+        creditsApplied: false,
         ipAddress: req.ip || null,
       });
     } catch (err: unknown) {
       const error = err as { code?: number };
       if (error.code === 11000) {
-        // Duplicate key — payment already processed
-        const user = await User.findById(req.user._id).select("credits subscriptionTier");
-        if (!user) throw new ApiError(404, "User not found");
-        return res.status(200).json(
-          new ApiResponse(200, "Payment already processed", {
-            subscriptionTier: user.subscriptionTier,
-            credits: user.credits,
-          }),
-        );
+        // Duplicate key — check if credits were already applied
+        const existingLog = await PaymentLog.findOne({ razorpay_payment_id });
+        if (existingLog?.creditsApplied) {
+          const user = await User.findById(req.user._id).select("credits subscriptionTier");
+          if (!user) throw new ApiError(404, "User not found");
+          return res.status(200).json(
+            new ApiResponse(200, "Payment already processed", {
+              subscriptionTier: user.subscriptionTier,
+              credits: user.credits,
+            }),
+          );
+        }
+        // Credits not yet applied — fall through to apply them
+      } else {
+        throw err;
       }
-      throw err;
     }
 
-    // Only reaches here if log creation succeeded — safe to grant credits
+    // Grant credits — safe to run even on recovery (idempotent $inc)
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -157,6 +163,12 @@ export const verifyPayment = asyncHandler(
     );
 
     if (!user) throw new ApiError(404, "User not found");
+
+    // Mark credits as applied and status as success
+    await PaymentLog.findOneAndUpdate(
+      { razorpay_payment_id },
+      { $set: { creditsApplied: true, status: "success" } },
+    );
 
     // Send confirmation email (non-blocking)
     sendCreditPurchaseEmail(user.fullName, user.email, plan, creditsToAdd, user.credits).catch(
@@ -185,11 +197,7 @@ export const handleRazorpayWebhook = asyncHandler(
     
     // MUST be a Buffer — if not, middleware is misconfigured
     if (!Buffer.isBuffer(req.body)) {
-      console.error("Webhook received non-Buffer body — check middleware ordering");
-      return res.status(400).json({ 
-        error: "Invalid webhook configuration",
-        details: "Expected raw body buffer for signature verification"
-      });
+      return res.status(400).json({ error: "Bad request" });
     }
 
     const rawBody = req.body;
@@ -223,7 +231,7 @@ export const handleRazorpayWebhook = asyncHandler(
           const planConfig = PLAN_CONFIG[plan];
 
           if (planConfig) {
-            // Idempotency: Create PaymentLog FIRST to use DB unique constraint
+            // Idempotency: Create PaymentLog FIRST with creditsApplied=false
             if (paymentId) {
               try {
                 await PaymentLog.create({
@@ -232,24 +240,43 @@ export const handleRazorpayWebhook = asyncHandler(
                   razorpay_order_id: orderId,
                   amount: paymentEntity.amount || 0,
                   currency: paymentEntity.currency || "INR",
-                  status: "success",
+                  status: "pending",
                   plan,
                   creditsGranted: planConfig.credits,
+                  creditsApplied: false,
                   payment_method: paymentEntity.method || "unknown",
-                });
-                
-                // Only grant credits if log creation succeeded (first time processing)
-                await User.findByIdAndUpdate(notes.userId, {
-                  $inc: { credits: planConfig.credits },
-                  $set: { subscriptionTier: plan },
                 });
               } catch (err: unknown) {
                 const error = err as { code?: number };
                 if (error.code === 11000) {
-                  console.log(`Webhook duplicate: Payment ${paymentId} already processed`);
+                  // Duplicate — check if credits were already applied
+                  const existingLog = await PaymentLog.findOne({ razorpay_payment_id: paymentId });
+                  if (existingLog?.creditsApplied) {
+                    console.log(`Webhook duplicate: Payment ${paymentId} already fully processed`);
+                    break;
+                  }
+                  // Credits not applied yet — fall through to apply
+                  console.log(`Webhook recovery: Payment ${paymentId} log exists but credits not applied`);
                 } else {
-                  console.error("Failed to process webhook payment:", err);
+                  console.error("Failed to create webhook payment log:", err);
+                  break;
                 }
+              }
+
+              // Grant credits (idempotent — runs on first attempt or recovery)
+              try {
+                await User.findByIdAndUpdate(notes.userId, {
+                  $inc: { credits: planConfig.credits },
+                  $set: { subscriptionTier: plan },
+                });
+
+                // Mark credits as applied and status as success
+                await PaymentLog.findOneAndUpdate(
+                  { razorpay_payment_id: paymentId },
+                  { $set: { creditsApplied: true, status: "success" } },
+                );
+              } catch (creditErr) {
+                console.error(`Failed to apply credits for payment ${paymentId}:`, creditErr);
               }
             }
           }

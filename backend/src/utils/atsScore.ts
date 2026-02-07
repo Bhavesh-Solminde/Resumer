@@ -43,17 +43,28 @@ export const STRONG_ACTION_VERBS = new Set([
  * @returns Calculated ATS score (0-100)
  */
 export function calculateATSScore(metrics: IQualityMetrics): number {
+  // Defensive: normalize AI-generated fields to prevent crashes from malformed output
+  const m: IQualityMetrics = {
+    is_contact_info_complete: !!metrics.is_contact_info_complete,
+    bullet_points_count: metrics.bullet_points_count ?? 0,
+    quantified_bullet_points_count: metrics.quantified_bullet_points_count ?? 0,
+    action_verbs_used: Array.isArray(metrics.action_verbs_used) ? metrics.action_verbs_used : [],
+    weak_words_found: Array.isArray(metrics.weak_words_found) ? metrics.weak_words_found : [],
+    spelling_errors: Array.isArray(metrics.spelling_errors) ? metrics.spelling_errors : [],
+    missing_sections: Array.isArray(metrics.missing_sections) ? metrics.missing_sections : [],
+  };
+
   let score = 0;
 
   // 1. Contact Information (15 points)
-  if (metrics.is_contact_info_complete) {
+  if (m.is_contact_info_complete) {
     score += 15;
   } else {
     score += 5;
   }
 
   // 2. Bullet Points Quantity (15 points)
-  const bulletCount = metrics.bullet_points_count;
+  const bulletCount = m.bullet_points_count;
   if (bulletCount >= 15 && bulletCount <= 30) {
     score += 15;
   } else if (bulletCount >= 10 && bulletCount < 15) {
@@ -65,7 +76,7 @@ export function calculateATSScore(metrics: IQualityMetrics): number {
   }
 
   // 3. Quantified Achievements (20 points)
-  const quantifiedCount = metrics.quantified_bullet_points_count;
+  const quantifiedCount = m.quantified_bullet_points_count;
   const quantifiedRatio = bulletCount > 0 ? quantifiedCount / bulletCount : 0;
   if (quantifiedRatio >= 0.5) {
     score += 20;
@@ -78,7 +89,7 @@ export function calculateATSScore(metrics: IQualityMetrics): number {
   }
 
   // 4. Action Verbs Usage (15 points)
-  const actionVerbCount = metrics.action_verbs_used.filter((verb) =>
+  const actionVerbCount = m.action_verbs_used.filter((verb) =>
     STRONG_ACTION_VERBS.has(verb.toLowerCase())
   ).length;
   if (actionVerbCount >= 10) {
@@ -92,7 +103,7 @@ export function calculateATSScore(metrics: IQualityMetrics): number {
   }
 
   // 5. Weak Words Penalty (10 points max)
-  const weakWordsCount = metrics.weak_words_found.length;
+  const weakWordsCount = m.weak_words_found.length;
   if (weakWordsCount === 0) {
     score += 10;
   } else if (weakWordsCount <= 2) {
@@ -102,7 +113,7 @@ export function calculateATSScore(metrics: IQualityMetrics): number {
   }
 
   // 6. Spelling/Grammar (10 points)
-  const spellingErrors = metrics.spelling_errors.length;
+  const spellingErrors = m.spelling_errors.length;
   if (spellingErrors === 0) {
     score += 10;
   } else if (spellingErrors <= 2) {
@@ -112,7 +123,7 @@ export function calculateATSScore(metrics: IQualityMetrics): number {
   }
 
   // 7. Section Completeness (15 points)
-  const missingSections = metrics.missing_sections.length;
+  const missingSections = m.missing_sections.length;
   if (missingSections === 0) {
     score += 15;
   } else if (missingSections === 1) {
