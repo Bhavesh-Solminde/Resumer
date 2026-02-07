@@ -9,12 +9,14 @@ type VerifyCallback = (
   info?: object
 ) => void;
 
+import ENV from "../env.js";
+
 passport.use(
   new GitHubStrategy(
     {
-      clientID: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-      callbackURL: process.env.GITHUB_CALLBACK_URL || "",
+      clientID: ENV.GITHUB_CLIENT_ID,
+      clientSecret: ENV.GITHUB_CLIENT_SECRET,
+      callbackURL: ENV.GITHUB_CALLBACK_URL,
       scope: ["user:email"], // Crucial to get the email!
     },
     async function (

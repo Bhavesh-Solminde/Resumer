@@ -4,7 +4,8 @@ const GoogleLoginButton: React.FC = () => {
   const handleGoogleLogin = () => {
     // Redirects the browser to your Backend's Google Auth endpoint
     // The backend will handle the handshake and redirect back to /analyze with the token
-    window.location.href = "http://localhost:3000/api/v1/auth/google";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   return (

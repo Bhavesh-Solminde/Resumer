@@ -3,7 +3,8 @@ import { Github } from "lucide-react";
 
 const GithubLoginButton: React.FC = () => {
   const handleGithubLogin = () => {
-    window.location.href = "http://localhost:3000/api/v1/auth/github";
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+    window.location.href = `${API_URL}/auth/github`;
   };
 
   return (
