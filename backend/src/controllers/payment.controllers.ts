@@ -115,23 +115,38 @@ export const verifyPayment = asyncHandler(
 
     const creditsToAdd = PLAN_CONFIG[plan].credits;
 
-    // Idempotency: skip if credits were already granted for this payment
-    const existingLog = await PaymentLog.findOne({
-      razorpay_payment_id,
-      status: "success",
-    });
-    if (existingLog) {
-      const user = await User.findById(req.user._id).select("credits subscriptionTier");
-      if (!user) throw new ApiError(404, "User not found");
-      return res.status(200).json(
-        new ApiResponse(200, "Payment already processed", {
-          subscriptionTier: user.subscriptionTier,
-          credits: user.credits,
-        }),
-      );
+    // Idempotency: Create PaymentLog FIRST to use DB unique constraint
+    // If duplicate key error (11000), payment was already processed
+    try {
+      await PaymentLog.create({
+        userId: req.user._id,
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature,
+        amount: PLAN_CONFIG[plan].price * 100, // In paise
+        currency: "INR",
+        status: "success",
+        plan,
+        creditsGranted: creditsToAdd,
+        ipAddress: req.ip || null,
+      });
+    } catch (err: unknown) {
+      const error = err as { code?: number };
+      if (error.code === 11000) {
+        // Duplicate key — payment already processed
+        const user = await User.findById(req.user._id).select("credits subscriptionTier");
+        if (!user) throw new ApiError(404, "User not found");
+        return res.status(200).json(
+          new ApiResponse(200, "Payment already processed", {
+            subscriptionTier: user.subscriptionTier,
+            credits: user.credits,
+          }),
+        );
+      }
+      throw err;
     }
 
-    // ADD credits to existing balance (not replace) and update tier
+    // Only reaches here if log creation succeeded — safe to grant credits
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -142,20 +157,6 @@ export const verifyPayment = asyncHandler(
     );
 
     if (!user) throw new ApiError(404, "User not found");
-
-    // Log successful payment
-    await PaymentLog.create({
-      userId: req.user._id,
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-      amount: PLAN_CONFIG[plan].price * 100, // In paise
-      currency: "INR",
-      status: "success",
-      plan,
-      creditsGranted: creditsToAdd,
-      ipAddress: req.ip || null,
-    });
 
     // Send confirmation email (non-blocking)
     sendCreditPurchaseEmail(user.fullName, user.email, plan, creditsToAdd, user.credits).catch(
@@ -181,8 +182,17 @@ export const handleRazorpayWebhook = asyncHandler(
 
     // Verify webhook signature using raw body buffer
     const signature = req.headers["x-razorpay-signature"] as string;
-    // req.body is a Buffer when express.raw() middleware is used
-    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
+    
+    // MUST be a Buffer — if not, middleware is misconfigured
+    if (!Buffer.isBuffer(req.body)) {
+      console.error("Webhook received non-Buffer body — check middleware ordering");
+      return res.status(400).json({ 
+        error: "Invalid webhook configuration",
+        details: "Expected raw body buffer for signature verification"
+      });
+    }
+
+    const rawBody = req.body;
 
     const expectedSignature = crypto
       .createHmac("sha256", webhookSecret)
@@ -194,8 +204,8 @@ export const handleRazorpayWebhook = asyncHandler(
       return res.status(400).json({ error: "Invalid signature" });
     }
 
-    // Parse body if it's a Buffer (from express.raw)
-    const bodyData = Buffer.isBuffer(req.body) ? JSON.parse(rawBody.toString("utf-8")) : req.body;
+    // Parse the raw Buffer to JSON
+    const bodyData = JSON.parse(rawBody.toString("utf-8"));
     const event = bodyData.event as string;
     const payload = bodyData.payload;
 
@@ -213,20 +223,10 @@ export const handleRazorpayWebhook = asyncHandler(
           const planConfig = PLAN_CONFIG[plan];
 
           if (planConfig) {
-            // ADD credits (not replace) — idempotent check via PaymentLog
-            const existingLog = await PaymentLog.findOne({ razorpay_payment_id: paymentId });
-            if (!existingLog || existingLog.status !== "success") {
-              await User.findByIdAndUpdate(notes.userId, {
-                $inc: { credits: planConfig.credits },
-                $set: { subscriptionTier: plan },
-              });
-            }
-
-            // Log webhook payment (upsert — might already exist from verify)
+            // Idempotency: Create PaymentLog FIRST to use DB unique constraint
             if (paymentId) {
-              await PaymentLog.findOneAndUpdate(
-                { razorpay_payment_id: paymentId },
-                {
+              try {
+                await PaymentLog.create({
                   userId: notes.userId,
                   razorpay_payment_id: paymentId,
                   razorpay_order_id: orderId,
@@ -236,11 +236,21 @@ export const handleRazorpayWebhook = asyncHandler(
                   plan,
                   creditsGranted: planConfig.credits,
                   payment_method: paymentEntity.method || "unknown",
-                },
-                { upsert: true },
-              ).catch((err: unknown) =>
-                console.error("Failed to log webhook payment:", err),
-              );
+                });
+                
+                // Only grant credits if log creation succeeded (first time processing)
+                await User.findByIdAndUpdate(notes.userId, {
+                  $inc: { credits: planConfig.credits },
+                  $set: { subscriptionTier: plan },
+                });
+              } catch (err: unknown) {
+                const error = err as { code?: number };
+                if (error.code === 11000) {
+                  console.log(`Webhook duplicate: Payment ${paymentId} already processed`);
+                } else {
+                  console.error("Failed to process webhook payment:", err);
+                }
+              }
             }
           }
         }

@@ -1,0 +1,10 @@
+# Azure Deployment Configuration
+# ============================================================================
+# This file tells Azure how to deploy the backend application
+
+[config]
+# Use the SCM_DO_BUILD_DURING_DEPLOYMENT flag to build on Azure
+SCM_DO_BUILD_DURING_DEPLOYMENT = true
+
+# Specify the command to run during deployment
+command = deploy.sh

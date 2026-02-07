@@ -11,6 +11,7 @@ import {
 } from "../controllers/auth.controllers.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import ENV from "../env.js";
 // Type augmentation from ../types/express.d.ts is applied globally
 
 const authRouter = Router();
@@ -42,7 +43,7 @@ authRouter.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: "http://localhost:5173/auth/login?error=google_failed",
+    failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=google_failed`,
   }),
   handleGoogleCallback
 );
@@ -56,7 +57,7 @@ authRouter.get(
 authRouter.get(
   "/github/callback",
   passport.authenticate("github", {
-    failureRedirect: "http://localhost:5173/auth/login?error=github_failed",
+    failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=github_failed`,
     session: false,
   }),
   handleGoogleCallback
