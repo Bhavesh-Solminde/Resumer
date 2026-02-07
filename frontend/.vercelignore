@@ -30,10 +30,4 @@ scripts/
 .env.local
 .env.development
 
-# Build artifacts from root and other packages
-../.git/
-../node_modules/
-../backend/
-../packages/shared-types/src/
-
 # Keep only the compiled output (dist/) and necessary runtime files

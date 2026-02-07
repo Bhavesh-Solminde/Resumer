@@ -12,6 +12,7 @@ import paymentRouter from "./routes/payment.routes.js";
 import contactRouter from "./routes/contact.routes.js";
 import faqRouter from "./routes/faq.routes.js";
 import healthRouter from "./routes/health.routes.js";
+import csrfProtection from "./middlewares/csrf.middleware.js";
 import ENV from "./env.js";
 import "./passport/google.strategy.js";
 import "./passport/github.strategy.js";
@@ -40,15 +41,17 @@ app.use(
       }
     },
     credentials: true,
-  })
-);
+  })  );
+
+// Webhook path constant (used for raw body parsing)
+const WEBHOOK_PATH = "/api/v1/payment/webhook";
 
 // Initialize JSON middleware once
 const jsonParser = express.json({ limit: "16kb" });
 
 // Conditional JSON parsing — skip for webhook routes that need raw body
 app.use((req, res, next) => {
-  if (req.path === "/api/v1/payment/webhook") {
+  if (req.path === WEBHOOK_PATH) {
     // Skip JSON parsing for webhook — express.raw() will handle it in the route
     next();
   } else {
@@ -57,6 +60,7 @@ app.use((req, res, next) => {
 });
 
 app.use(cookieParser());
+app.use(csrfProtection);
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(passport.initialize());
 

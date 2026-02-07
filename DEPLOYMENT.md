@@ -48,12 +48,14 @@ Before starting deployment, ensure you have:
    - Authentication Method: Password
    - Username: `resumer-prod`
    - Password: Generate secure password (save it!)
-   - Database User Privileges: "Atlas admin" or "Read and write to any database"
+   - Database User Privileges: "Read and write to any database"
+   - > **Tip:** For tighter security, create a custom role scoped to just the `resumer` database.
 
 2. **Network Access:**
    - Go to Network Access → Add IP Address
    - Add: `0.0.0.0/0` (Allow access from anywhere - required for Azure)
    - Click Confirm
+   - > **Security Note:** `0.0.0.0/0` allows connections from any IP address. For production, consider restricting access to [Azure's outbound IP ranges](https://docs.microsoft.com/en-us/azure/app-service/overview-inbound-outbound-ips) or using [VNet integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet) for a more secure configuration.
 
 ### 3. Get Connection String
 1. Go to Database → Connect
@@ -248,7 +250,8 @@ AZURE_WEBAPP_PUBLISH_PROFILE=<entire-xml-content-from-publish-profile>
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create new project: "Resumer Production"
-3. Enable APIs: "Google+ API"
+3. Configure the **OAuth consent screen** (External, publish when ready)
+4. Enable the **Google People API** (APIs & Services → Library)
 4. Go to Credentials → Create Credentials → OAuth client ID
 5. Application type: Web application
 6. Name: "Resumer Production"

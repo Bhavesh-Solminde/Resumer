@@ -104,7 +104,6 @@ export const handleRegister = asyncHandler(
       throw new ApiError(400, "Password must be at least 8 characters long.");
     }
 
-    console.log("Creating User");
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new ApiError(409, "User with this email already exists.");
@@ -260,13 +259,21 @@ export const refreshAccessToken = asyncHandler(
             refreshToken: newRefreshToken,
           })
         );
-    } catch {
-      throw new ApiError(500, "Internal server error");
+    } catch (error: unknown) {
+      if (error instanceof ApiError) throw error;
+      const err = error as { name?: string; message?: string };
+      if (err.name === "TokenExpiredError") {
+        throw new ApiError(401, "Refresh token has expired. Please log in again.");
+      }
+      if (err.name === "JsonWebTokenError") {
+        throw new ApiError(401, "Invalid refresh token. Please log in again.");
+      }
+      throw new ApiError(401, err?.message || "Invalid refresh token");
     }
   }
 );
 
-export const handleGoogleCallback = asyncHandler(
+export const handleOAuthCallback = asyncHandler(
   async (req: Request, res: Response) => {
     // Passport attaches the authenticated user to req.user
     const user = req.user;

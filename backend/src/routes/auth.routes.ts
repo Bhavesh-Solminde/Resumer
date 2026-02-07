@@ -6,7 +6,7 @@ import {
   handleLogout,
   handleUpdatePassword,
   refreshAccessToken,
-  handleGoogleCallback,
+  handleOAuthCallback,
   updateProfile,
 } from "../controllers/auth.controllers.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
@@ -45,7 +45,7 @@ authRouter.get(
     session: false,
     failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=google_failed`,
   }),
-  handleGoogleCallback
+  handleOAuthCallback
 );
 
 // OAuth: GitHub
@@ -60,7 +60,7 @@ authRouter.get(
     failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=github_failed`,
     session: false,
   }),
-  handleGoogleCallback
+  handleOAuthCallback
 );
 
 export default authRouter;

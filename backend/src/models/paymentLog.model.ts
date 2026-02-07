@@ -26,6 +26,7 @@ export interface IPaymentLog {
   failure_reason: string | null;
   plan: "basic" | "pro" | "enterprise" | null;
   creditsGranted: number;
+  creditsApplied: boolean;
   ipAddress: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -89,6 +90,10 @@ const PaymentLogSchema = new Schema<IPaymentLog>(
     creditsGranted: {
       type: Number,
       default: 0,
+    },
+    creditsApplied: {
+      type: Boolean,
+      default: false,
     },
     ipAddress: {
       type: String,

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import mongoose from "mongoose";
+import ENV from "../env.js";
 
 const healthRouter = Router();
 
@@ -12,7 +13,7 @@ healthRouter.get("/health", (req: Request, res: Response) => {
     uptime: process.uptime(),
     message: "OK",
     timestamp: Date.now(),
-    environment: process.env.NODE_ENV || "development",
+    environment: ENV.NODE_ENV || "development",
     database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   };
 

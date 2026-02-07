@@ -86,79 +86,89 @@ export const uploadToCloudinaryMiddleware = asyncHandler(
 );
 
 // ============================================================================
-// Controller: Optimize Resume (General)
+// Helper: Resolve Resume Text and Stored Metrics
 // ============================================================================
 
-export const optimizeResume = asyncHandler(
-  async (req: Request, _res: Response, next: NextFunction) => {
-    console.log("[Optimize] Starting general optimization...");
-    
-    if (!req.user || !req.user._id) {
-      throw new ApiError(401, "Unauthorized: User not authenticated");
+interface ResumeData {
+  resumeText: string;
+  contentHash: string | null;
+  storedQualityMetrics: IQualityMetrics | null;
+  storedAtsScore: number | null;
+}
+
+/**
+ * Shared logic to resolve resume text and stored quality metrics from three sources:
+ * 1. Fresh file upload (req.file)
+ * 2. Specific historical scan (scanId)
+ * 3. Latest analysis scan fallback
+ */
+async function resolveResumeTextAndMetrics(
+  req: Request<any, any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  scanId?: string,
+): Promise<ResumeData> {
+  const userId = req.user?._id;
+  if (!userId) {
+    throw new ApiError(401, "Unauthorized: User not authenticated");
+  }
+
+  let resumeText = "";
+  let contentHash: string | null = null;
+  let storedQualityMetrics: IQualityMetrics | null = null;
+  let storedAtsScore: number | null = null;
+
+  if (req.file) {
+    // Priority 1: Fresh file upload
+    try {
+      const pdfData = await pdf(req.file.buffer);
+      resumeText = pdfData.text;
+    } catch {
+      throw new ApiError(400, "Failed to parse PDF file");
     }
-
-    let resumeText = "";
-    let contentHash: string | null = null;
-    let storedQualityMetrics: IQualityMetrics | null = null;
-    let storedAtsScore: number | null = null;
-    const scanId = req.body?.scanId || (req.body as { scanId?: string } | undefined)?.scanId;
-
-    console.log("[Optimize] User ID:", req.user._id);
-    console.log("[Optimize] Scan ID from body:", scanId);
-    console.log("[Optimize] req.body:", req.body);
-
-    if (req.file) {
-      // Priority 1: Fresh file upload
-      try {
-        const pdfData = await pdf(req.file.buffer);
-        resumeText = pdfData.text;
-      } catch {
-        throw new ApiError(400, "Failed to parse PDF file");
+    contentHash = computeContentHash(req.file.buffer);
+    // Find the corresponding analysis scan to get stored quality_metrics
+    const analysisScan = await ResumeScan.findOne({
+      owner: userId,
+      contentHash,
+      type: "analysis",
+    }).sort({ createdAt: -1 });
+    if (analysisScan?.analysisResult) {
+      const result = analysisScan.analysisResult as Record<string, unknown>;
+      if (result.quality_metrics) {
+        storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+        storedAtsScore = analysisScan.atsScore;
       }
-      contentHash = computeContentHash(req.file.buffer);
-      // Find the corresponding analysis scan to get stored quality_metrics
-      const analysisScan = await ResumeScan.findOne({
-        owner: req.user._id,
-        contentHash,
-        type: "analysis",
-      }).sort({ createdAt: -1 });
-      if (analysisScan?.analysisResult) {
-        const result = analysisScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = analysisScan.atsScore;
-        }
+    }
+  } else if (scanId) {
+    // Priority 2: Optimize a specific historical scan by ID
+    const targetScan = await ResumeScan.findOne({
+      _id: scanId,
+      owner: userId,
+    });
+    if (!targetScan) {
+      throw new ApiError(404, "Scan not found or does not belong to you.");
+    }
+    if (!targetScan.resumeText) {
+      throw new ApiError(
+        400,
+        "Resume text not found in this scan. Please re-upload your resume.",
+      );
+    }
+    resumeText = targetScan.resumeText;
+    contentHash =
+      targetScan.contentHash ||
+      (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
+    // If the scan itself is an analysis, use its stored metrics directly
+    if (targetScan.type === "analysis" && targetScan.analysisResult) {
+      const result = targetScan.analysisResult as Record<string, unknown>;
+      if (result.quality_metrics) {
+        storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+        storedAtsScore = targetScan.atsScore;
       }
-    } else if (scanId) {
-      // Priority 2: Optimize a specific historical scan by ID
-      const targetScan = await ResumeScan.findOne({
-        _id: scanId,
-        owner: req.user._id,
-      });
-      if (!targetScan) {
-        throw new ApiError(404, "Scan not found or does not belong to you.");
-      }
-      if (!targetScan.resumeText) {
-        throw new ApiError(
-          400,
-          "Resume text not found in this scan. Please re-upload your resume.",
-        );
-      }
-      resumeText = targetScan.resumeText;
-      contentHash =
-        targetScan.contentHash ||
-        (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
-      // If the scan itself is an analysis, use its stored metrics directly
-      if (targetScan.type === "analysis" && targetScan.analysisResult) {
-        const result = targetScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = targetScan.atsScore;
-        }
-      } else {
-        // Find the analysis scan for the same content
+    } else {
+      // Find the analysis scan for the same content
+      if (contentHash) {
         const analysisScan = await ResumeScan.findOne({
-          owner: req.user._id,
+          owner: userId,
           contentHash,
           type: "analysis",
         }).sort({ createdAt: -1 });
@@ -170,52 +180,72 @@ export const optimizeResume = asyncHandler(
           }
         }
       }
-    } else {
-      // Priority 3: Fall back to latest ANALYSIS scan (not optimization)
-      console.log("[Optimize] No file upload or scanId, fetching latest ANALYSIS scan from DB...");
-      const lastScan = await ResumeScan.findOne({ 
-        owner: req.user._id,
-        type: "analysis",
-      }).sort({
-        createdAt: -1,
-      });
-      
-      console.log("[Optimize] Last analysis scan found:", lastScan ? "YES" : "NO");
-      
-      if (!lastScan) {
-        throw new ApiError(
-          400,
-          "No resume found. Please analyze a resume first.",
-        );
-      }
-      
-      console.log("[Optimize] Last scan has resumeText:", !!lastScan.resumeText);
-      console.log("[Optimize] Resume text length:", lastScan.resumeText?.length || 0);
-      
-      if (lastScan.resumeText) {
-        resumeText = lastScan.resumeText;
-      } else {
-        throw new ApiError(
-          400,
-          "Resume text not found in history. Please re-analyze your resume.",
-        );
-      }
-      contentHash =
-        lastScan.contentHash ||
-        (lastScan.resumeText ? computeContentHash(lastScan.resumeText) : null);
-      // Use quality_metrics from the analysis scan directly
-      if (lastScan.analysisResult) {
-        const result = lastScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = lastScan.atsScore;
-        }
-      }
+    }
+  } else {
+    // Priority 3: Fall back to latest ANALYSIS scan (not optimization)
+    const lastScan = await ResumeScan.findOne({
+      owner: userId,
+      type: "analysis",
+    }).sort({
+      createdAt: -1,
+    });
+
+    if (!lastScan) {
+      throw new ApiError(
+        400,
+        "No resume found. Please analyze a resume first.",
+      );
     }
 
-    if (!resumeText || resumeText.trim().length === 0) {
-      throw new ApiError(400, "Could not extract text from PDF");
+    if (lastScan.resumeText) {
+      resumeText = lastScan.resumeText;
+    } else {
+      throw new ApiError(
+        400,
+        "Resume text not found in history. Please re-analyze your resume.",
+      );
     }
+    contentHash =
+      lastScan.contentHash ||
+      (lastScan.resumeText ? computeContentHash(lastScan.resumeText) : null);
+    // Use quality_metrics from the analysis scan directly
+    if (lastScan.analysisResult) {
+      const result = lastScan.analysisResult as Record<string, unknown>;
+      if (result.quality_metrics) {
+        storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+        storedAtsScore = lastScan.atsScore;
+      }
+    }
+  }
+
+  if (!resumeText || resumeText.trim().length === 0) {
+    throw new ApiError(400, "Could not extract text from resume");
+  }
+
+  return { resumeText, contentHash, storedQualityMetrics, storedAtsScore };
+}
+
+// ============================================================================
+// Controller: Optimize Resume (General)
+// ============================================================================
+
+export const optimizeResume = asyncHandler(
+  async (req: Request, _res: Response, next: NextFunction) => {
+    console.log("[Optimize] Starting general optimization...");
+    
+    if (!req.user || !req.user._id) {
+      throw new ApiError(401, "Unauthorized: User not authenticated");
+    }
+
+    const scanId = req.body?.scanId || (req.body as { scanId?: string } | undefined)?.scanId;
+
+    console.log("[Optimize] User ID:", req.user._id);
+    console.log("[Optimize] Scan ID from body:", scanId);
+    console.log("[Optimize] req.body keys:", Object.keys(req.body || {}));
+
+    // Use shared helper to resolve resume text and stored metrics
+    const { resumeText, contentHash, storedQualityMetrics, storedAtsScore } =
+      await resolveResumeTextAndMetrics(req, scanId);
 
     // Log whether we have stored metrics (if not, the "before" score will still be consistent
     // because we'll recalculate from analysis-stored data)
@@ -429,7 +459,15 @@ ${resumeText}
             type: "analysis",
           }).sort({ createdAt: -1 });
           atsScoreBefore = latestAnalysis?.atsScore ?? 0;
-          qualityMetricsBefore = {} as IQualityMetrics;
+          qualityMetricsBefore = {
+            is_contact_info_complete: false,
+            bullet_points_count: 0,
+            quantified_bullet_points_count: 0,
+            action_verbs_used: [],
+            weak_words_found: [],
+            spelling_errors: [],
+            missing_sections: [],
+          };
         }
       }
 
@@ -440,14 +478,14 @@ ${resumeText}
       console.log("  - After (optimized):", atsScoreAfter);
       console.log("  - Improvement:", atsScoreAfter - atsScoreBefore);
 
-      // CRITICAL VALIDATION: Ensure optimization actually improved the score
-      if (atsScoreAfter <= atsScoreBefore) {
-        console.error("[Optimize] FAILED: Optimization did not improve the score!");
+      // VALIDATION: Fail only if score strictly decreased
+      if (atsScoreAfter < atsScoreBefore) {
+        console.error("[Optimize] FAILED: Optimization decreased the score!");
         console.error("  - Before metrics:", JSON.stringify(qualityMetricsBefore, null, 2));
         console.error("  - After metrics:", JSON.stringify(geminiResponse.quality_metrics_after, null, 2));
         throw new ApiError(
           500,
-          `Optimization failed to improve resume. Score remained at ${atsScoreBefore}. Please try again or contact support.`
+          `Optimization failed to improve resume. Score decreased from ${atsScoreBefore} to ${atsScoreAfter}. Please try again or contact support.`
         );
       }
 
@@ -503,108 +541,9 @@ export const optimizeJd = asyncHandler(
       throw new ApiError(401, "Unauthorized: User not authenticated");
     }
 
-    let resumeText = "";
-    let storedQualityMetrics: IQualityMetrics | null = null;
-    let storedAtsScore: number | null = null;
-
-    if (req.file) {
-      // Priority 1: Fresh file upload
-      try {
-        const pdfData = await pdf(req.file.buffer);
-        resumeText = pdfData.text;
-      } catch {
-        throw new ApiError(400, "Failed to parse PDF file");
-      }
-      // Find the corresponding analysis scan to get stored quality_metrics
-      const contentHash = computeContentHash(req.file.buffer);
-      const analysisScan = await ResumeScan.findOne({
-        owner: req.user._id,
-        contentHash,
-        type: "analysis",
-      }).sort({ createdAt: -1 });
-      if (analysisScan?.analysisResult) {
-        const result = analysisScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = analysisScan.atsScore;
-        }
-      }
-    } else if (scanId) {
-      // Priority 2: Specific historical scan
-      const targetScan = await ResumeScan.findOne({
-        _id: scanId,
-        owner: req.user._id,
-      });
-      if (!targetScan) {
-        throw new ApiError(404, "Scan not found or does not belong to you.");
-      }
-      if (!targetScan.resumeText) {
-        throw new ApiError(
-          400,
-          "Resume text not found in this scan. Please re-upload your resume.",
-        );
-      }
-      resumeText = targetScan.resumeText;
-      // Get stored quality_metrics from the analysis scan
-      if (targetScan.type === "analysis" && targetScan.analysisResult) {
-        const result = targetScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = targetScan.atsScore;
-        }
-      } else {
-        const contentHash = targetScan.contentHash ||
-          (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
-        if (contentHash) {
-          const analysisScan = await ResumeScan.findOne({
-            owner: req.user._id,
-            contentHash,
-            type: "analysis",
-          }).sort({ createdAt: -1 });
-          if (analysisScan?.analysisResult) {
-            const result = analysisScan.analysisResult as Record<string, unknown>;
-            if (result.quality_metrics) {
-              storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-              storedAtsScore = analysisScan.atsScore;
-            }
-          }
-        }
-      }
-    } else {
-      // Priority 3: Fall back to latest ANALYSIS scan (not optimization)
-      const lastScan = await ResumeScan.findOne({ 
-        owner: req.user._id,
-        type: "analysis",
-      }).sort({
-        createdAt: -1,
-      });
-      if (!lastScan) {
-        throw new ApiError(
-          400,
-          "No resume found. Please upload a resume first.",
-        );
-      }
-      if (lastScan.resumeText) {
-        resumeText = lastScan.resumeText;
-      } else {
-        throw new ApiError(
-          400,
-          "Resume text not found in history. Please re-upload your resume.",
-        );
-      }
-      // Use quality_metrics from the analysis scan directly
-      if (lastScan.analysisResult) {
-        const result = lastScan.analysisResult as Record<string, unknown>;
-        if (result.quality_metrics) {
-          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
-          storedAtsScore = lastScan.atsScore;
-        }
-      }
-    }
-
-    if (!resumeText || resumeText.trim().length === 0) {
-      throw new ApiError(400, "Could not extract text from PDF");
-    }
+    // Use shared helper to resolve resume text and stored metrics
+    const { resumeText, contentHash, storedQualityMetrics, storedAtsScore } =
+      await resolveResumeTextAndMetrics(req, scanId);
 
     console.log("[Optimize JD] Stored quality_metrics available:", !!storedQualityMetrics);
     console.log("[Optimize JD] Stored ATS score:", storedAtsScore);
@@ -804,7 +743,15 @@ ${resumeText}
             type: "analysis",
           }).sort({ createdAt: -1 });
           atsScoreBefore = latestAnalysis?.atsScore ?? 0;
-          qualityMetricsBefore = {} as IQualityMetrics;
+          qualityMetricsBefore = {
+            is_contact_info_complete: false,
+            bullet_points_count: 0,
+            quantified_bullet_points_count: 0,
+            action_verbs_used: [],
+            weak_words_found: [],
+            spelling_errors: [],
+            missing_sections: [],
+          };
         }
       }
 
@@ -815,14 +762,14 @@ ${resumeText}
       console.log("  - After (optimized):", atsScoreAfter);
       console.log("  - Improvement:", atsScoreAfter - atsScoreBefore);
 
-      // CRITICAL VALIDATION: Ensure optimization actually improved the score
-      if (atsScoreAfter <= atsScoreBefore) {
-        console.error("[Optimize JD] FAILED: Optimization did not improve the score!");
+      // VALIDATION: Fail only if score strictly decreased
+      if (atsScoreAfter < atsScoreBefore) {
+        console.error("[Optimize JD] FAILED: Optimization decreased the score!");
         console.error("  - Before metrics:", JSON.stringify(qualityMetricsBefore, null, 2));
         console.error("  - After metrics:", JSON.stringify(geminiResponse.quality_metrics_after, null, 2));
         throw new ApiError(
           500,
-          `JD Optimization failed to improve resume. Score remained at ${atsScoreBefore}. The resume may already be well-optimized for this job description.`
+          `JD Optimization failed to improve resume. Score decreased from ${atsScoreBefore} to ${atsScoreAfter}. The resume may already be well-optimized for this job description.`
         );
       }
 
