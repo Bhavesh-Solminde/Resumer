@@ -61,16 +61,17 @@ jobs:
           # Copy compiled backend code
           cp -r backend/dist deploy-package/dist
           
-          # Copy backend package.json (for npm install on Azure)
+          # Copy backend package.json and remove workspace: protocol (npm can't handle it)
           cp backend/package.json deploy-package/package.json
+          cd deploy-package
+          node -e "const p=require('./package.json'); delete p.dependencies['@resumer/shared-types']; require('fs').writeFileSync('package.json', JSON.stringify(p,null,2))"
           
-          # Copy shared-types package (needed at runtime)
-          mkdir -p deploy-package/node_modules/@resumer/shared-types
-          cp -r packages/shared-types/dist deploy-package/node_modules/@resumer/shared-types/dist
-          cp packages/shared-types/package.json deploy-package/node_modules/@resumer/shared-types/package.json
+          # Copy shared-types package (already built, install manually)
+          mkdir -p node_modules/@resumer/shared-types
+          cp -r ../packages/shared-types/dist node_modules/@resumer/shared-types/dist
+          cp ../packages/shared-types/package.json node_modules/@resumer/shared-types/package.json
           
           # Install only production dependencies for backend
-          cd deploy-package
           npm install --omit=dev --ignore-scripts
           
       - name: Create deployment archive
