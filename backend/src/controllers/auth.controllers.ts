@@ -59,16 +59,20 @@ const generateAccessAndRefreshTokens = async (
 const getAccessCookieOptions = () => ({
   httpOnly: true,
   secure: ENV.NODE_ENV === "production",
+  // Use "none" for production to support cross-domain (Vercel frontend + Azure backend)
+  // Use "lax" for development (same localhost domain)
   sameSite:
-    ENV.NODE_ENV === "production" ? ("strict" as const) : ("lax" as const),
+    ENV.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
   maxAge: 60 * 60 * 1000, // 1 hour
 });
 
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
   secure: ENV.NODE_ENV === "production",
+  // Use "none" for production to support cross-domain (Vercel frontend + Azure backend)
+  // Use "lax" for development (same localhost domain)
   sameSite:
-    ENV.NODE_ENV === "production" ? ("strict" as const) : ("lax" as const),
+    ENV.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
   maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days
 });
 

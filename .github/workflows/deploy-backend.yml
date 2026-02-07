@@ -1,0 +1,102 @@
+name: Deploy Backend to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'packages/shared-types/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy to Azure App Service
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build shared types
+        run: pnpm --filter @resumer/shared-types build
+        
+      - name: Type check backend
+        run: pnpm --filter backend typecheck
+        
+      - name: Build backend
+        run: pnpm --filter backend build
+        
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-package
+          
+          # Copy backend dist and necessary files
+          cp -r backend/dist deploy-package/
+          cp backend/package.json deploy-package/
+          cp backend/web.config deploy-package/
+          
+          # Copy shared-types dist (needed at runtime)
+          mkdir -p deploy-package/shared-types
+          cp -r packages/shared-types/dist deploy-package/shared-types/
+          cp packages/shared-types/package.json deploy-package/shared-types/
+          
+          # Copy root package.json and lock file for Azure to install deps
+          cp package.json deploy-package/
+          cp pnpm-lock.yaml deploy-package/
+          cp pnpm-workspace.yaml deploy-package/
+          
+          # Create a minimal backend package structure
+          mkdir -p deploy-package/backend
+          mv deploy-package/dist deploy-package/backend/
+          mv deploy-package/web.config deploy-package/backend/
+          cp backend/package.json deploy-package/backend/
+          
+          # Create packages directory
+          mkdir -p deploy-package/packages
+          mv deploy-package/shared-types deploy-package/packages/
+          
+      - name: Create deployment archive
+        run: |
+          cd deploy-package
+          zip -r ../deploy.zip .
+          
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./deploy.zip
+          
+      - name: Deployment Summary
+        run: |
+          echo "✅ Backend deployed to Azure successfully!"
+          echo "🔗 Your API is available at: https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          echo "🏥 Health check: https://${{ secrets.AZURE_WEBAPP_NAME }}.azurewebsites.net/api/v1/health"

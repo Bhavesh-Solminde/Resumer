@@ -1,0 +1,39 @@
+# Vercel Ignore - Files to exclude from Vercel deployment
+# ============================================================================
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Source files (already compiled to dist/)
+src/
+*.ts
+*.tsx
+!vite-env.d.ts
+
+# Config files (not needed at runtime)
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+eslint.config.js
+components.json
+
+# Documentation
+README.md
+*.md
+
+# Scripts
+scripts/
+
+# Development files
+.env
+.env.local
+.env.development
+
+# Build artifacts from root and other packages
+../.git/
+../node_modules/
+../backend/
+../packages/shared-types/src/
+
+# Keep only the compiled output (dist/) and necessary runtime files

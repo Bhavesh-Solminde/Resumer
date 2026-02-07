@@ -8,6 +8,8 @@ import ResumeScan from "../models/resumeScan.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ENV from "../env.js";
+import { calculateATSScore } from "../utils/atsScore.js";
+import type { IQualityMetrics } from "../utils/atsScore.js";
 import type { IOptimizationData } from "@resumer/shared-types";
 // Type augmentation from ../types/express.d.ts is applied globally
 
@@ -23,23 +25,10 @@ interface OptimizeJdBody {
 }
 
 /**
- * Quality metrics extracted by Gemini (used for internal score calculation)
- */
-interface IQualityMetrics {
-  is_contact_info_complete: boolean;
-  bullet_points_count: number;
-  quantified_bullet_points_count: number;
-  action_verbs_used: string[];
-  weak_words_found: string[];
-  spelling_errors: string[];
-  missing_sections: string[];
-}
-
-/**
- * Raw response from Gemini AI for general optimization (single quality_metrics for optimized resume)
+ * Raw response from Gemini AI for general optimization (only AFTER metrics — before comes from stored analysis)
  */
 interface IGeminiOptimizeResponse {
-  quality_metrics: IQualityMetrics; // Metrics for OPTIMIZED resume only
+  quality_metrics_after: IQualityMetrics;  // Metrics for OPTIMIZED resume
   optimization_summary: string;
   red_vs_green_comparison: Array<{
     section: string;
@@ -51,10 +40,9 @@ interface IGeminiOptimizeResponse {
 }
 
 /**
- * Raw response from Gemini AI for JD optimization
+ * Raw response from Gemini AI for JD optimization (only AFTER metrics)
  */
 interface IGeminiJdOptimizeResponse {
-  quality_metrics_before: IQualityMetrics;
   quality_metrics_after: IQualityMetrics;
   optimization_summary: string;
   red_vs_green_comparison: Array<{
@@ -77,118 +65,6 @@ const model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const computeContentHash = (input: Buffer | string): string =>
   createHash("sha256").update(input).digest("hex");
-
-// ============================================================================
-// ATS Score Calculation (shared with analyze.controllers.ts)
-// ============================================================================
-
-/** Strong action verbs that improve ATS scores */
-const STRONG_ACTION_VERBS = new Set([
-  "achieved", "accelerated", "accomplished", "administered", "analyzed",
-  "architected", "automated", "boosted", "built", "collaborated",
-  "consolidated", "created", "decreased", "delivered", "designed",
-  "developed", "devised", "directed", "drove", "eliminated",
-  "engineered", "enhanced", "established", "exceeded", "executed",
-  "expanded", "expedited", "facilitated", "formulated", "generated",
-  "grew", "headed", "implemented", "improved", "increased",
-  "initiated", "innovated", "integrated", "introduced", "launched",
-  "led", "leveraged", "maintained", "managed", "maximized",
-  "mentored", "migrated", "minimized", "modernized", "negotiated",
-  "optimized", "orchestrated", "organized", "overhauled", "oversaw",
-  "pioneered", "planned", "produced", "programmed", "proposed",
-  "redesigned", "reduced", "refactored", "reformed", "remodeled",
-  "replaced", "resolved", "restructured", "revamped", "saved",
-  "scaled", "secured", "simplified", "spearheaded", "standardized",
-  "streamlined", "strengthened", "supervised", "surpassed", "trained",
-  "transformed", "upgraded", "utilized",
-]);
-
-/**
- * Calculate ATS score based on quality metrics
- * @param metrics - Quality metrics from Gemini analysis
- * @returns Calculated ATS score (0-100)
- */
-function calculateATSScore(metrics: IQualityMetrics): number {
-  let score = 0;
-
-  // 1. Contact Information (15 points)
-  if (metrics.is_contact_info_complete) {
-    score += 15;
-  } else {
-    score += 5;
-  }
-
-  // 2. Bullet Points Quantity (15 points)
-  const bulletCount = metrics.bullet_points_count;
-  if (bulletCount >= 15 && bulletCount <= 30) {
-    score += 15;
-  } else if (bulletCount >= 10 && bulletCount < 15) {
-    score += 12;
-  } else if (bulletCount >= 5 && bulletCount < 10) {
-    score += 8;
-  } else if (bulletCount > 0) {
-    score += 4;
-  }
-
-  // 3. Quantified Achievements (20 points)
-  const quantifiedCount = metrics.quantified_bullet_points_count;
-  const quantifiedRatio = bulletCount > 0 ? quantifiedCount / bulletCount : 0;
-  if (quantifiedRatio >= 0.5) {
-    score += 20;
-  } else if (quantifiedRatio >= 0.3) {
-    score += 15;
-  } else if (quantifiedRatio >= 0.15) {
-    score += 10;
-  } else if (quantifiedCount > 0) {
-    score += 5;
-  }
-
-  // 4. Action Verbs Usage (15 points)
-  const actionVerbCount = metrics.action_verbs_used.filter((verb) =>
-    STRONG_ACTION_VERBS.has(verb.toLowerCase())
-  ).length;
-  if (actionVerbCount >= 10) {
-    score += 15;
-  } else if (actionVerbCount >= 6) {
-    score += 12;
-  } else if (actionVerbCount >= 3) {
-    score += 8;
-  } else if (actionVerbCount > 0) {
-    score += 4;
-  }
-
-  // 5. Weak Words Penalty (10 points max)
-  const weakWordsCount = metrics.weak_words_found.length;
-  if (weakWordsCount === 0) {
-    score += 10;
-  } else if (weakWordsCount <= 2) {
-    score += 6;
-  } else if (weakWordsCount <= 5) {
-    score += 2;
-  }
-
-  // 6. Spelling/Grammar (10 points)
-  const spellingErrors = metrics.spelling_errors.length;
-  if (spellingErrors === 0) {
-    score += 10;
-  } else if (spellingErrors <= 2) {
-    score += 6;
-  } else if (spellingErrors <= 5) {
-    score += 3;
-  }
-
-  // 7. Section Completeness (15 points)
-  const missingSections = metrics.missing_sections.length;
-  if (missingSections === 0) {
-    score += 15;
-  } else if (missingSections === 1) {
-    score += 10;
-  } else if (missingSections === 2) {
-    score += 5;
-  }
-
-  return Math.max(0, Math.min(100, score));
-}
 
 // ============================================================================
 // Middleware: Upload to Cloudinary
@@ -222,12 +98,14 @@ export const optimizeResume = asyncHandler(
     }
 
     let resumeText = "";
-    let atsScoreBefore = 0; // Will be fetched from last analysis
     let contentHash: string | null = null;
-    const scanId = (req.body as { scanId?: string }).scanId;
+    let storedQualityMetrics: IQualityMetrics | null = null;
+    let storedAtsScore: number | null = null;
+    const scanId = req.body?.scanId || (req.body as { scanId?: string } | undefined)?.scanId;
 
     console.log("[Optimize] User ID:", req.user._id);
     console.log("[Optimize] Scan ID from body:", scanId);
+    console.log("[Optimize] req.body:", req.body);
 
     if (req.file) {
       // Priority 1: Fresh file upload
@@ -238,14 +116,18 @@ export const optimizeResume = asyncHandler(
         throw new ApiError(400, "Failed to parse PDF file");
       }
       contentHash = computeContentHash(req.file.buffer);
-      // Only reuse score if the uploaded file matches a previous scan by content
-      const lastScan = await ResumeScan.findOne({
+      // Find the corresponding analysis scan to get stored quality_metrics
+      const analysisScan = await ResumeScan.findOne({
         owner: req.user._id,
         contentHash,
+        type: "analysis",
       }).sort({ createdAt: -1 });
-
-      if (lastScan?.atsScore) {
-        atsScoreBefore = lastScan.atsScore;
+      if (analysisScan?.analysisResult) {
+        const result = analysisScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = analysisScan.atsScore;
+        }
       }
     } else if (scanId) {
       // Priority 2: Optimize a specific historical scan by ID
@@ -263,18 +145,42 @@ export const optimizeResume = asyncHandler(
         );
       }
       resumeText = targetScan.resumeText;
-      atsScoreBefore = targetScan.atsScore || 0;
       contentHash =
         targetScan.contentHash ||
         (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
+      // If the scan itself is an analysis, use its stored metrics directly
+      if (targetScan.type === "analysis" && targetScan.analysisResult) {
+        const result = targetScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = targetScan.atsScore;
+        }
+      } else {
+        // Find the analysis scan for the same content
+        const analysisScan = await ResumeScan.findOne({
+          owner: req.user._id,
+          contentHash,
+          type: "analysis",
+        }).sort({ createdAt: -1 });
+        if (analysisScan?.analysisResult) {
+          const result = analysisScan.analysisResult as Record<string, unknown>;
+          if (result.quality_metrics) {
+            storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+            storedAtsScore = analysisScan.atsScore;
+          }
+        }
+      }
     } else {
-      // Priority 3: Fall back to latest scan
-      console.log("[Optimize] No file upload or scanId, fetching latest scan from DB...");
-      const lastScan = await ResumeScan.findOne({ owner: req.user._id }).sort({
+      // Priority 3: Fall back to latest ANALYSIS scan (not optimization)
+      console.log("[Optimize] No file upload or scanId, fetching latest ANALYSIS scan from DB...");
+      const lastScan = await ResumeScan.findOne({ 
+        owner: req.user._id,
+        type: "analysis",
+      }).sort({
         createdAt: -1,
       });
       
-      console.log("[Optimize] Last scan found:", lastScan ? "YES" : "NO");
+      console.log("[Optimize] Last analysis scan found:", lastScan ? "YES" : "NO");
       
       if (!lastScan) {
         throw new ApiError(
@@ -294,24 +200,32 @@ export const optimizeResume = asyncHandler(
           "Resume text not found in history. Please re-analyze your resume.",
         );
       }
-      // Get the "before" score from the last analysis
-      atsScoreBefore = lastScan.atsScore || 0;
       contentHash =
         lastScan.contentHash ||
         (lastScan.resumeText ? computeContentHash(lastScan.resumeText) : null);
+      // Use quality_metrics from the analysis scan directly
+      if (lastScan.analysisResult) {
+        const result = lastScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = lastScan.atsScore;
+        }
+      }
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
       throw new ApiError(400, "Could not extract text from PDF");
     }
 
+    // Log whether we have stored metrics (if not, the "before" score will still be consistent
+    // because we'll recalculate from analysis-stored data)
+    console.log("[Optimize] Stored quality_metrics available:", !!storedQualityMetrics);
+    console.log("[Optimize] Stored ATS score:", storedAtsScore);
+
     const prompt = `
 You are an expert Resume Writer.
 I will provide you with a resume text.
 Your task is to OPTIMIZE the content for impact, clarity, and ATS readability.
-
-PREVIOUS ATS SCORE: ${atsScoreBefore}
-GOAL: The optimized resume MUST score HIGHER than ${atsScoreBefore}. Use the rules below to achieve this.
 
 CRITICAL INSTRUCTIONS:
 1. Generate a UUID (like "a1b2c3d4-e5f6-7890-abcd-ef1234567890") for EVERY "id" field.
@@ -321,6 +235,7 @@ CRITICAL INSTRUCTIONS:
 5. **STRONG VERBS:** Replace all weak verbs (e.g., "Helped", "Worked on", "Responsible for") with strong, unique action verbs (e.g., "Engineered", "Spearheaded", "Optimized").
 6. **CONCISENESS IS KEY:** Bullet points (especially in Projects and Experience) MUST be concise and punchy. Avoid long paragraphs. Recruiters prefer 1-page resumes, so keep descriptions tight, impactful and professional.
 7. **MAINTAIN QUANTITY:** While being concise, DO NOT significantly reduce the total number of bullet points if the previous count was high (15-30 is optimal). Merging too many bullets will lower the score.
+8. **FIX ALL ISSUES:** Eliminate weak words, fix spelling errors, add missing sections from the ORIGINAL to improve the score.
 
 Return ONLY a raw JSON object (no markdown) with this exact structure:
 {
@@ -335,7 +250,7 @@ Return ONLY a raw JSON object (no markdown) with this exact structure:
     }
   ],
 
-  "quality_metrics": {
+  "quality_metrics_after": {
     "is_contact_info_complete": boolean,
     "bullet_points_count": integer,
     "quantified_bullet_points_count": integer,
@@ -429,21 +344,24 @@ Return ONLY a raw JSON object (no markdown) with this exact structure:
   }
 }
 
-QUALITY METRICS RULES (Analyze the OPTIMIZED resume):
+QUALITY METRICS EXTRACTION RULES (Analyze the OPTIMIZED version only):
+- quality_metrics_after: Extract from OPTIMIZED resume
 - is_contact_info_complete: true if Email, Phone, AND Location are ALL present in optimized header
-- bullet_points_count: Total bullet points in OPTIMIZED Experience AND Projects sections
-- quantified_bullet_points_count: Count of bullets with metrics (%, $, numbers) OR placeholders like [X]%, [Amount] in OPTIMIZED text
-- action_verbs_used: List of unique strong verbs used in OPTIMIZED resume
-- weak_words_found: Should be empty or minimal after optimization
-- spelling_errors: Should be empty after optimization (you fix all errors)
-- missing_sections: List of standard sections still missing after optimization
+- bullet_points_count: Total bullet points in Experience AND Projects sections
+- quantified_bullet_points_count: Count of bullets with metrics (%, $, numbers) OR placeholders like [X]%, [Amount]
+- action_verbs_used: List of unique strong verbs used
+- weak_words_found: Should be ZERO or minimal after optimization
+- spelling_errors: Should be ZERO after optimization
+- missing_sections: List of standard sections still missing
 
 OPTIMIZATION RULES:
 - Replace passive voice with active voice
 - Maximize the use of strong action verbs to improve the score
-- Fix any spelling errors found in the original text
+- Fix ALL spelling errors found in the original text
 - Standardize formatting and date formats
 - Add metric placeholders like [X]% where numbers would strengthen the bullet
+- ADD missing sections if possible (e.g., Skills, Summary)
+- ELIMINATE all weak words
 
 FIELD NAME RULES (CRITICAL):
 - Experience: use "title", NOT "role"
@@ -483,24 +401,69 @@ ${resumeText}
       const geminiResponse: IGeminiOptimizeResponse = JSON.parse(cleanJson);
       console.log("[Optimize] JSON parsed successfully");
 
-      // Calculate ATS score for OPTIMIZED resume using quality metrics
-      // "Before" score comes from the last analysis (fetched from DB above)
-      const atsScoreAfter = calculateATSScore(geminiResponse.quality_metrics);
+      // ===================================================================
+      // SCORE CALCULATION: Use stored analysis metrics for "before" score
+      // This guarantees the "before" score EXACTLY matches the analysis score
+      // ===================================================================
+      let atsScoreBefore: number;
+      let qualityMetricsBefore: IQualityMetrics;
+
+      if (storedQualityMetrics && storedAtsScore !== null) {
+        // IDEAL PATH: Use the exact same metrics from the analysis scan
+        atsScoreBefore = storedAtsScore;
+        qualityMetricsBefore = storedQualityMetrics;
+        console.log("[Optimize] Using stored analysis score:", atsScoreBefore);
+      } else {
+        // FALLBACK: No stored metrics (e.g., old scans before this update)
+        // Re-calculate would be non-deterministic, so use a conservative default
+        console.warn("[Optimize] No stored quality_metrics found — using Gemini response fallback");
+        // If Gemini still returned quality_metrics_before (shouldn't), use it; otherwise estimate
+        const fallbackMetrics = (geminiResponse as unknown as { quality_metrics_before?: IQualityMetrics }).quality_metrics_before;
+        if (fallbackMetrics) {
+          qualityMetricsBefore = fallbackMetrics;
+          atsScoreBefore = calculateATSScore(fallbackMetrics);
+        } else {
+          // Last resort: look up the latest analysis scan's atsScore
+          const latestAnalysis = await ResumeScan.findOne({
+            owner: req.user!._id,
+            type: "analysis",
+          }).sort({ createdAt: -1 });
+          atsScoreBefore = latestAnalysis?.atsScore ?? 0;
+          qualityMetricsBefore = {} as IQualityMetrics;
+        }
+      }
+
+      const atsScoreAfter = calculateATSScore(geminiResponse.quality_metrics_after);
+
+      console.log("[Optimize] General Optimization Scores:");
+      console.log("  - Before (from analysis):", atsScoreBefore);
+      console.log("  - After (optimized):", atsScoreAfter);
+      console.log("  - Improvement:", atsScoreAfter - atsScoreBefore);
+
+      // CRITICAL VALIDATION: Ensure optimization actually improved the score
+      if (atsScoreAfter <= atsScoreBefore) {
+        console.error("[Optimize] FAILED: Optimization did not improve the score!");
+        console.error("  - Before metrics:", JSON.stringify(qualityMetricsBefore, null, 2));
+        console.error("  - After metrics:", JSON.stringify(geminiResponse.quality_metrics_after, null, 2));
+        throw new ApiError(
+          500,
+          `Optimization failed to improve resume. Score remained at ${atsScoreBefore}. Please try again or contact support.`
+        );
+      }
 
       // Transform to final optimization result
       const analysisData: IOptimizationResult = {
-        ats_score_before: atsScoreBefore, // From last analysis in DB
-        ats_score_after: atsScoreAfter,   // Calculated from optimized quality_metrics
+        ats_score_before: atsScoreBefore,
+        ats_score_after: atsScoreAfter,
         optimization_summary: geminiResponse.optimization_summary,
         red_vs_green_comparison: geminiResponse.red_vs_green_comparison,
         optimizedResume: geminiResponse.optimizedResume,
       };
 
-      console.log("General Optimization - Before (from DB):", atsScoreBefore, "After:", atsScoreAfter);
-
       req.aiAnalysisResult = {
         ...analysisData,
-        quality_metrics: geminiResponse.quality_metrics, // Only optimized metrics
+        quality_metrics_before: qualityMetricsBefore,
+        quality_metrics_after: geminiResponse.quality_metrics_after,
       } as unknown as Record<string, unknown>;
       req.resumeText = resumeText;
       next();
@@ -530,8 +493,8 @@ export const optimizeJd = asyncHandler(
     _res: Response,
     next: NextFunction,
   ) => {
-    const { jobDescription } = req.body;
-    const scanId = req.body.scanId;
+    const { jobDescription } = req.body || {};
+    const scanId = req.body?.scanId;
     if (!jobDescription) {
       throw new ApiError(400, "Job Description is required");
     }
@@ -541,6 +504,8 @@ export const optimizeJd = asyncHandler(
     }
 
     let resumeText = "";
+    let storedQualityMetrics: IQualityMetrics | null = null;
+    let storedAtsScore: number | null = null;
 
     if (req.file) {
       // Priority 1: Fresh file upload
@@ -549,6 +514,20 @@ export const optimizeJd = asyncHandler(
         resumeText = pdfData.text;
       } catch {
         throw new ApiError(400, "Failed to parse PDF file");
+      }
+      // Find the corresponding analysis scan to get stored quality_metrics
+      const contentHash = computeContentHash(req.file.buffer);
+      const analysisScan = await ResumeScan.findOne({
+        owner: req.user._id,
+        contentHash,
+        type: "analysis",
+      }).sort({ createdAt: -1 });
+      if (analysisScan?.analysisResult) {
+        const result = analysisScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = analysisScan.atsScore;
+        }
       }
     } else if (scanId) {
       // Priority 2: Specific historical scan
@@ -566,9 +545,37 @@ export const optimizeJd = asyncHandler(
         );
       }
       resumeText = targetScan.resumeText;
+      // Get stored quality_metrics from the analysis scan
+      if (targetScan.type === "analysis" && targetScan.analysisResult) {
+        const result = targetScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = targetScan.atsScore;
+        }
+      } else {
+        const contentHash = targetScan.contentHash ||
+          (targetScan.resumeText ? computeContentHash(targetScan.resumeText) : null);
+        if (contentHash) {
+          const analysisScan = await ResumeScan.findOne({
+            owner: req.user._id,
+            contentHash,
+            type: "analysis",
+          }).sort({ createdAt: -1 });
+          if (analysisScan?.analysisResult) {
+            const result = analysisScan.analysisResult as Record<string, unknown>;
+            if (result.quality_metrics) {
+              storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+              storedAtsScore = analysisScan.atsScore;
+            }
+          }
+        }
+      }
     } else {
-      // Priority 3: Fall back to latest scan
-      const lastScan = await ResumeScan.findOne({ owner: req.user._id }).sort({
+      // Priority 3: Fall back to latest ANALYSIS scan (not optimization)
+      const lastScan = await ResumeScan.findOne({ 
+        owner: req.user._id,
+        type: "analysis",
+      }).sort({
         createdAt: -1,
       });
       if (!lastScan) {
@@ -585,11 +592,22 @@ export const optimizeJd = asyncHandler(
           "Resume text not found in history. Please re-upload your resume.",
         );
       }
+      // Use quality_metrics from the analysis scan directly
+      if (lastScan.analysisResult) {
+        const result = lastScan.analysisResult as Record<string, unknown>;
+        if (result.quality_metrics) {
+          storedQualityMetrics = result.quality_metrics as IQualityMetrics;
+          storedAtsScore = lastScan.atsScore;
+        }
+      }
     }
 
     if (!resumeText || resumeText.trim().length === 0) {
       throw new ApiError(400, "Could not extract text from PDF");
     }
+
+    console.log("[Optimize JD] Stored quality_metrics available:", !!storedQualityMetrics);
+    console.log("[Optimize JD] Stored ATS score:", storedAtsScore);
 
     const prompt = `
 You are an expert Resume Writer and ATS Optimization Specialist.
@@ -601,21 +619,12 @@ CRITICAL TRUTH CONSTRAINTS:
 1. **NO LYING:** Do NOT add hard skills (languages, tools, frameworks, certifications) to the optimizedResume if they are not in the original resume
 2. **MISSING SKILLS HANDLING:** If the JD requires a skill the user lacks, add it ONLY to critical_missing_skills array, NOT to the resume
 3. **PHRASING:** You MAY rewrite existing bullet points to use JD-specific terminology (e.g., changing "Used JS" to "Leveraged JavaScript (ES6+)") as long as facts remain true
-4. **DO NOT output ATS scores.** Instead, extract the raw quality metrics for both BEFORE and AFTER versions
+4. **DO NOT output ATS scores.** Instead, extract the raw quality metrics for the OPTIMIZED version only
 5. **PLACEHOLDERS:** If a bullet point is strong but lacks a number, you may add a placeholder like "[X]%" or "[Amount]".
 6. **CONCISENESS IS KEY:** Bullet points (especially in Projects and Experience) MUST be concise and punchy. Avoid long paragraphs. Recruiters prefer 1-page resumes, so keep descriptions tight and impactful.
 
 Return ONLY a raw JSON object (no markdown) with this exact structure:
 {
-  "quality_metrics_before": {
-    "is_contact_info_complete": boolean,
-    "bullet_points_count": integer,
-    "quantified_bullet_points_count": integer,
-    "action_verbs_used": ["verbs", "in", "original"],
-    "weak_words_found": ["weak", "words", "in", "original"],
-    "spelling_errors": ["typos"],
-    "missing_sections": ["missing", "sections"]
-  },
   "quality_metrics_after": {
     "is_contact_info_complete": boolean,
     "bullet_points_count": integer,
@@ -720,13 +729,14 @@ Return ONLY a raw JSON object (no markdown) with this exact structure:
   }
 }
 
-QUALITY METRICS EXTRACTION RULES:
+QUALITY METRICS EXTRACTION RULES (OPTIMIZED version only):
+- quality_metrics_after: Extract from the OPTIMIZED resume you generate
 - is_contact_info_complete: true if Email, Phone, AND Location are ALL present
 - bullet_points_count: Total bullet points in Experience AND Projects sections
 - quantified_bullet_points_count: Bullets with metrics (%, $, numbers) OR placeholders like [X]%, [Amount]
 - action_verbs_used: Extract unique strong verbs starting bullets
-- weak_words_found: Find weak phrases like "helped", "responsible for", "worked on"
-- spelling_errors: List potential typos
+- weak_words_found: Should be ZERO or minimal after optimization
+- spelling_errors: Should be ZERO after optimization
 - missing_sections: Check for missing standard sections
 
 JD-TAILORING RULES:
@@ -771,12 +781,52 @@ ${resumeText}
 
       const geminiResponse: IGeminiJdOptimizeResponse = JSON.parse(cleanJson);
 
-      // Calculate ATS scores internally using quality metrics
-      const atsScoreBefore = calculateATSScore(geminiResponse.quality_metrics_before);
+      // ===================================================================
+      // SCORE CALCULATION: Use stored analysis metrics for "before" score
+      // This guarantees the "before" score EXACTLY matches the analysis score
+      // ===================================================================
+      let atsScoreBefore: number;
+      let qualityMetricsBefore: IQualityMetrics;
+
+      if (storedQualityMetrics && storedAtsScore !== null) {
+        atsScoreBefore = storedAtsScore;
+        qualityMetricsBefore = storedQualityMetrics;
+        console.log("[Optimize JD] Using stored analysis score:", atsScoreBefore);
+      } else {
+        console.warn("[Optimize JD] No stored quality_metrics found — using fallback");
+        const fallbackMetrics = (geminiResponse as unknown as { quality_metrics_before?: IQualityMetrics }).quality_metrics_before;
+        if (fallbackMetrics) {
+          qualityMetricsBefore = fallbackMetrics;
+          atsScoreBefore = calculateATSScore(fallbackMetrics);
+        } else {
+          const latestAnalysis = await ResumeScan.findOne({
+            owner: req.user!._id,
+            type: "analysis",
+          }).sort({ createdAt: -1 });
+          atsScoreBefore = latestAnalysis?.atsScore ?? 0;
+          qualityMetricsBefore = {} as IQualityMetrics;
+        }
+      }
+
       const atsScoreAfter = calculateATSScore(geminiResponse.quality_metrics_after);
 
+      console.log("[Optimize JD] JD Optimization Scores:");
+      console.log("  - Before (from analysis):", atsScoreBefore);
+      console.log("  - After (optimized):", atsScoreAfter);
+      console.log("  - Improvement:", atsScoreAfter - atsScoreBefore);
+
+      // CRITICAL VALIDATION: Ensure optimization actually improved the score
+      if (atsScoreAfter <= atsScoreBefore) {
+        console.error("[Optimize JD] FAILED: Optimization did not improve the score!");
+        console.error("  - Before metrics:", JSON.stringify(qualityMetricsBefore, null, 2));
+        console.error("  - After metrics:", JSON.stringify(geminiResponse.quality_metrics_after, null, 2));
+        throw new ApiError(
+          500,
+          `JD Optimization failed to improve resume. Score remained at ${atsScoreBefore}. The resume may already be well-optimized for this job description.`
+        );
+      }
+
       // Calculate Potential Score Increase
-      // Formula: (Number of Critical Missing Skills) * 5 points
       const potentialScoreIncrease = 
         (geminiResponse.critical_missing_skills?.length || 0) * 5;
 
@@ -789,10 +839,11 @@ ${resumeText}
         optimizedResume: geminiResponse.optimizedResume,
       };
 
-      console.log("JD Optimization - Before:", atsScoreBefore, "After:", atsScoreAfter);
+      console.log("JD Optimization complete. Potential missing skills:", geminiResponse.critical_missing_skills?.length || 0);
+
       req.aiAnalysisResult = {
         ...analysisData,
-        quality_metrics_before: geminiResponse.quality_metrics_before,
+        quality_metrics_before: qualityMetricsBefore,
         quality_metrics_after: geminiResponse.quality_metrics_after,
         critical_missing_skills: geminiResponse.critical_missing_skills,
         jd_keywords_found: geminiResponse.jd_keywords_found,
@@ -834,7 +885,10 @@ export const saveResumeScan = asyncHandler(
       thumbnail = pdfUrl ? pdfUrl.replace(/\.pdf$/i, ".jpg") : null;
       contentHash = computeContentHash(req.file.buffer);
     } else {
-      const lastScan = await ResumeScan.findOne({ owner: userId }).sort({
+      const lastScan = await ResumeScan.findOne({ 
+        owner: userId,
+        type: "analysis", // Only reference analysis scans for PDF/metadata
+      }).sort({
         createdAt: -1,
       });
       if (!lastScan) {
@@ -865,8 +919,16 @@ export const saveResumeScan = asyncHandler(
       type: "optimization",
     });
 
+    console.log("[SaveResumeScan] Scan saved successfully. Returning analysisResult.");
+
+    // Return the analysisResult directly (matching frontend expectation)
     return res
       .status(201)
-      .json(new ApiResponse(201, "Resume scan saved successfully", newScan));
+      .json(
+        new ApiResponse(201, "Resume optimized successfully", {
+          analysisResult: aiResult,
+          scanId: newScan._id.toString(),
+        })
+      );
   },
 );

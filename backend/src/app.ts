@@ -11,6 +11,7 @@ import buildRouter from "./routes/build.routes.js";
 import paymentRouter from "./routes/payment.routes.js";
 import contactRouter from "./routes/contact.routes.js";
 import faqRouter from "./routes/faq.routes.js";
+import healthRouter from "./routes/health.routes.js";
 import ENV from "./env.js";
 import "./passport/google.strategy.js";
 import "./passport/github.strategy.js";
@@ -42,10 +43,25 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "16kb" }));
+// Initialize JSON middleware once
+const jsonParser = express.json({ limit: "16kb" });
+
+// Conditional JSON parsing — skip for webhook routes that need raw body
+app.use((req, res, next) => {
+  if (req.path === "/api/v1/payment/webhook") {
+    // Skip JSON parsing for webhook — express.raw() will handle it in the route
+    next();
+  } else {
+    jsonParser(req, res, next);
+  }
+});
+
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(passport.initialize());
+
+// Health check routes (no auth required)
+app.use("/api/v1", healthRouter);
 
 // Routes
 app.use("/api/v1/auth", authRouter);
