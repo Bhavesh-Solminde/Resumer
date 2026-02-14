@@ -180,6 +180,7 @@ const LandingPage: React.FC = () => {
               <img
                 src="/Analyze.jpg"
                 alt="Resume Analysis Dashboard"
+                loading="lazy"
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-2xl"
               />
             </div>
@@ -211,10 +212,12 @@ const LandingPage: React.FC = () => {
               <img
                 src="/Optimize(light).jpg"
                 alt="Resume Optimization"
+                loading="lazy"
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-2xl dark:hidden"
               />
               <img
                 src="/Optimmize(dark).jpg"
+                loading="lazy"
                 alt="Resume Optimization"
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-2xl hidden dark:block"
               />
@@ -245,6 +248,7 @@ const LandingPage: React.FC = () => {
             </div>
             <div className="flex-1">
               <img
+                loading="lazy"
                 src="/ResumeBuilder.jpg"
                 alt="Resume Builder"
                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-2xl"
