@@ -11,7 +11,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-8.0-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://resumer.vercel.app) · [Report Bug](https://github.com/Bhavesh-Solminde/resumer/issues) · [Request Feature](https://github.com/Bhavesh-Solminde/resumer/issues)
+[Live Demo](https://www.resumerapp.live/) · [Report Bug](https://github.com/Bhavesh-Solminde/resumer/issues) · [Request Feature](https://github.com/Bhavesh-Solminde/resumer/issues)
 
 </div>
 
