@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { useBuildStore } from "../store/Build.store";
 import { usePDFExport } from "../hooks/usePDFExport";
+import { useTheme } from "../components/theme-provider";
 
 // Builder Components
 import BuilderHeader from "../components/builder/BuilderHeader";
@@ -36,9 +37,24 @@ const ResumeBuilder: React.FC = () => {
     cancelPendingAutosave,
   } = useBuildStore();
   const { exportToPDF, isExporting } = usePDFExport();
+  const { theme, setTheme } = useTheme();
 
   // History dialog state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Force light theme on the builder page
+  useEffect(() => {
+    const previousTheme = theme;
+    if (theme !== "light") {
+      setTheme("light");
+    }
+    return () => {
+      // Restore previous theme when leaving the page
+      if (previousTheme !== "light") {
+        setTheme(previousTheme);
+      }
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Track if this is the first mount to avoid initial save
   const isFirstMount = useRef(true);
