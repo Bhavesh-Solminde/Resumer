@@ -60,7 +60,7 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
           
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@50
+        run: npm install -g vercel@50
         
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
