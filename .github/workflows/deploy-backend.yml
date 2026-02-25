@@ -24,10 +24,8 @@ jobs:
         with:
           node-version: '20'
           
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      - name: Enable Corepack for pnpm
+        run: corepack enable pnpm
           
       - name: Get pnpm store directory
         shell: bash
