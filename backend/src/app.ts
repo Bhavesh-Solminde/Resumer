@@ -22,26 +22,30 @@ const app = express();
 app.use(compression());
 
 // CORS configuration - support multiple origins for development
-const allowedOrigins: (string | undefined)[] = [
+const allowedOrigins: string[] = [
   "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:5175",
-  ENV.CORS_ORIGIN,
-].filter(Boolean);
+  "https://resumerapp.live"
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) {
+      
+      // Check if origin is allowed (ignoring trailing slashes)
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      if (allowedOrigins.includes(normalizedOrigin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        // Pass false instead of throwing an Error to prevent 500 crashes
+        callback(null, false);
       }
     },
     credentials: true,
-  })  );
+  })
+);
 
 // Webhook path constant (used for raw body parsing)
 const WEBHOOK_PATH = "/api/v1/payment/webhook";

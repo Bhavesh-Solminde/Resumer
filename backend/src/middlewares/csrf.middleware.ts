@@ -24,19 +24,16 @@ const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
   }
 
   // Build the allowlist from CORS config
-  const allowedOrigins = new Set<string>(
-    [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-      ENV.CORS_ORIGIN,
-    ].filter((o): o is string => !!o),
-  );
+  const allowedOrigins = new Set<string>([
+    "http://localhost:5173",
+    "https://resumerapp.live"
+  ]);
 
   // Check Origin header first (preferred — set by browsers on cross-origin requests)
   const origin = req.headers.origin;
   if (origin) {
-    if (allowedOrigins.has(origin)) {
+    const normalizedOrigin = origin.replace(/\/$/, "");
+    if (allowedOrigins.has(normalizedOrigin)) {
       return next();
     }
     console.warn(`[CSRF] Blocked request: Origin "${origin}" not in allowlist`);
@@ -47,7 +44,7 @@ const csrfProtection = (req: Request, res: Response, next: NextFunction) => {
   const referer = req.headers.referer;
   if (referer) {
     try {
-      const refererOrigin = new URL(referer).origin;
+      const refererOrigin = new URL(referer).origin.replace(/\/$/, "");
       if (allowedOrigins.has(refererOrigin)) {
         return next();
       }
