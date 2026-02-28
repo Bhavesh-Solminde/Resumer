@@ -6,7 +6,7 @@ import { useAuthStore } from "./store/Auth.store";
 import { useSubscriptionStore } from "./store/Subscription.store";
 import { FullScreenAuthLoader } from "./components/ui/auth-loader";
 import ErrorBoundary from "./components/ErrorBoundary";
-
+import { Analytics } from "@vercel/analytics/react"
 import DashboardLayout from "./layouts/DashboardLayout";
 
 // Lazy load pages
@@ -57,6 +57,7 @@ function App() {
 
   return (
     <ErrorBoundary>
+      <Analytics/>
       <Suspense fallback={<FullScreenAuthLoader />}>
         <Routes>
           {/* --- PUBLIC ROUTES --- */}
