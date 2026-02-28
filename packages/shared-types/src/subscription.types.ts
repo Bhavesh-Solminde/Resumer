@@ -56,6 +56,22 @@ export const PLAN_CONFIGS: Record<string, IPlanConfig> = {
       "PDF Export (Free)",
     ],
   },
+  starter: {
+    credits: 500,
+    price: 9,
+    name: "Starter",
+    description: "Limited time March offer",
+    features: [
+      "500 credits for just ₹9",
+      "One-time offer for new users",
+      "Credits never expire",
+      "Resume Analysis (5 credits)",
+      "General Optimization (10 credits)",
+      "JD-Based Optimization (15 credits)",
+      "Resume Builder (Free)",
+      "PDF Export (Free)",
+    ],
+  },
   basic: {
     credits: 200,
     price: 999,
@@ -130,6 +146,7 @@ export interface ISubscriptionStatus {
   credits: number;
   totalCreditsUsed: number;
   subscriptionTier: SubscriptionTier;
+  starterOfferClaimed: boolean;
 }
 
 /**
@@ -138,7 +155,7 @@ export interface ISubscriptionStatus {
 export interface ICreateSubscriptionResponse {
   orderId: string;
   razorpayKeyId: string;
-  plan: "basic" | "pro";
+  plan: "starter" | "basic" | "pro";
   amount: number;
   currency: string;
 }
@@ -160,7 +177,7 @@ export interface IPaymentLogEntry {
   amount: number;
   currency: string;
   status: "success" | "failed" | "pending" | "refunded";
-  plan: "basic" | "pro" | "enterprise" | null;
+  plan: "starter" | "basic" | "pro" | "enterprise" | null;
   creditsGranted: number;
   createdAt: string;
 }

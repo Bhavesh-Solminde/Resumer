@@ -101,14 +101,12 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId }) => {
           <div className="space-y-2 mt-2">
             <div className="space-y-1">
               <div className="relative">
-                <div className="h-4 w-full bg-yellow-300/50 absolute top-1/2 -translate-y-1/2" />
                 <div className="h-3 w-16 bg-blue-600 rounded relative z-10" />
               </div>
               <div className="h-1 w-full bg-slate-200 rounded" />
             </div>
             <div className="space-y-1">
               <div className="relative">
-                <div className="h-4 w-full bg-yellow-300/50 absolute top-1/2 -translate-y-1/2" />
                 <div className="h-3 w-14 bg-blue-600 rounded relative z-10" />
               </div>
               <div className="space-y-0.5">
@@ -171,23 +169,35 @@ const TemplatesModal: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {templateList.map((tmpl) => {
               const isSelected = template === tmpl.id;
+              const isComingSoon = tmpl.id === "basic" || tmpl.id === "modern";
 
               return (
                 <button
                   key={tmpl.id}
-                  onClick={() => handleSelectTemplate(tmpl.id)}
+                  onClick={() => !isComingSoon && handleSelectTemplate(tmpl.id)}
+                  disabled={isComingSoon}
                   className={cn(
                     "group relative rounded-xl overflow-hidden border-2 transition-all duration-200",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                    isComingSoon && "opacity-60 cursor-not-allowed",
                     isSelected
                       ? "border-primary shadow-lg"
-                      : "border-border hover:border-primary/50 hover:shadow-md"
+                      : isComingSoon
+                        ? "border-border"
+                        : "border-border hover:border-primary/50 hover:shadow-md"
                   )}
                 >
                   <div className="aspect-[3/4] bg-white relative">
                     <TemplatePreview templateId={tmpl.id} />
+                    {isComingSoon && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+                        <span className="bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1.5 rounded-full shadow">
+                          Coming Soon
+                        </span>
+                      </div>
+                    )}
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center z-30">
                         <Check className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}

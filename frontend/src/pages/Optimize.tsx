@@ -48,7 +48,6 @@ const Optimize: React.FC = () => {
     isOptimizing,
     optimizationResultGeneral,
     optimizationResultJD,
-    loadFakeData,
     setOptimizationResult,
   } = useResumeStore();
   const { loadOptimizedResume, setSourceScanId } = useBuildStore();
@@ -242,14 +241,6 @@ const Optimize: React.FC = () => {
                 <p className="text-xs text-muted-foreground">
                   The Optimization will be on your Lastest analysis of resume
                 </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={loadFakeData}
-                  className="text-muted-foreground hover:text-foreground text-xs"
-                >
-                  Load Demo Data (Test)
-                </Button>
               </div>
             </CardContent>
           </Card>

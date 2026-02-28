@@ -14,7 +14,7 @@ import ENV from "../env.js";
 // ============================================================================
 
 interface CreateOrderBody {
-  plan: "basic" | "pro";
+  plan: "starter" | "basic" | "pro";
 }
 
 interface VerifyPaymentBody {
@@ -32,7 +32,7 @@ export const createSubscription = asyncHandler(
     const { plan } = req.body;
 
     if (!plan || !PLAN_CONFIG[plan]) {
-      throw new ApiError(400, "Invalid plan. Must be 'basic' or 'pro'.");
+      throw new ApiError(400, "Invalid plan. Must be 'starter', 'basic', or 'pro'.");
     }
 
     if (!req.user?._id) {
@@ -41,6 +41,11 @@ export const createSubscription = asyncHandler(
 
     const user = await User.findById(req.user._id);
     if (!user) throw new ApiError(404, "User not found");
+
+    // Starter plan: one-time only
+    if (plan === "starter" && user.starterOfferClaimed) {
+      throw new ApiError(400, "Starter offer already claimed. Each user can only claim it once.");
+    }
 
     const planConfig = PLAN_CONFIG[plan];
 
@@ -107,7 +112,7 @@ export const verifyPayment = asyncHandler(
     // Fetch order details from Razorpay to determine the plan
     const order = await razorpay.orders.fetch(razorpay_order_id);
     const notes = order.notes as Record<string, string> | undefined;
-    const plan = notes?.plan as "basic" | "pro" | undefined;
+    const plan = notes?.plan as "starter" | "basic" | "pro" | undefined;
 
     if (!plan || !PLAN_CONFIG[plan]) {
       throw new ApiError(400, "Could not determine plan from order");
@@ -153,12 +158,24 @@ export const verifyPayment = asyncHandler(
     }
 
     // Grant credits — safe to run even on recovery (idempotent $inc)
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        $inc: { credits: creditsToAdd },
-        $set: { subscriptionTier: plan },
-      },
+    const updateOps: Record<string, unknown> = {
+      $inc: { credits: creditsToAdd },
+      $set: { subscriptionTier: plan === "starter" ? "basic" : plan },
+    };
+    // Mark starter offer as claimed
+    if (plan === "starter") {
+      (updateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
+    }
+
+    // Atomic guard: for starter plan, only grant if not already claimed
+    const userFilter: Record<string, unknown> = { _id: req.user._id };
+    if (plan === "starter") {
+      userFilter.starterOfferClaimed = { $ne: true };
+    }
+
+    const user = await User.findOneAndUpdate(
+      userFilter,
+      updateOps,
       { new: true },
     );
 
@@ -227,7 +244,7 @@ export const handleRazorpayWebhook = asyncHandler(
         const notes = paymentEntity?.notes;
 
         if (orderId && notes?.userId && notes?.plan) {
-          const plan = notes.plan as "basic" | "pro";
+          const plan = notes.plan as "starter" | "basic" | "pro";
           const planConfig = PLAN_CONFIG[plan];
 
           if (planConfig) {
@@ -265,10 +282,21 @@ export const handleRazorpayWebhook = asyncHandler(
 
               // Grant credits (idempotent — runs on first attempt or recovery)
               try {
-                await User.findByIdAndUpdate(notes.userId, {
+                const webhookUpdateOps: Record<string, unknown> = {
                   $inc: { credits: planConfig.credits },
-                  $set: { subscriptionTier: plan },
-                });
+                  $set: { subscriptionTier: plan === "starter" ? "basic" : plan },
+                };
+                if (plan === "starter") {
+                  (webhookUpdateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
+                }
+
+                // Atomic guard: for starter plan, only grant if not already claimed
+                const webhookUserFilter: Record<string, unknown> = { _id: notes.userId };
+                if (plan === "starter") {
+                  webhookUserFilter.starterOfferClaimed = { $ne: true };
+                }
+
+                await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
 
                 // Mark credits as applied and status as success
                 await PaymentLog.findOneAndUpdate(
@@ -323,7 +351,7 @@ export const getSubscriptionStatus = asyncHandler(
     if (!req.user?._id) throw new ApiError(401, "Unauthorized");
 
     const user = await User.findById(req.user._id).select(
-      "credits totalCreditsUsed subscriptionTier",
+      "credits totalCreditsUsed subscriptionTier starterOfferClaimed",
     );
 
     if (!user) throw new ApiError(404, "User not found");
@@ -333,6 +361,7 @@ export const getSubscriptionStatus = asyncHandler(
         credits: user.credits ?? 20,
         totalCreditsUsed: user.totalCreditsUsed ?? 0,
         subscriptionTier: user.subscriptionTier ?? "free",
+        starterOfferClaimed: user.starterOfferClaimed ?? false,
       }),
     );
   },

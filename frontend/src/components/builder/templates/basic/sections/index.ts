@@ -7,4 +7,4 @@ export { default as ExperienceSection } from "./ExperienceSection";
 export { default as ProjectsSection } from "./ProjectsSection";
 export { default as AchievementsSection } from "./AchievementsSection";
 export { default as CertificationsSection } from "./CertificationsSection";
-export { default as ExtracurricularSection } from "./ExtracurricularSection";
+export { default as VolunteeringSection } from "./VolunteeringSection";

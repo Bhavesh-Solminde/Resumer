@@ -17,6 +17,7 @@ interface SubscriptionState {
   credits: number;
   totalCreditsUsed: number;
   subscriptionTier: SubscriptionTier;
+  starterOfferClaimed: boolean;
   usageStats: IUsageStats | null;
   isLoading: boolean;
   isSubscribing: boolean;
@@ -28,7 +29,7 @@ interface SubscriptionState {
 interface SubscriptionActions {
   fetchStatus: () => Promise<void>;
   fetchUsageStats: () => Promise<void>;
-  createSubscription: (plan: "basic" | "pro") => Promise<ICreateSubscriptionResponse | null>;
+  createSubscription: (plan: "starter" | "basic" | "pro") => Promise<ICreateSubscriptionResponse | null>;
   verifyPayment: (data: {
     razorpay_payment_id: string;
     razorpay_order_id: string;
@@ -44,6 +45,7 @@ const initialState: SubscriptionState = {
   credits: 20,
   totalCreditsUsed: 0,
   subscriptionTier: "free",
+  starterOfferClaimed: false,
   usageStats: null,
   isLoading: false,
   isSubscribing: false,
@@ -63,6 +65,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
         credits: data.credits,
         totalCreditsUsed: data.totalCreditsUsed,
         subscriptionTier: data.subscriptionTier,
+        starterOfferClaimed: data.starterOfferClaimed ?? false,
       });
     } catch (error) {
       console.error("Failed to fetch subscription status:", error);

@@ -7,6 +7,7 @@ import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { useTheme } from "../components/theme-provider";
+import OfferBanner from "../components/OfferBanner";
 import {
   Shield,
   BarChart3,
@@ -45,8 +46,11 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden relative">
+      {/* Offer Banner */}
+      <OfferBanner />
+
       {/* Navbar */}
-      <nav className="absolute top-0 left-0 right-0 z-50 flex justify-between items-center p-6 max-w-7xl mx-auto">
+      <nav className="sticky top-0 z-50 flex justify-between items-center p-6 max-w-7xl mx-auto bg-background/80 backdrop-blur-sm">
         <div className="font-bold text-xl flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
             R

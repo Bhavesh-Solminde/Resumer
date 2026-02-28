@@ -22,7 +22,8 @@ export type SectionType =
   | "socialLinks"
   | "strengths"
   | "achievements"
-  | "extracurricular"
+  | "volunteering"
+  | "extracurricular" // deprecated — kept for backward compat with persisted data
   | "custom";
 
 // ============================================================================
@@ -90,6 +91,8 @@ export interface IProjectItem extends IItemBase {
   description: string;
   bullets: string[];
   link: string;
+  githubLink?: string;
+  liveLink?: string;
 }
 
 export interface ICertificationItem extends IItemBase {
@@ -100,7 +103,7 @@ export interface ICertificationItem extends IItemBase {
   credentialId: string;
 }
 
-export interface IExtracurricularItem extends IItemBase {
+export interface IVolunteeringItem extends IItemBase {
   title: string;
   organization: string;
   startDate: string;
@@ -268,10 +271,10 @@ export interface ICustomSection extends ISectionBase {
   };
 }
 
-export interface IExtracurricularSection extends ISectionBase {
-  type: "extracurricular";
+export interface IVolunteeringSection extends ISectionBase {
+  type: "volunteering";
   data: {
-    items: IExtracurricularItem[];
+    items: IVolunteeringItem[];
   };
 }
 
@@ -307,7 +310,7 @@ export type Section =
   | ISocialLinksSection
   | IStrengthsSection
   | IAchievementsSection
-  | IExtracurricularSection
+  | IVolunteeringSection
   | ICustomSection;
 
 // ============================================================================
@@ -324,3 +327,12 @@ export interface ISectionStructure {
 export type SectionTemplateMap = Partial<
   Record<SectionType, ISectionStructure>
 >;
+
+// ============================================================================
+// Backward-Compat Aliases (deprecated — use IVolunteering* instead)
+// ============================================================================
+
+/** @deprecated Use IVolunteeringItem */
+export type IExtracurricularItem = IVolunteeringItem;
+/** @deprecated Use IVolunteeringSection */
+export type IExtracurricularSection = IVolunteeringSection;

@@ -162,9 +162,9 @@ export const createSectionTemplates = (): SectionTemplateMap => ({
       ],
     },
   },
-  extracurricular: {
-    type: "extracurricular",
-    label: "Extracurricular Activities",
+  volunteering: {
+    type: "volunteering",
+    label: "Volunteering",
     icon: "Users",
     data: {
       items: [
