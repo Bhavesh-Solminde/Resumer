@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Type, Calendar, Trash2, Settings } from "lucide-react";
+import { Plus, Type, Calendar, Trash2, Settings, Github, ExternalLink } from "lucide-react";
 import { cn } from "../../../lib/utils";
 
 type ToolbarPosition = "top" | "right" | "left";
@@ -11,12 +11,16 @@ interface ItemToolbarProps {
   onDelete?: () => void;
   onDeleteSection?: () => void;
   onSettings?: () => void;
+  onGithubLink?: () => void;
+  onLiveLink?: () => void;
   showAddEntry?: boolean;
   showToggleText?: boolean;
   showCalendar?: boolean;
   showDelete?: boolean;
   showDeleteSection?: boolean;
   showSettings?: boolean;
+  showGithubLink?: boolean;
+  showLiveLink?: boolean;
   className?: string;
   position?: ToolbarPosition;
 }
@@ -34,12 +38,16 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
   onDelete,
   onDeleteSection,
   onSettings,
+  onGithubLink,
+  onLiveLink,
   showAddEntry = true,
   showToggleText = false,
   showCalendar = true,
   showDelete = true,
   showDeleteSection = true,
   showSettings = false,
+  showGithubLink = false,
+  showLiveLink = false,
   className = "",
   position = "top",
 }) => {
@@ -76,6 +84,28 @@ const ItemToolbar: React.FC<ItemToolbarProps> = ({
             title="Edit dates"
           >
             <Calendar className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+        )}
+
+        {/* GitHub Link */}
+        {showGithubLink && (
+          <button
+            onClick={onGithubLink}
+            className="p-1.5 rounded hover:bg-gray-100"
+            title="Edit GitHub link"
+          >
+            <Github className="w-3.5 h-3.5 text-gray-600" />
+          </button>
+        )}
+
+        {/* Live Link */}
+        {showLiveLink && (
+          <button
+            onClick={onLiveLink}
+            className="p-1.5 rounded hover:bg-gray-100"
+            title="Edit live link"
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-gray-600" />
           </button>
         )}
 

@@ -33,6 +33,7 @@ export interface IUser {
   credits: number;
   totalCreditsUsed: number;
   subscriptionTier: SubscriptionTier; // Tracks highest plan purchased (free/basic/pro)
+  starterOfferClaimed: boolean; // Whether user has claimed the ₹9 starter offer
   monthlyUsage: IMonthlyUsage[];
 
   createdAt: Date;
@@ -107,6 +108,10 @@ const UserSchema = new Schema<IUser, UserModel, IUserMethods>(
       type: String,
       enum: ["free", "basic", "pro", "enterprise"],
       default: "free",
+    },
+    starterOfferClaimed: {
+      type: Boolean,
+      default: false,
     },
     monthlyUsage: [
       {

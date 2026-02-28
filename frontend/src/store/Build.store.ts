@@ -194,7 +194,7 @@ const initializeBuilderState = (): BuildState => {
     style: { ...defaultStyle },
 
     // Templates
-    template: "basic",
+    template: "shraddha",
     registeredTemplates: defaultTemplates,
     sectionTemplates: createSectionTemplates(),
 
@@ -386,20 +386,25 @@ export const useBuildStore = create<BuildState & BuildActions & UndoActions>()(
             sectionOrder.push(achId);
           }
 
-          // 9. Extracurricular
-          if (optimizedResume.extracurricular?.length > 0) {
-            const extraId = uuidv4();
+          // 9. Volunteering
+          const volItems = optimizedResume.volunteering?.length
+            ? optimizedResume.volunteering
+            : optimizedResume.extracurricular?.length
+              ? optimizedResume.extracurricular
+              : [];
+          if (volItems.length > 0) {
+            const volId = uuidv4();
             sections.push({
-              id: extraId,
-              type: "extracurricular",
+              id: volId,
+              type: "volunteering",
               data: {
-                items: optimizedResume.extracurricular.map((extra) => ({
-                  ...extra,
-                  id: extra.id || uuidv4(),
+                items: volItems.map((item) => ({
+                  ...item,
+                  id: item.id || uuidv4(),
                 })),
               },
             });
-            sectionOrder.push(extraId);
+            sectionOrder.push(volId);
           }
 
           set({

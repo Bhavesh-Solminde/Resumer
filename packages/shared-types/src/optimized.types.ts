@@ -3,7 +3,7 @@ import type {
   ICertificationItem,
   IEducationItem,
   IExperienceItem,
-  IExtracurricularItem,
+  IVolunteeringItem,
   IHeaderData,
   IProjectItem,
   ISummaryData,
@@ -21,5 +21,7 @@ export interface IOptimizedResume {
   skills: { title: string; items: string[] };
   certifications: ICertificationItem[];
   achievements: IAchievementItem[];
-  extracurricular: IExtracurricularItem[];
+  volunteering: IVolunteeringItem[];
+  /** @deprecated Use volunteering instead — kept for backward compatibility with old API responses */
+  extracurricular?: IVolunteeringItem[];
 }

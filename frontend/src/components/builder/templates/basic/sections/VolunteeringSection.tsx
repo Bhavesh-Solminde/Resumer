@@ -53,7 +53,7 @@ const parseDateString = (
   return null;
 };
 
-interface ExtracurricularItem {
+interface VolunteeringItem {
   id: string;
   title?: string;
   organization?: string;
@@ -63,30 +63,30 @@ interface ExtracurricularItem {
   bullets?: string[];
 }
 
-interface ExtracurricularSectionSettings {
+interface VolunteeringSectionSettings {
   showOrganization?: boolean;
   showPeriod?: boolean;
   showDescription?: boolean;
   showBullets?: boolean;
 }
 
-interface ExtracurricularSectionProps {
-  data?: ExtracurricularItem[];
+interface VolunteeringSectionProps {
+  data?: VolunteeringItem[];
   sectionId?: string;
   sectionType?: string;
-  settings?: ExtracurricularSectionSettings;
+  settings?: VolunteeringSectionSettings;
   themeColor?: string;
   hideHeader?: boolean;
   displayItemIndices?: number[];
 }
 
 /**
- * Extracurricular Activities Section for Basic template
+ * Volunteering Section for Basic template
  */
-const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
+const VolunteeringSection: React.FC<VolunteeringSectionProps> = ({
   data = [],
-  sectionId = "extracurricular",
-  sectionType = "extracurricular",
+  sectionId = "volunteering",
+  sectionType = "volunteering",
   settings = {},
   themeColor,
   hideHeader = false,
@@ -99,7 +99,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
 
-  const sectionSettings: Required<ExtracurricularSectionSettings> = {
+  const sectionSettings: Required<VolunteeringSectionSettings> = {
     showOrganization: true,
     showPeriod: true,
     showDescription: true,
@@ -130,8 +130,8 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
 
   const handleAddItem = () => {
     if (!sectionId) return;
-    const newItem: ExtracurricularItem = {
-      id: `extra-${Date.now()}`,
+    const newItem: VolunteeringItem = {
+      id: `vol-${Date.now()}`,
       title: "",
       organization: "",
       startDate: null,
@@ -145,7 +145,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   const handleDeleteItem = (itemId: string) => {
     if (!sectionId) return;
     setConfirmDialog?.({
-      title: "Delete Extracurricular Activity",
+      title: "Delete Volunteering Activity",
       message: "Are you sure you want to delete this activity?",
       onConfirm: () => {
         updateSectionData(sectionId, {
@@ -177,13 +177,13 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
       <div className="mb-4">
         {!hideHeader && (
           <SectionHeader
-            title="Extracurricular Activities"
+            title="Volunteering"
             themeColor={themeColor}
           />
         )}
         <EmptyState
           title="No activities added"
-          description="Click to add extracurricular activities"
+          description="Click to add volunteering activities"
           onAdd={handleAddItem}
           icon={Users}
         />
@@ -196,7 +196,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
       {!hideHeader && (
         <div data-pagination-header>
           <SectionHeader
-            title="Extracurricular Activities"
+            title="Volunteering"
             themeColor={themeColor}
           />
         </div>
@@ -218,7 +218,7 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
                 className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
-                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "extracurricular")}
+                onDeleteSection={() => removeSectionWithConfirm(sectionId!, "volunteering")}
                 onOpenCalendar={() =>
                   setCalendarOpen(calendarOpen === item.id ? null : item.id)
                 }
@@ -326,4 +326,4 @@ const ExtracurricularSection: React.FC<ExtracurricularSectionProps> = ({
   );
 };
 
-export default ExtracurricularSection;
+export default VolunteeringSection;

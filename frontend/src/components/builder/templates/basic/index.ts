@@ -12,7 +12,7 @@ import SkillsSection from "./sections/SkillsSection";
 import SummarySection from "./sections/SummarySection";
 import AchievementsSection from "./sections/AchievementsSection";
 import CertificationsSection from "./sections/CertificationsSection";
-import ExtracurricularSection from "./sections/ExtracurricularSection";
+import VolunteeringSection from "./sections/VolunteeringSection";
 
 // Preview component
 import TemplatePreview from "./TemplatePreview";
@@ -37,7 +37,7 @@ const basicTemplate = {
     summary: SummarySection,
     achievements: AchievementsSection,
     certifications: CertificationsSection,
-    extracurricular: ExtracurricularSection,
+    volunteering: VolunteeringSection,
   },
 
   sampleData: sampleData as unknown as Record<string, unknown>,

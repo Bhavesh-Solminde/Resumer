@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FolderKanban, ExternalLink } from "lucide-react";
+import React, { useState, useRef, useCallback } from "react";
+import { FolderKanban, ExternalLink, Github } from "lucide-react";
 import {
   EditableText,
   ItemToolbar,
@@ -19,6 +19,8 @@ interface ProjectItem {
   description?: string;
   technologies?: string[];
   link?: string;
+  githubLink?: string;
+  liveLink?: string;
   bullets?: string[];
   startDate?: DateValue | string | null;
   endDate?: DateValue | string | null;
@@ -74,6 +76,17 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<string | null>(null);
+  const [editingLink, setEditingLink] = useState<{ itemId: string; type: "github" | "live" } | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = useCallback((itemId: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoveredItemId(itemId);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    hoverTimeoutRef.current = setTimeout(() => setHoveredItemId(null), 150);
+  }, []);
 
   const sectionSettings: Required<ProjectsSectionSettings> = {
     showTechnologies: true,
@@ -101,6 +114,8 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
       description: "",
       technologies: [],
       link: "",
+      githubLink: "",
+      liveLink: "",
       bullets: [""],
       startDate: null,
       endDate: null,
@@ -182,8 +197,8 @@ const handleSettingsChange = (key: string, value: boolean) => {
           <div
             key={item.id}
             className="group relative"
-            onMouseEnter={() => setHoveredItemId(item.id)}
-            onMouseLeave={() => setHoveredItemId(null)}
+            onMouseEnter={() => handleMouseEnter(item.id)}
+            onMouseLeave={handleMouseLeave}
             data-pagination-item
           >
             {hoveredItemId === item.id && (
@@ -194,7 +209,11 @@ const handleSettingsChange = (key: string, value: boolean) => {
                 onDelete={() => handleDeleteItem(item.id)}
                 onDeleteSection={() => removeSectionWithConfirm(sectionId!, "projects")}
                 onSettings={() => setSettingsOpen(item.id)}
+                onGithubLink={() => setEditingLink({ itemId: item.id, type: "github" })}
+                onLiveLink={() => setEditingLink({ itemId: item.id, type: "live" })}
                 showSettings={true}
+                showGithubLink={true}
+                showLiveLink={true}
               />
             )}
 
@@ -240,24 +259,59 @@ const handleSettingsChange = (key: string, value: boolean) => {
                     className="font-semibold text-gray-900"
                     as="h3"
                   />
-                  {sectionSettings.showLink && item.link && (
-                    <a
-                      href={
-                        item.link.startsWith("http")
-                          ? item.link
-                          : `https://${item.link}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 hover:underline"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>
-                        {item.link.toLowerCase().includes("github")
-                          ? "GitHub link"
-                          : "Live"}
-                      </span>
-                    </a>
+                  {sectionSettings.showLink && (
+                    <div className="flex items-center gap-2">
+                      {(item.githubLink || editingLink?.itemId === item.id && editingLink?.type === "github") && (
+                        editingLink?.itemId === item.id && editingLink?.type === "github" ? (
+                          <input
+                            autoFocus
+                            type="text"
+                            value={item.githubLink || ""}
+                            onChange={(e) => handleFieldChange(item.id, "githubLink", e.target.value)}
+                            onBlur={() => setEditingLink(null)}
+                            onKeyDown={(e) => e.key === "Enter" && setEditingLink(null)}
+                            placeholder="GitHub URL"
+                            className="text-xs border border-teal-300 rounded px-1.5 py-0.5 w-40 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                          />
+                        ) : (
+                          <a
+                            href={item.githubLink!.startsWith("http") ? item.githubLink! : `https://${item.githubLink!}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => { e.preventDefault(); setEditingLink({ itemId: item.id, type: "github" }); }}
+                            className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 hover:underline cursor-pointer"
+                          >
+                            <Github className="w-3 h-3" />
+                            <span>GitHub</span>
+                          </a>
+                        )
+                      )}
+                      {(item.liveLink || editingLink?.itemId === item.id && editingLink?.type === "live") && (
+                        editingLink?.itemId === item.id && editingLink?.type === "live" ? (
+                          <input
+                            autoFocus
+                            type="text"
+                            value={item.liveLink || ""}
+                            onChange={(e) => handleFieldChange(item.id, "liveLink", e.target.value)}
+                            onBlur={() => setEditingLink(null)}
+                            onKeyDown={(e) => e.key === "Enter" && setEditingLink(null)}
+                            placeholder="Live URL"
+                            className="text-xs border border-teal-300 rounded px-1.5 py-0.5 w-40 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                          />
+                        ) : (
+                          <a
+                            href={item.liveLink!.startsWith("http") ? item.liveLink! : `https://${item.liveLink!}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => { e.preventDefault(); setEditingLink({ itemId: item.id, type: "live" }); }}
+                            className="inline-flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 hover:underline cursor-pointer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Live</span>
+                          </a>
+                        )
+                      )}
+                    </div>
                   )}
                 </div>
                 {sectionSettings.showPeriod && (

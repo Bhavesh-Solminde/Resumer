@@ -14,6 +14,10 @@ const razorpay = new Razorpay({
  * (No Razorpay plan IDs needed — we use Orders API with one-time payments)
  */
 export const PLAN_CONFIG = {
+  starter: {
+    credits: 500,
+    price: 9, // INR — limited-time March offer
+  },
   basic: {
     credits: 200,
     price: 999, // INR

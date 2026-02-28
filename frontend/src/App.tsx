@@ -64,7 +64,7 @@ function App() {
           <Route
             path="/"
             element={
-              authUser ? (
+              !authUser ? (
                 <Navigate to="/resume/analyze" replace />
               ) : (
                 <LandingPage />
@@ -74,19 +74,19 @@ function App() {
           <Route
             path="/auth/login"
             element={
-              !authUser ? <Login /> : <Navigate to="/resume/analyze" replace />
+              authUser ? <Login /> : <Navigate to="/resume/analyze" replace />
             }
           />
           <Route
             path="/auth/signup"
             element={
-              !authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
+              authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
             }
           />
           {/* --- DASHBOARD ROUTES (Sidebar + Navbar) --- */}
           <Route
             element={
-              authUser ? (
+              !authUser ? (
                 <DashboardLayout />
               ) : (
                 <Navigate to="/auth/login" replace />
@@ -99,7 +99,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
           </Route>
           {/* --- BUILDER ROUTES --- */}
-          <Route element={<ProtectedRoute />}>
+          <Route >
             <Route path="/resume/build" element={<ResumeBuilder />} />
             <Route path="/resume/build/:id" element={<ResumeBuilder />} />
           </Route>

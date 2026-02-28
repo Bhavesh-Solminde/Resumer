@@ -1,7 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { formatDate } from "../../../lib/dateUtils";
-import type { IStyle, ITemplateTheme, ICertificationItem, IAchievementItem, IExtracurricularItem } from "@resumer/shared-types";
+import type { IStyle, ITemplateTheme, ICertificationItem, IAchievementItem, IVolunteeringItem } from "@resumer/shared-types";
 import { getTemplateTheme } from "@resumer/shared-types";
 
 // Style type for react-pdf
@@ -77,7 +77,8 @@ interface ProjectItem {
   description?: string;
   technologies?: string[];
   bullets?: string[];
-  link?: string;
+  githubLink?: string;
+  liveLink?: string;
 }
 
 interface ProjectsData {
@@ -92,8 +93,8 @@ interface AchievementsData {
   items?: IAchievementItem[];
 }
 
-interface ExtracurricularData {
-  items?: IExtracurricularItem[];
+interface VolunteeringData {
+  items?: IVolunteeringItem[];
 }
 
 type SectionData =
@@ -105,7 +106,7 @@ type SectionData =
   | ProjectsData
   | CertificationsData
   | AchievementsData
-  | ExtracurricularData;
+  | VolunteeringData;
 
 interface Section {
   id: string;
@@ -118,7 +119,7 @@ interface Section {
     | "projects"
     | "certifications"
     | "achievements"
-    | "extracurricular";
+    | "volunteering";
   data: SectionData;
 }
 
@@ -320,7 +321,7 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
       paddingBottom: 4,
       borderBottomWidth: layout.sectionBorderStyle === "bottom" ? 1 : 0,
       borderBottomColor: primaryColor,
-      backgroundColor: "white",
+      backgroundColor: isShraddha ? colors.headerBg : "white",
       padding: isShraddha ? 6 : 0,
     },
     paragraph: {
@@ -484,6 +485,7 @@ const PDFExperience: React.FC<SectionComponentProps> = ({
         <View
           key={item.id || `${item.title}-${item.company}`}
           style={styles.experienceItem}
+          wrap={false}
         >
           <View style={styles.experienceHeader}>
             <View>
@@ -540,7 +542,7 @@ const PDFEducation: React.FC<SectionComponentProps> = ({
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Education</Text>
       {educationData.items?.map((item, index) => (
-        <View key={item.id || index} style={styles.experienceItem}>
+        <View key={item.id || index} style={styles.experienceItem} wrap={false}>
           <View style={styles.experienceHeader}>
             <View>
               <Text style={styles.experienceTitle}>{item.degree}</Text>
@@ -615,7 +617,7 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Projects</Text>
       {projectsData.items?.map((item, index) => (
-        <View key={item.id || index} style={styles.projectItem}>
+        <View key={item.id || index} style={styles.projectItem} wrap={false}>
           <View style={styles.experienceHeader}>
             <Text style={styles.projectName}>{item.name}</Text>
             {showPeriod && (
@@ -643,19 +645,33 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
                 {item.technologies.join(" • ")}
               </Text>
             )}
-          {showLink && item.link && (
-            <Link
-              src={
-                item.link.startsWith("http")
-                  ? item.link
-                  : `https://${item.link}`
-              }
-              style={styles.linkText}
-            >
-              {item.link.toLowerCase().includes("github")
-                ? "GitHub link"
-                : "Live"}
-            </Link>
+          {showLink && (item.githubLink || item.liveLink) && (
+            <View style={{ flexDirection: "row", gap: 8, marginTop: 2 }}>
+              {item.githubLink && (
+                <Link
+                  src={
+                    item.githubLink.startsWith("http")
+                      ? item.githubLink
+                      : `https://${item.githubLink}`
+                  }
+                  style={styles.linkText}
+                >
+                  GitHub
+                </Link>
+              )}
+              {item.liveLink && (
+                <Link
+                  src={
+                    item.liveLink.startsWith("http")
+                      ? item.liveLink
+                      : `https://${item.liveLink}`
+                  }
+                  style={styles.linkText}
+                >
+                  Live
+                </Link>
+              )}
+            </View>
           )}
           {showBullets && item.bullets && item.bullets.length > 0 && (
             <View style={styles.bulletList}>
@@ -734,13 +750,13 @@ const PDFAchievements: React.FC<SectionComponentProps> = ({ data, styles }) => {
   );
 };
 
-// Extracurricular Component
-const PDFExtracurricular: React.FC<SectionComponentProps> = ({ data, styles }) => {
-  const extracurricularData = data as ExtracurricularData;
+// Volunteering Component
+const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
+  const volunteeringData = data as VolunteeringData;
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Extracurricular Activities</Text>
-      {extracurricularData.items?.map((item, index) => (
+      <Text style={styles.sectionTitle}>Volunteering</Text>
+      {volunteeringData.items?.map((item, index) => (
         <View key={item.id || index} style={styles.experienceItem}>
           <View style={styles.experienceHeader}>
             <View>
@@ -873,9 +889,9 @@ const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
             settings={settings}
           />
         );
-      case "extracurricular":
+      case "volunteering":
         return (
-          <PDFExtracurricular
+          <PDFVolunteering
             key={section.id}
             data={section.data}
             styles={styles}
@@ -889,7 +905,7 @@ const ResumePDFDocument: React.FC<ResumePDFDocumentProps> = ({ data }) => {
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap>
         {orderedSections.map(renderSection)}
       </Page>
     </Document>

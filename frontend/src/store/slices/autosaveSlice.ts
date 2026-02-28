@@ -440,8 +440,8 @@ function transformSectionsToContent(
       case "achievements":
         content.achievements = (data as { items?: unknown[] })?.items || [];
         break;
-      case "extracurricular":
-        content.extracurricular = (data as { items?: unknown[] })?.items || [];
+      case "volunteering":
+        content.volunteering = (data as { items?: unknown[] })?.items || [];
         break;
     }
   }
