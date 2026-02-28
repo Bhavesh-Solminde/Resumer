@@ -1,33 +1,18 @@
 # Vercel Ignore - Files to exclude from Vercel deployment
 # ============================================================================
+# IMPORTANT: .vercelignore removes files BEFORE the build step runs.
+# Do NOT ignore source files, configs, or lockfiles needed for building.
 
-# Dependencies
-node_modules/
-pnpm-lock.yaml
+# Backend (not needed for frontend build)
+backend/
 
-# Source files (already compiled to dist/)
-src/
-*.ts
-*.tsx
-!vite-env.d.ts
-
-# Config files (not needed at runtime)
-tsconfig.json
-tsconfig.node.json
-vite.config.ts
-eslint.config.js
-components.json
-
-# Documentation
+# CI/CD & docs
+.github/
+DEPLOYMENT.md
+GITHUB_SECRETS.md
+PRODUCTION_CHECKLIST.md
 README.md
-*.md
 
-# Scripts
-scripts/
-
-# Development files
-.env
+# Development-only files
 .env.local
 .env.development
-
-# Keep only the compiled output (dist/) and necessary runtime files

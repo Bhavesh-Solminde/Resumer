@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @resumer/shared-types build && pnpm --filter frontend build",
+  "buildCommand": "pnpm --filter @resumer/shared-types build && pnpm --filter frontend build",
   "outputDirectory": "frontend/dist",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": null,
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
