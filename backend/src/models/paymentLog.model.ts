@@ -84,7 +84,7 @@ const PaymentLogSchema = new Schema<IPaymentLog>(
     },
     plan: {
       type: String,
-      enum: ["basic", "pro", "enterprise", null],
+      enum: ["starter", "basic", "pro", "enterprise", null],
       default: null,
     },
     creditsGranted: {

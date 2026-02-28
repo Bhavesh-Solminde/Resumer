@@ -106,7 +106,7 @@ const UserSchema = new Schema<IUser, UserModel, IUserMethods>(
     },
     subscriptionTier: {
       type: String,
-      enum: ["free", "basic", "pro", "enterprise"],
+      enum: ["free", "starter", "basic", "pro", "enterprise"],
       default: "free",
     },
     starterOfferClaimed: {
