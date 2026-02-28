@@ -174,6 +174,10 @@ interface SectionComponentProps {
 const pxToPt = (px: number) => px * 0.75;
 const MM_TO_PT = 2.83465;
 
+/** Ensure URL has a protocol prefix */
+const ensureProtocol = (url: string): string =>
+  url.startsWith("http") ? url : `https://${url}`;
+
 const horizontalPaddingPx: Record<number, number> = {
   1: 24, // px-6
   2: 40, // px-10
@@ -649,11 +653,7 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
             <View style={{ flexDirection: "row", gap: 8, marginTop: 2 }}>
               {item.githubLink && (
                 <Link
-                  src={
-                    item.githubLink.startsWith("http")
-                      ? item.githubLink
-                      : `https://${item.githubLink}`
-                  }
+                  src={ensureProtocol(item.githubLink)}
                   style={styles.linkText}
                 >
                   GitHub
@@ -661,11 +661,7 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
               )}
               {item.liveLink && (
                 <Link
-                  src={
-                    item.liveLink.startsWith("http")
-                      ? item.liveLink
-                      : `https://${item.liveLink}`
-                  }
+                  src={ensureProtocol(item.liveLink)}
                   style={styles.linkText}
                 >
                   Live
@@ -757,7 +753,7 @@ const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Volunteering</Text>
       {volunteeringData.items?.map((item, index) => (
-        <View key={item.id || index} style={styles.experienceItem}>
+        <View key={item.id || index} style={styles.experienceItem} wrap={false}>
           <View style={styles.experienceHeader}>
             <View>
               <Text style={styles.experienceTitle}>{item.title}</Text>

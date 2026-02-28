@@ -10,7 +10,7 @@ import { FileText, Zap, PenTool, Users, User } from "lucide-react";
 
 const DashboardLayout = () => {
   const location = useLocation();
-  const { starterOfferClaimed, fetchStatus } = useSubscriptionStore();
+  const { starterOfferClaimed, isLoading: isSubscriptionLoading, fetchStatus } = useSubscriptionStore();
   const [showOfferModal, setShowOfferModal] = useState(false);
 
   useEffect(() => {
@@ -18,14 +18,16 @@ const DashboardLayout = () => {
   }, [fetchStatus]);
 
   // Show the starter offer modal once if user hasn't claimed it
+  // Wait until subscription status is loaded to avoid false positives
   useEffect(() => {
+    if (isSubscriptionLoading) return;
     const dismissed = sessionStorage.getItem("resumer_starter_modal_dismissed");
     if (!starterOfferClaimed && !dismissed) {
       // Small delay so the page loads first
       const timer = setTimeout(() => setShowOfferModal(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, [starterOfferClaimed]);
+  }, [starterOfferClaimed, isSubscriptionLoading]);
 
   const handleCloseModal = () => {
     setShowOfferModal(false);

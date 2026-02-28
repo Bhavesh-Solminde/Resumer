@@ -177,7 +177,7 @@ export interface IPaymentLogEntry {
   amount: number;
   currency: string;
   status: "success" | "failed" | "pending" | "refunded";
-  plan: "basic" | "pro" | "enterprise" | null;
+  plan: "starter" | "basic" | "pro" | "enterprise" | null;
   creditsGranted: number;
   createdAt: string;
 }

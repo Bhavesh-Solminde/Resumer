@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
 import "./App.css";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "./store/Auth.store";
 import { useSubscriptionStore } from "./store/Subscription.store";
@@ -30,12 +30,6 @@ const Disclaimer = lazy(() => import("./pages/legal/Disclaimer"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentFailure = lazy(() => import("./pages/PaymentFailure"));
 
-const ProtectedRoute = () => {
-  const { authUser } = useAuthStore();
-  if (!authUser) return <Navigate to="/auth/login" replace />;
-  return <Outlet />;
-};
-
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { fetchStatus } = useSubscriptionStore();
@@ -64,7 +58,7 @@ function App() {
           <Route
             path="/"
             element={
-              !authUser ? (
+              authUser ? (
                 <Navigate to="/resume/analyze" replace />
               ) : (
                 <LandingPage />
@@ -74,19 +68,19 @@ function App() {
           <Route
             path="/auth/login"
             element={
-              authUser ? <Login /> : <Navigate to="/resume/analyze" replace />
+              !authUser ? <Login /> : <Navigate to="/resume/analyze" replace />
             }
           />
           <Route
             path="/auth/signup"
             element={
-              authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
+              !authUser ? <Signup /> : <Navigate to="/resume/analyze" replace />
             }
           />
           {/* --- DASHBOARD ROUTES (Sidebar + Navbar) --- */}
           <Route
             element={
-              !authUser ? (
+              authUser ? (
                 <DashboardLayout />
               ) : (
                 <Navigate to="/auth/login" replace />
@@ -99,10 +93,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
           </Route>
           {/* --- BUILDER ROUTES --- */}
-          <Route >
-            <Route path="/resume/build" element={<ResumeBuilder />} />
-            <Route path="/resume/build/:id" element={<ResumeBuilder />} />
-          </Route>
+          <Route path="/resume/build" element={<ResumeBuilder />} />
+          <Route path="/resume/build/:id" element={<ResumeBuilder />} />
           {/* --- PUBLIC PAGES (also accessible when logged in) --- */}
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/about" element={<About />} />

@@ -167,8 +167,14 @@ export const verifyPayment = asyncHandler(
       (updateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
+    // Atomic guard: for starter plan, only grant if not already claimed
+    const userFilter: Record<string, unknown> = { _id: req.user._id };
+    if (plan === "starter") {
+      userFilter.starterOfferClaimed = { $ne: true };
+    }
+
+    const user = await User.findOneAndUpdate(
+      userFilter,
       updateOps,
       { new: true },
     );
@@ -284,7 +290,13 @@ export const handleRazorpayWebhook = asyncHandler(
                   (webhookUpdateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
                 }
 
-                await User.findByIdAndUpdate(notes.userId, webhookUpdateOps);
+                // Atomic guard: for starter plan, only grant if not already claimed
+                const webhookUserFilter: Record<string, unknown> = { _id: notes.userId };
+                if (plan === "starter") {
+                  webhookUserFilter.starterOfferClaimed = { $ne: true };
+                }
+
+                await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
 
                 // Mark credits as applied and status as success
                 await PaymentLog.findOneAndUpdate(

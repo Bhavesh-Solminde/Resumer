@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { FolderKanban, ExternalLink, Github } from "lucide-react";
 import {
   EditableText,
@@ -81,6 +81,15 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
 
   const handleMouseLeave = useCallback(() => {
     hoverTimeoutRef.current = setTimeout(() => setHoveredItemId(null), 150);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+        hoverTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   const sectionSettings: Required<ProjectsSectionSettings> = {

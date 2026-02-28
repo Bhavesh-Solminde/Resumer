@@ -23,6 +23,7 @@ export type SectionType =
   | "strengths"
   | "achievements"
   | "volunteering"
+  | "extracurricular" // deprecated — kept for backward compat with persisted data
   | "custom";
 
 // ============================================================================

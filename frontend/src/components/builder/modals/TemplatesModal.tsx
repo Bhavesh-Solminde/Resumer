@@ -182,7 +182,9 @@ const TemplatesModal: React.FC = () => {
                     isComingSoon && "opacity-60 cursor-not-allowed",
                     isSelected
                       ? "border-primary shadow-lg"
-                      : "border-border hover:border-primary/50 hover:shadow-md"
+                      : isComingSoon
+                        ? "border-border"
+                        : "border-border hover:border-primary/50 hover:shadow-md"
                   )}
                 >
                   <div className="aspect-[3/4] bg-white relative">

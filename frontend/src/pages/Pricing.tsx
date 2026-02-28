@@ -106,7 +106,9 @@ const Pricing: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {plans.map(({ key, highlight }) => {
             const config = PLAN_CONFIGS[key];
-            const isBusy = loadingPlan === key || isSubscribing;
+            // For Pro card with starter offer, the actual plan submitted is "starter"
+            const effectivePlan = (key === "pro" && proHasStarterOffer) ? "starter" : key;
+            const isBusy = loadingPlan === effectivePlan || isSubscribing;
 
             return (
               <div
