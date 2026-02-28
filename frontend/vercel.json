@@ -1,4 +1,6 @@
 {
+  "buildCommand": "cd .. && pnpm --filter @resumer/shared-types build && cd frontend && pnpm run build",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
