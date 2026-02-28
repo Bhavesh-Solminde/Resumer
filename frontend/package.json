@@ -23,7 +23,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@react-pdf/renderer": "^4.3.0",
     "@resumer/shared-types": "workspace:*",
-    "@vercel/analytics": "^1.5.0",
+    "@vercel/analytics": "^1.6.1",
     "@tabler/icons-react": "^3.36.0",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
