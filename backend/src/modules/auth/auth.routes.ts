@@ -1,0 +1,66 @@
+import { Router, Request, Response } from "express";
+import passport from "passport";
+import {
+  handleRegister,
+  handleLogin,
+  handleLogout,
+  handleUpdatePassword,
+  refreshAccessToken,
+  handleOAuthCallback,
+  updateProfile,
+} from "./auth.controller.js";
+import verifyJWT from "./auth.middleware.js";
+import ApiResponse from "../../shared/utils/ApiResponse.js";
+import ENV from "../../env.js";
+// Type augmentation from ../../shared/types/express.d.ts is applied globally
+
+const authRouter = Router();
+
+authRouter.post("/register", handleRegister);
+authRouter.post("/login", handleLogin);
+authRouter.post("/logout", verifyJWT, handleLogout);
+authRouter.post("/updatepassword", verifyJWT, handleUpdatePassword);
+authRouter.put("/updateprofile", verifyJWT, updateProfile);
+
+authRouter.get("/check", verifyJWT, (req: Request, res: Response) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Token is valid", { user: req.user }));
+});
+
+authRouter.post("/refresh-token", refreshAccessToken);
+
+// OAuth: Google
+authRouter.get(
+  "/google",
+  passport.authenticate("google", {
+    session: false,
+    scope: ["profile", "email"],
+  })
+);
+
+authRouter.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=google_failed`,
+  }),
+  handleOAuthCallback
+);
+
+// OAuth: GitHub
+authRouter.get(
+  "/github",
+  passport.authenticate("github", { scope: ["user:email"] })
+);
+
+authRouter.get(
+  "/github/callback",
+  passport.authenticate("github", {
+    failureRedirect: `${ENV.CORS_ORIGIN || "http://localhost:5173"}/auth/login?error=github_failed`,
+    session: false,
+  }),
+  handleOAuthCallback
+);
+
+export default authRouter;
