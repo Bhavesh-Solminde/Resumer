@@ -7,7 +7,7 @@ import authRouter from "./modules/auth/auth.routes.js";
 import analyzeRouter from "./modules/analyze/analyze.routes.js";
 import profileRouter from "./modules/auth/profile.routes.js";
 import optimizeRouter from "./modules/optimize/optimize.routes.js";
-import buildRouter from "./modules/build/build.routes.js";
+import buildRouter from "./modules/builder/build.routes.js";
 import paymentRouter from "./modules/billing/payment.routes.js";
 import contactRouter from "./modules/support/contact.routes.js";
 import faqRouter from "./modules/faq/faq.routes.js";
