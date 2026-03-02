@@ -4,19 +4,19 @@ import verifyJWT from "../auth/auth.middleware.js";
 import {
   createSubscription,
   verifyPayment,
-  handleRazorpayWebhook,
+  handleCashfreeWebhook,
   getSubscriptionStatus,
   getUsageStats,
 } from "./payment.controller.js";
 
 const paymentRouter = Router();
 
-// Webhook (no auth - Razorpay calls this directly, verified via signature)
+// Webhook (no auth - Cashfree calls this directly, verified via signature)
 // Use raw body for webhook signature verification
 paymentRouter.post(
   "/webhook",
   express.raw({ type: "application/json" }),
-  handleRazorpayWebhook
+  handleCashfreeWebhook
 );
 
 // Authenticated routes

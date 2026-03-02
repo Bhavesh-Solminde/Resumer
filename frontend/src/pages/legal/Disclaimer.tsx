@@ -39,7 +39,7 @@ const Disclaimer: React.FC = () => {
 
       <h2>5. Third-Party Services</h2>
       <p>
-        Our service relies on third-party providers (Google AI, Razorpay,
+        Our service relies on third-party providers (Google AI, Cashfree,
         Cloudinary, MongoDB Atlas). We are not responsible for disruptions
         caused by these providers.
       </p>

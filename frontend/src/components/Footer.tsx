@@ -105,17 +105,8 @@ const Footer: React.FC = () => {
 
         <div className="mt-8 pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>&copy; {currentYear} Resumer. All rights reserved.</p>
-          <div className="flex items-center gap-2">
-            <img
-              src="https://badges.razorpay.com/badge-dark.png"
-              alt="Powered by Razorpay"
-              className="h-6 dark:hidden"
-            />
-            <img
-              src="https://badges.razorpay.com/badge-light.png"
-              alt="Powered by Razorpay"
-              className="h-6 hidden dark:block"
-            />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Payments by Cashfree</span>
           </div>
         </div>
       </div>

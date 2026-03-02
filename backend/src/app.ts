@@ -47,7 +47,7 @@ app.use(
   })
 );
 
-// Webhook path constant (used for raw body parsing)
+// Webhook path constant (used for raw body parsing — Cashfree webhook)
 const WEBHOOK_PATH = "/api/v1/payment/webhook";
 
 // Initialize JSON middleware once

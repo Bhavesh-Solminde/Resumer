@@ -23,10 +23,9 @@ interface IEnv {
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
   GITHUB_CALLBACK_URL: string;
-  // Razorpay
-  RAZORPAY_KEY_ID: string;
-  RAZORPAY_KEY_SECRET: string;
-  RAZORPAY_WEBHOOK_SECRET: string;
+  // Cashfree
+  CASHFREE_APP_ID: string;
+  CASHFREE_SECRET_KEY: string;
   // Email (Nodemailer)
   SMTP_HOST: string;
   SMTP_PORT: string;
@@ -55,10 +54,9 @@ const ENV: IEnv = {
   GITHUB_CLIENT_ID: `${process.env.GITHUB_CLIENT_ID}`,
   GITHUB_CLIENT_SECRET: `${process.env.GITHUB_CLIENT_SECRET}`,
   GITHUB_CALLBACK_URL: `${process.env.GITHUB_CALLBACK_URL}`,
-  // Razorpay
-  RAZORPAY_KEY_ID: `${process.env.RAZORPAY_KEY_ID}`,
-  RAZORPAY_KEY_SECRET: `${process.env.RAZORPAY_KEY_SECRET}`,
-  RAZORPAY_WEBHOOK_SECRET: `${process.env.RAZORPAY_WEBHOOK_SECRET}`,
+  // Cashfree
+  CASHFREE_APP_ID: `${process.env.CASHFREE_APP_ID}`,
+  CASHFREE_SECRET_KEY: `${process.env.CASHFREE_SECRET_KEY}`,
   // Email
   SMTP_HOST: `${process.env.SMTP_HOST}`,
   SMTP_PORT: `${process.env.SMTP_PORT}`,

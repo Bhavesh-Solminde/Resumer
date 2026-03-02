@@ -23,7 +23,7 @@ const PrivacyPolicy: React.FC = () => {
         </li>
         <li>
           <strong>Payment Information:</strong> Payment details are processed
-          securely by Razorpay. We do not store your card details.
+          securely by Cashfree. We do not store your card details.
         </li>
       </ul>
 
@@ -31,7 +31,7 @@ const PrivacyPolicy: React.FC = () => {
       <ul>
         <li>To provide our resume analysis and optimization services</li>
         <li>To manage your account and subscription</li>
-        <li>To process payments through Razorpay</li>
+        <li>To process payments through Cashfree</li>
         <li>To communicate important service updates</li>
         <li>To improve our services and user experience</li>
       </ul>
@@ -52,7 +52,7 @@ const PrivacyPolicy: React.FC = () => {
           Your resume text is sent to Google's API for processing.
         </li>
         <li>
-          <strong>Razorpay:</strong> For secure payment processing.
+          <strong>Cashfree:</strong> For secure payment processing.
         </li>
         <li>
           <strong>Cloudinary:</strong> For secure file storage.
