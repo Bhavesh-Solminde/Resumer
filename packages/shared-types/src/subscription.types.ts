@@ -150,11 +150,11 @@ export interface ISubscriptionStatus {
 }
 
 /**
- * Create subscription response (Order-based — one-time payment)
+ * Create subscription response (Order-based — one-time payment via Cashfree)
  */
 export interface ICreateSubscriptionResponse {
   orderId: string;
-  razorpayKeyId: string;
+  paymentSessionId: string;
   plan: "starter" | "basic" | "pro";
   amount: number;
   currency: string;
@@ -173,7 +173,8 @@ export interface IVerifyPaymentResponse {
  */
 export interface IPaymentLogEntry {
   _id: string;
-  razorpay_payment_id: string;
+  cf_payment_id: string | null;
+  cf_order_id: string | null;
   amount: number;
   currency: string;
   status: "success" | "failed" | "pending" | "refunded";

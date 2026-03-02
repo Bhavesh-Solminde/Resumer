@@ -1,17 +1,20 @@
-import Razorpay from "razorpay";
+import { Cashfree, CFEnvironment } from "cashfree-pg";
 import ENV from "../../env.js";
 
 /**
- * Razorpay client instance
+ * Cashfree PG client instance (Production)
  */
-const razorpay = new Razorpay({
-  key_id: ENV.RAZORPAY_KEY_ID,
-  key_secret: ENV.RAZORPAY_KEY_SECRET,
-});
+const cashfree = new Cashfree(
+  CFEnvironment.PRODUCTION,
+  ENV.CASHFREE_APP_ID,
+  ENV.CASHFREE_SECRET_KEY,
+);
 
 /**
  * Plan configuration mapping tier to credit amounts and prices
- * (No Razorpay plan IDs needed — we use Orders API with one-time payments)
+ * (One-time credit purchases via Cashfree Orders API)
+ *
+ * NOTE: Cashfree amounts are in RUPEES (not paise like Razorpay)
  */
 export const PLAN_CONFIG = {
   starter: {
@@ -38,4 +41,4 @@ export const CREDIT_COSTS = {
   build_export: 0, // Free
 } as const;
 
-export default razorpay;
+export default cashfree;

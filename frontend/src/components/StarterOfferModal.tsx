@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { PLAN_CONFIGS } from "@resumer/shared-types";
 import { useSubscriptionStore } from "../store/Subscription.store";
 import { useAuthStore } from "../store/Auth.store";
-import { loadRazorpayScript, openRazorpayCheckout } from "../lib/razorpay";
+import { initCashfree, openCashfreeCheckout } from "../lib/cashfree";
 import { useNavigate } from "react-router-dom";
 
 interface StarterOfferModalProps {
@@ -26,8 +26,9 @@ const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) 
     if (!authUser) return;
     setIsLoading(true);
 
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
+    try {
+      await initCashfree();
+    } catch {
       setIsLoading(false);
       return;
     }
@@ -38,28 +39,31 @@ const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) 
       return;
     }
 
-    openRazorpayCheckout({
-      keyId: result.razorpayKeyId,
-      orderId: result.orderId,
-      amount: result.amount,
-      planName: starterPlan.name,
-      userName: authUser.fullName,
-      userEmail: authUser.email,
-      onSuccess: async (response) => {
-        const success = await verifyPayment(response);
-        if (success) {
-          await fetchStatus();
-          onClose();
-          navigate("/payment/success");
-        } else {
-          navigate("/payment/failure");
-        }
-        setIsLoading(false);
-      },
-      onDismiss: () => {
-        setIsLoading(false);
-      },
-    });
+    const checkoutResult = await openCashfreeCheckout(result.paymentSessionId);
+
+    if (checkoutResult.error) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (checkoutResult.redirect) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (checkoutResult.paymentDetails) {
+      const success = await verifyPayment({
+        order_id: result.orderId!,
+      });
+      if (success) {
+        await fetchStatus();
+        onClose();
+        navigate("/payment/success");
+      } else {
+        navigate("/payment/failure");
+      }
+    }
+    setIsLoading(false);
   };
 
   return (

@@ -66,11 +66,10 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 GITHUB_CALLBACK_URL=https://resumer-backend-fyapfggzacejf2dv.centralindia-01.azurewebsites.net/api/v1/auth/github/callback
 ```
 
-#### Razorpay (Payment Gateway)
+#### Cashfree (Payment Gateway)
 ```
-RAZORPAY_KEY_ID=rzp_live_xxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+CASHFREE_APP_ID=your_cashfree_app_id
+CASHFREE_SECRET_KEY=your_cashfree_secret_key
 ```
 
 #### Email (SMTP)

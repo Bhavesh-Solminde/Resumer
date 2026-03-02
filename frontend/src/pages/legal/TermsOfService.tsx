@@ -38,7 +38,7 @@ const TermsOfService: React.FC = () => {
         <li>Unused credits do not roll over.</li>
         <li>Resume Building and PDF Export are free for all plans.</li>
         <li>
-          Subscriptions are billed monthly through Razorpay. You can cancel at
+          Subscriptions are billed monthly through Cashfree. You can cancel at
           any time.
         </li>
       </ul>

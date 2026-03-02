@@ -15,16 +15,14 @@ export type PaymentMethod = "upi" | "card" | "netbanking" | "wallet" | "unknown"
  */
 export interface IPaymentLog {
   userId: Types.ObjectId;
-  razorpay_payment_id: string;
-  razorpay_order_id: string | null;
-  razorpay_subscription_id: string | null;
-  razorpay_signature: string | null;
-  amount: number; // In paise (INR smallest unit)
+  cf_payment_id: string | null;
+  cf_order_id: string | null;
+  amount: number; // In rupees (Cashfree uses rupees, not paise)
   currency: string;
   status: PaymentStatus;
   payment_method: PaymentMethod;
   failure_reason: string | null;
-  plan: "basic" | "pro" | "enterprise" | null;
+  plan: "starter" | "basic" | "pro" | "enterprise" | null;
   creditsGranted: number;
   creditsApplied: boolean;
   ipAddress: string | null;
@@ -44,19 +42,11 @@ const PaymentLogSchema = new Schema<IPaymentLog>(
       ref: "User",
       required: true,
     },
-    razorpay_payment_id: {
-      type: String,
-      required: true,
-    },
-    razorpay_order_id: {
+    cf_payment_id: {
       type: String,
       default: null,
     },
-    razorpay_subscription_id: {
-      type: String,
-      default: null,
-    },
-    razorpay_signature: {
+    cf_order_id: {
       type: String,
       default: null,
     },
@@ -106,8 +96,8 @@ const PaymentLogSchema = new Schema<IPaymentLog>(
 // ── Indexes ──
 PaymentLogSchema.index({ userId: 1, createdAt: -1 });
 PaymentLogSchema.index({ status: 1 });
-PaymentLogSchema.index({ razorpay_payment_id: 1 }, { unique: true });
-PaymentLogSchema.index({ razorpay_order_id: 1 });
+PaymentLogSchema.index({ cf_payment_id: 1 }, { unique: true, sparse: true });
+PaymentLogSchema.index({ cf_order_id: 1 });
 
 const PaymentLog = mongoose.model<IPaymentLog>("PaymentLog", PaymentLogSchema);
 export default PaymentLog;

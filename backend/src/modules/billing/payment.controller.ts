@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
-import crypto from "crypto";
 import asyncHandler from "../../shared/utils/asyncHandler.js";
 import ApiError from "../../shared/utils/ApiError.js";
 import ApiResponse from "../../shared/utils/ApiResponse.js";
-import razorpay, { PLAN_CONFIG } from "./razorpay.js";
+import cashfree, { PLAN_CONFIG } from "./cashfree.js";
 import { sendCreditPurchaseEmail } from "../../shared/lib/email.js";
 import User from "../auth/user.model.js";
 import PaymentLog from "./paymentLog.model.js";
 import ENV from "../../env.js";
+import type { CreateOrderRequest, PaymentEntity } from "cashfree-pg";
 
 // ============================================================================
 // Types
@@ -18,13 +18,11 @@ interface CreateOrderBody {
 }
 
 interface VerifyPaymentBody {
-  razorpay_payment_id: string;
-  razorpay_order_id: string;
-  razorpay_signature: string;
+  order_id: string;
 }
 
 // ============================================================================
-// Controller: Create Order (One-time credit purchase)
+// Controller: Create Order (One-time credit purchase via Cashfree)
 // ============================================================================
 
 export const createSubscription = asyncHandler(
@@ -49,22 +47,44 @@ export const createSubscription = asyncHandler(
 
     const planConfig = PLAN_CONFIG[plan];
 
-    // Create Razorpay Order (one-time payment — all methods supported)
-    const order = await razorpay.orders.create({
-      amount: planConfig.price * 100, // Convert to paise
-      currency: "INR",
-      receipt: `rcpt_${user._id.toString().slice(-8)}_${Date.now()}`,
-      notes: {
+    // Generate a unique order ID
+    const orderId = `order_${user._id.toString().slice(-8)}_${Date.now()}`;
+
+    // Build Cashfree order request
+    // NOTE: Cashfree amounts are in RUPEES (not paise)
+    const orderRequest: CreateOrderRequest = {
+      order_id: orderId,
+      order_amount: planConfig.price,
+      order_currency: "INR",
+      customer_details: {
+        customer_id: user._id.toString(),
+        customer_name: user.fullName,
+        customer_email: user.email,
+        customer_phone: "9999999999", // Placeholder — Cashfree requires phone
+      },
+      order_meta: {
+        return_url: `${ENV.CORS_ORIGIN || "https://resumerapp.live"}/payment/status?order_id={order_id}`,
+        notify_url: `${ENV.CORS_ORIGIN ? ENV.CORS_ORIGIN.replace("://", "://api.").replace(":5173", ":8080") : "https://resumer-backend-fyapfggzacejf2dv.centralindia-01.azurewebsites.net"}/api/v1/payment/webhook`,
+      },
+      order_note: `${plan} Credit Pack`,
+      order_tags: {
         userId: user._id.toString(),
         plan,
         email: user.email,
       },
-    });
+    };
+
+    const response = await cashfree.PGCreateOrder(orderRequest);
+    const orderData = response.data;
+
+    if (!orderData?.payment_session_id) {
+      throw new ApiError(500, "Failed to create Cashfree order");
+    }
 
     return res.status(200).json(
       new ApiResponse(200, "Order created", {
-        orderId: order.id,
-        razorpayKeyId: ENV.RAZORPAY_KEY_ID,
+        orderId: orderData.order_id,
+        paymentSessionId: orderData.payment_session_id,
         plan,
         amount: planConfig.price,
         currency: "INR",
@@ -74,45 +94,51 @@ export const createSubscription = asyncHandler(
 );
 
 // ============================================================================
-// Controller: Verify Payment (after Razorpay checkout)
+// Controller: Verify Payment (after Cashfree checkout)
 // ============================================================================
 
 export const verifyPayment = asyncHandler(
   async (req: Request<object, object, VerifyPaymentBody>, res: Response) => {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-      req.body;
+    const { order_id } = req.body;
 
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-      throw new ApiError(400, "Missing payment verification details");
+    if (!order_id) {
+      throw new ApiError(400, "Missing order_id");
     }
 
     if (!req.user?._id) throw new ApiError(401, "Unauthorized");
 
-    // Verify signature: HMAC SHA256 of "order_id|payment_id"
-    const generatedSignature = crypto
-      .createHmac("sha256", ENV.RAZORPAY_KEY_SECRET)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest("hex");
+    // Fetch order status from Cashfree API (server-side verification)
+    const orderResponse = await cashfree.PGFetchOrder(order_id);
+    const orderData = orderResponse.data;
 
-    if (generatedSignature !== razorpay_signature) {
-      // Log failed payment
+    if (!orderData || orderData.order_status !== "PAID") {
+      // Log failed/pending payment
       await PaymentLog.create({
         userId: req.user._id,
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        amount: 0,
+        cf_payment_id: null,
+        cf_order_id: order_id,
+        amount: orderData?.order_amount || 0,
         status: "failed",
-        failure_reason: "Signature verification failed",
+        failure_reason: `Order status: ${orderData?.order_status || "unknown"}`,
         ipAddress: req.ip || null,
-      });
-      throw new ApiError(400, "Payment verification failed. Invalid signature.");
+      }).catch(() => {});
+      throw new ApiError(400, "Payment verification failed. Order is not paid.");
     }
 
-    // Fetch order details from Razorpay to determine the plan
-    const order = await razorpay.orders.fetch(razorpay_order_id);
-    const notes = order.notes as Record<string, string> | undefined;
-    const plan = notes?.plan as "starter" | "basic" | "pro" | undefined;
+    // Fetch payment details
+    const paymentsResponse = await cashfree.PGOrderFetchPayments(order_id);
+    const payments = paymentsResponse.data;
+    const successPayment = Array.isArray(payments)
+      ? payments.find((p: PaymentEntity) => p.payment_status === "SUCCESS")
+      : null;
+
+    const cfPaymentId = successPayment
+      ? String(successPayment.cf_payment_id)
+      : `cf_${order_id}`;
+
+    // Determine plan from order tags
+    const tags = orderData.order_tags as Record<string, string> | undefined;
+    const plan = tags?.plan as "starter" | "basic" | "pro" | undefined;
 
     if (!plan || !PLAN_CONFIG[plan]) {
       throw new ApiError(400, "Could not determine plan from order");
@@ -120,27 +146,40 @@ export const verifyPayment = asyncHandler(
 
     const creditsToAdd = PLAN_CONFIG[plan].credits;
 
+    // Determine payment method
+    let paymentMethod: string = "unknown";
+    if (successPayment) {
+      const pm = successPayment.payment_method;
+      if (pm && typeof pm === "object") {
+        const pmObj = pm as Record<string, unknown>;
+        if (pmObj.upi) paymentMethod = "upi";
+        else if (pmObj.card) paymentMethod = "card";
+        else if (pmObj.netbanking) paymentMethod = "netbanking";
+        else if (pmObj.app) paymentMethod = "wallet";
+      }
+    }
+
     // Idempotency: Create PaymentLog FIRST with creditsApplied=false
     // If duplicate key error (11000), check if credits were applied
     try {
       await PaymentLog.create({
         userId: req.user._id,
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        amount: PLAN_CONFIG[plan].price * 100, // In paise
+        cf_payment_id: cfPaymentId,
+        cf_order_id: order_id,
+        amount: PLAN_CONFIG[plan].price, // In rupees (Cashfree uses rupees)
         currency: "INR",
         status: "pending",
         plan,
         creditsGranted: creditsToAdd,
         creditsApplied: false,
+        payment_method: paymentMethod,
         ipAddress: req.ip || null,
       });
     } catch (err: unknown) {
       const error = err as { code?: number };
       if (error.code === 11000) {
         // Duplicate key — check if credits were already applied
-        const existingLog = await PaymentLog.findOne({ razorpay_payment_id });
+        const existingLog = await PaymentLog.findOne({ cf_payment_id: cfPaymentId });
         if (existingLog?.creditsApplied) {
           const user = await User.findById(req.user._id).select("credits subscriptionTier");
           if (!user) throw new ApiError(404, "User not found");
@@ -183,7 +222,7 @@ export const verifyPayment = asyncHandler(
 
     // Mark credits as applied and status as success
     await PaymentLog.findOneAndUpdate(
-      { razorpay_payment_id },
+      { cf_payment_id: cfPaymentId },
       { $set: { creditsApplied: true, status: "success" } },
     );
 
@@ -202,133 +241,149 @@ export const verifyPayment = asyncHandler(
 );
 
 // ============================================================================
-// Controller: Razorpay Webhook Handler
+// Controller: Cashfree Webhook Handler
 // ============================================================================
 
-export const handleRazorpayWebhook = asyncHandler(
+export const handleCashfreeWebhook = asyncHandler(
   async (req: Request, res: Response) => {
-    const webhookSecret = ENV.RAZORPAY_WEBHOOK_SECRET;
-
-    // Verify webhook signature using raw body buffer
-    const signature = req.headers["x-razorpay-signature"] as string;
-    
     // MUST be a Buffer — if not, middleware is misconfigured
     if (!Buffer.isBuffer(req.body)) {
       return res.status(400).json({ error: "Bad request" });
     }
 
-    const rawBody = req.body;
+    const rawBody = req.body.toString("utf-8");
+    const signature = req.headers["x-webhook-signature"] as string;
+    const timestamp = req.headers["x-webhook-timestamp"] as string;
 
-    const expectedSignature = crypto
-      .createHmac("sha256", webhookSecret)
-      .update(rawBody)
-      .digest("hex");
+    if (!signature || !timestamp) {
+      console.error("Webhook missing signature or timestamp headers");
+      return res.status(400).json({ error: "Missing signature headers" });
+    }
 
-    if (signature !== expectedSignature) {
+    // Verify webhook signature using Cashfree SDK
+    let webhookEvent;
+    try {
+      webhookEvent = cashfree.PGVerifyWebhookSignature(signature, rawBody, timestamp);
+    } catch {
       console.error("Webhook signature verification failed");
       return res.status(400).json({ error: "Invalid signature" });
     }
 
-    // Parse the raw Buffer to JSON
-    const bodyData = JSON.parse(rawBody.toString("utf-8"));
-    const event = bodyData.event as string;
-    const payload = bodyData.payload;
+    const eventType = webhookEvent.type;
+    const payload = webhookEvent.object?.data;
 
-    console.log(`Razorpay webhook received: ${event}`);
+    console.log(`Cashfree webhook received: ${eventType}`);
 
-    switch (event) {
-      case "payment.captured": {
-        const paymentEntity = payload.payment?.entity;
-        const orderId = paymentEntity?.order_id;
-        const paymentId = paymentEntity?.id;
-        const notes = paymentEntity?.notes;
+    switch (eventType) {
+      case "PAYMENT_SUCCESS_WEBHOOK": {
+        const order = payload?.order;
+        const payment = payload?.payment;
+        const orderId = order?.order_id;
+        const cfPaymentId = payment?.cf_payment_id
+          ? String(payment.cf_payment_id)
+          : null;
 
-        if (orderId && notes?.userId && notes?.plan) {
-          const plan = notes.plan as "starter" | "basic" | "pro";
+        // Determine plan from order tags
+        const tags = order?.order_tags as Record<string, string> | undefined;
+        const userId = tags?.userId;
+        const plan = tags?.plan as "starter" | "basic" | "pro" | undefined;
+
+        if (orderId && userId && plan && PLAN_CONFIG[plan]) {
           const planConfig = PLAN_CONFIG[plan];
 
-          if (planConfig) {
-            // Idempotency: Create PaymentLog FIRST with creditsApplied=false
-            if (paymentId) {
-              try {
-                await PaymentLog.create({
-                  userId: notes.userId,
-                  razorpay_payment_id: paymentId,
-                  razorpay_order_id: orderId,
-                  amount: paymentEntity.amount || 0,
-                  currency: paymentEntity.currency || "INR",
-                  status: "pending",
-                  plan,
-                  creditsGranted: planConfig.credits,
-                  creditsApplied: false,
-                  payment_method: paymentEntity.method || "unknown",
-                });
-              } catch (err: unknown) {
-                const error = err as { code?: number };
-                if (error.code === 11000) {
-                  // Duplicate — check if credits were already applied
-                  const existingLog = await PaymentLog.findOne({ razorpay_payment_id: paymentId });
-                  if (existingLog?.creditsApplied) {
-                    console.log(`Webhook duplicate: Payment ${paymentId} already fully processed`);
-                    break;
-                  }
-                  // Credits not applied yet — fall through to apply
-                  console.log(`Webhook recovery: Payment ${paymentId} log exists but credits not applied`);
-                } else {
-                  console.error("Failed to create webhook payment log:", err);
+          if (cfPaymentId) {
+            // Determine payment method
+            let paymentMethod: string = "unknown";
+            const pm = payment?.payment_method;
+            if (pm && typeof pm === "object") {
+              if (pm.upi) paymentMethod = "upi";
+              else if (pm.card) paymentMethod = "card";
+              else if (pm.netbanking) paymentMethod = "netbanking";
+              else if (pm.app) paymentMethod = "wallet";
+            }
+
+            try {
+              await PaymentLog.create({
+                userId,
+                cf_payment_id: cfPaymentId,
+                cf_order_id: orderId,
+                amount: payment?.payment_amount || order?.order_amount || 0,
+                currency: order?.order_currency || "INR",
+                status: "pending",
+                plan,
+                creditsGranted: planConfig.credits,
+                creditsApplied: false,
+                payment_method: paymentMethod,
+              });
+            } catch (err: unknown) {
+              const error = err as { code?: number };
+              if (error.code === 11000) {
+                // Duplicate — check if credits were already applied
+                const existingLog = await PaymentLog.findOne({ cf_payment_id: cfPaymentId });
+                if (existingLog?.creditsApplied) {
+                  console.log(`Webhook duplicate: Payment ${cfPaymentId} already fully processed`);
                   break;
                 }
+                // Credits not applied yet — fall through to apply
+                console.log(`Webhook recovery: Payment ${cfPaymentId} log exists but credits not applied`);
+              } else {
+                console.error("Failed to create webhook payment log:", err);
+                break;
+              }
+            }
+
+            // Grant credits (idempotent — runs on first attempt or recovery)
+            try {
+              const webhookUpdateOps: Record<string, unknown> = {
+                $inc: { credits: planConfig.credits },
+                $set: { subscriptionTier: plan === "starter" ? "basic" : plan },
+              };
+              if (plan === "starter") {
+                (webhookUpdateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
               }
 
-              // Grant credits (idempotent — runs on first attempt or recovery)
-              try {
-                const webhookUpdateOps: Record<string, unknown> = {
-                  $inc: { credits: planConfig.credits },
-                  $set: { subscriptionTier: plan === "starter" ? "basic" : plan },
-                };
-                if (plan === "starter") {
-                  (webhookUpdateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
-                }
-
-                // Atomic guard: for starter plan, only grant if not already claimed
-                const webhookUserFilter: Record<string, unknown> = { _id: notes.userId };
-                if (plan === "starter") {
-                  webhookUserFilter.starterOfferClaimed = { $ne: true };
-                }
-
-                await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
-
-                // Mark credits as applied and status as success
-                await PaymentLog.findOneAndUpdate(
-                  { razorpay_payment_id: paymentId },
-                  { $set: { creditsApplied: true, status: "success" } },
-                );
-              } catch (creditErr) {
-                console.error(`Failed to apply credits for payment ${paymentId}:`, creditErr);
+              // Atomic guard: for starter plan, only grant if not already claimed
+              const webhookUserFilter: Record<string, unknown> = { _id: userId };
+              if (plan === "starter") {
+                webhookUserFilter.starterOfferClaimed = { $ne: true };
               }
+
+              await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
+
+              // Mark credits as applied and status as success
+              await PaymentLog.findOneAndUpdate(
+                { cf_payment_id: cfPaymentId },
+                { $set: { creditsApplied: true, status: "success" } },
+              );
+            } catch (creditErr) {
+              console.error(`Failed to apply credits for payment ${cfPaymentId}:`, creditErr);
             }
           }
         }
         break;
       }
 
-      case "payment.failed": {
-        const paymentEntity = payload.payment?.entity;
-        const paymentId = paymentEntity?.id;
-        const orderId = paymentEntity?.order_id || null;
-        const notes = paymentEntity?.notes;
+      case "PAYMENT_FAILED_WEBHOOK": {
+        const order = payload?.order;
+        const payment = payload?.payment;
+        const orderId = order?.order_id;
+        const cfPaymentId = payment?.cf_payment_id
+          ? String(payment.cf_payment_id)
+          : null;
 
-        if (paymentId) {
+        const tags = order?.order_tags as Record<string, string> | undefined;
+
+        if (cfPaymentId) {
           await PaymentLog.create({
-            userId: notes?.userId || null,
-            razorpay_payment_id: paymentId,
-            razorpay_order_id: orderId,
-            amount: paymentEntity?.amount || 0,
-            currency: paymentEntity?.currency || "INR",
+            userId: tags?.userId || undefined,
+            cf_payment_id: cfPaymentId,
+            cf_order_id: orderId || null,
+            amount: payment?.payment_amount || order?.order_amount || 0,
+            currency: order?.order_currency || "INR",
             status: "failed",
             failure_reason:
-              paymentEntity?.error_description || "Payment failed",
-            payment_method: paymentEntity?.method || "unknown",
+              payment?.payment_message || "Payment failed",
+            payment_method: "unknown",
           }).catch((err: unknown) =>
             console.error("Failed to log failed payment:", err),
           );
