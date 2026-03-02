@@ -8,25 +8,14 @@ import User from "../auth/user.model.js";
 import PaymentLog from "./paymentLog.model.js";
 import ENV from "../../env.js";
 import type { CreateOrderRequest, PaymentEntity } from "cashfree-pg";
-
-// ============================================================================
-// Types
-// ============================================================================
-
-interface CreateOrderBody {
-  plan: "starter" | "basic" | "pro";
-}
-
-interface VerifyPaymentBody {
-  order_id: string;
-}
+import type { ICreateOrderRequest, IVerifyPaymentRequest } from "@resumer/shared-types";
 
 // ============================================================================
 // Controller: Create Order (One-time credit purchase via Cashfree)
 // ============================================================================
 
 export const createSubscription = asyncHandler(
-  async (req: Request<object, object, CreateOrderBody>, res: Response) => {
+  async (req: Request<object, object, ICreateOrderRequest>, res: Response) => {
     const { plan } = req.body;
 
     if (!plan || !PLAN_CONFIG[plan]) {
@@ -98,7 +87,7 @@ export const createSubscription = asyncHandler(
 // ============================================================================
 
 export const verifyPayment = asyncHandler(
-  async (req: Request<object, object, VerifyPaymentBody>, res: Response) => {
+  async (req: Request<object, object, IVerifyPaymentRequest>, res: Response) => {
     const { order_id } = req.body;
 
     if (!order_id) {
@@ -110,6 +99,13 @@ export const verifyPayment = asyncHandler(
     // Fetch order status from Cashfree API (server-side verification)
     const orderResponse = await cashfree.PGFetchOrder(order_id);
     const orderData = orderResponse.data;
+
+    // ── Ownership check: confirm the order belongs to this user ──
+    const tags = orderData?.order_tags as Record<string, string> | undefined;
+    const orderUserId = tags?.userId;
+    if (!orderUserId || orderUserId !== req.user._id.toString()) {
+      throw new ApiError(403, "Order does not belong to authenticated user");
+    }
 
     if (!orderData || orderData.order_status !== "PAID") {
       // Log failed/pending payment
@@ -132,12 +128,20 @@ export const verifyPayment = asyncHandler(
       ? payments.find((p: PaymentEntity) => p.payment_status === "SUCCESS")
       : null;
 
+    // ── Derive cf_payment_id only from actual payment — never synthesize ──
     const cfPaymentId = successPayment
       ? String(successPayment.cf_payment_id)
-      : `cf_${order_id}`;
+      : undefined;
+
+    if (!cfPaymentId) {
+      console.error(`No successful payment entity found for order ${order_id}`);
+      throw new ApiError(
+        502,
+        "Payment recorded as PAID but no payment details found. Please contact support.",
+      );
+    }
 
     // Determine plan from order tags
-    const tags = orderData.order_tags as Record<string, string> | undefined;
     const plan = tags?.plan as "starter" | "basic" | "pro" | undefined;
 
     if (!plan || !PLAN_CONFIG[plan]) {
@@ -159,49 +163,45 @@ export const verifyPayment = asyncHandler(
       }
     }
 
-    // Idempotency: Create PaymentLog FIRST with creditsApplied=false
-    // If duplicate key error (11000), check if credits were applied
-    try {
-      await PaymentLog.create({
-        userId: req.user._id,
-        cf_payment_id: cfPaymentId,
-        cf_order_id: order_id,
-        amount: PLAN_CONFIG[plan].price, // In rupees (Cashfree uses rupees)
-        currency: "INR",
-        status: "pending",
-        plan,
-        creditsGranted: creditsToAdd,
-        creditsApplied: false,
-        payment_method: paymentMethod,
-        ipAddress: req.ip || null,
-      });
-    } catch (err: unknown) {
-      const error = err as { code?: number };
-      if (error.code === 11000) {
-        // Duplicate key — check if credits were already applied
-        const existingLog = await PaymentLog.findOne({ cf_payment_id: cfPaymentId });
-        if (existingLog?.creditsApplied) {
-          const user = await User.findById(req.user._id).select("credits subscriptionTier");
-          if (!user) throw new ApiError(404, "User not found");
-          return res.status(200).json(
-            new ApiResponse(200, "Payment already processed", {
-              subscriptionTier: user.subscriptionTier,
-              credits: user.credits,
-            }),
-          );
-        }
-        // Credits not yet applied — fall through to apply them
-      } else {
-        throw err;
-      }
+    // ── Atomic idempotency: single findOneAndUpdate to claim the payment ──
+    // Only the first caller flips creditsApplied from false→true (or inserts).
+    const paymentLog = await PaymentLog.findOneAndUpdate(
+      { cf_payment_id: cfPaymentId, creditsApplied: false },
+      {
+        $set: { creditsApplied: false, status: "pending" },
+        $setOnInsert: {
+          userId: req.user._id,
+          cf_order_id: order_id,
+          amount: PLAN_CONFIG[plan].price,
+          currency: "INR",
+          plan,
+          creditsGranted: creditsToAdd,
+          payment_method: paymentMethod,
+          ipAddress: req.ip || null,
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    // If upsert returned a doc that already had creditsApplied=true, it means
+    // the filter didn't match (another request already processed it).
+    if (!paymentLog || paymentLog.creditsApplied) {
+      // Credits already applied — return current state
+      const existingUser = await User.findById(req.user._id).select("credits subscriptionTier");
+      if (!existingUser) throw new ApiError(404, "User not found");
+      return res.status(200).json(
+        new ApiResponse(200, "Payment already processed", {
+          subscriptionTier: existingUser.subscriptionTier,
+          credits: existingUser.credits,
+        }),
+      );
     }
 
-    // Grant credits — safe to run even on recovery (idempotent $inc)
+    // Grant credits
     const updateOps: Record<string, unknown> = {
       $inc: { credits: creditsToAdd },
       $set: { subscriptionTier: plan === "starter" ? "basic" : plan },
     };
-    // Mark starter offer as claimed
     if (plan === "starter") {
       (updateOps.$set as Record<string, unknown>).starterOfferClaimed = true;
     }
@@ -218,7 +218,7 @@ export const verifyPayment = asyncHandler(
       { new: true },
     );
 
-    if (!user) throw new ApiError(404, "User not found");
+    if (!user) throw new ApiError(404, "User not found or starter already claimed");
 
     // Mark credits as applied and status as success
     await PaymentLog.findOneAndUpdate(
@@ -302,37 +302,34 @@ export const handleCashfreeWebhook = asyncHandler(
               else if (pm.app) paymentMethod = "wallet";
             }
 
-            try {
-              await PaymentLog.create({
-                userId,
-                cf_payment_id: cfPaymentId,
-                cf_order_id: orderId,
-                amount: payment?.payment_amount || order?.order_amount || 0,
-                currency: order?.order_currency || "INR",
-                status: "pending",
-                plan,
-                creditsGranted: planConfig.credits,
-                creditsApplied: false,
-                payment_method: paymentMethod,
-              });
-            } catch (err: unknown) {
-              const error = err as { code?: number };
-              if (error.code === 11000) {
-                // Duplicate — check if credits were already applied
-                const existingLog = await PaymentLog.findOne({ cf_payment_id: cfPaymentId });
-                if (existingLog?.creditsApplied) {
-                  console.log(`Webhook duplicate: Payment ${cfPaymentId} already fully processed`);
-                  break;
-                }
-                // Credits not applied yet — fall through to apply
-                console.log(`Webhook recovery: Payment ${cfPaymentId} log exists but credits not applied`);
-              } else {
-                console.error("Failed to create webhook payment log:", err);
-                break;
-              }
+            // ── Atomic idempotency: claim the payment log in one operation ──
+            const logClaimed = await PaymentLog.findOneAndUpdate(
+              { cf_payment_id: cfPaymentId, creditsApplied: false },
+              {
+                $set: { creditsApplied: false, status: "pending" },
+                $setOnInsert: {
+                  userId,
+                  cf_order_id: orderId,
+                  amount: payment?.payment_amount || order?.order_amount || 0,
+                  currency: order?.order_currency || "INR",
+                  plan,
+                  creditsGranted: planConfig.credits,
+                  payment_method: paymentMethod,
+                },
+              },
+              { upsert: true, new: true },
+            ).catch((err: unknown) => {
+              console.error("Failed to upsert webhook payment log:", err);
+              return null;
+            });
+
+            // If we couldn't claim the log (already processed or DB error), skip
+            if (!logClaimed || logClaimed.creditsApplied) {
+              console.log(`Webhook: Payment ${cfPaymentId} already fully processed or claim failed`);
+              break;
             }
 
-            // Grant credits (idempotent — runs on first attempt or recovery)
+            // Grant credits
             try {
               const webhookUpdateOps: Record<string, unknown> = {
                 $inc: { credits: planConfig.credits },
@@ -348,13 +345,24 @@ export const handleCashfreeWebhook = asyncHandler(
                 webhookUserFilter.starterOfferClaimed = { $ne: true };
               }
 
-              await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
+              const updatedUser = await User.findOneAndUpdate(webhookUserFilter, webhookUpdateOps);
 
-              // Mark credits as applied and status as success
-              await PaymentLog.findOneAndUpdate(
-                { cf_payment_id: cfPaymentId },
-                { $set: { creditsApplied: true, status: "success" } },
-              );
+              if (updatedUser) {
+                // User update succeeded — mark payment as applied
+                await PaymentLog.findOneAndUpdate(
+                  { cf_payment_id: cfPaymentId },
+                  { $set: { creditsApplied: true, status: "success" } },
+                );
+              } else {
+                // User update returned null — user not found or starter already claimed
+                console.error(
+                  `Webhook: User.findOneAndUpdate returned null for payment ${cfPaymentId}, userId ${userId}. Credits NOT applied.`,
+                );
+                await PaymentLog.findOneAndUpdate(
+                  { cf_payment_id: cfPaymentId },
+                  { $set: { status: "failed", failure_reason: "User not found or starter already claimed" } },
+                );
+              }
             } catch (creditErr) {
               console.error(`Failed to apply credits for payment ${cfPaymentId}:`, creditErr);
             }

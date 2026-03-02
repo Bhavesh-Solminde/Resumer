@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Sparkles, X, Loader2, Gift } from "lucide-react";
 import { Button } from "./ui/button";
 import { PLAN_CONFIGS } from "@resumer/shared-types";
-import { useSubscriptionStore } from "../store/Subscription.store";
 import { useAuthStore } from "../store/Auth.store";
-import { initCashfree, openCashfreeCheckout } from "../lib/cashfree";
+import { useCashfreeCheckout } from "../hooks/useCashfreeCheckout";
 import { useNavigate } from "react-router-dom";
 
 interface StarterOfferModalProps {
@@ -14,9 +13,8 @@ interface StarterOfferModalProps {
 
 const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) => {
   const { authUser } = useAuthStore();
-  const { createSubscription, verifyPayment, fetchStatus } = useSubscriptionStore();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { startCheckout, isLoading } = useCashfreeCheckout();
 
   if (!open) return null;
 
@@ -24,46 +22,17 @@ const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) 
 
   const handleClaim = async () => {
     if (!authUser) return;
-    setIsLoading(true);
 
-    try {
-      await initCashfree();
-    } catch {
-      setIsLoading(false);
-      return;
+    const { success, redirected } = await startCheckout("starter");
+
+    if (redirected) return; // handled by return_url
+
+    if (success) {
+      onClose();
+      navigate("/payment/success");
+    } else {
+      navigate("/payment/failure");
     }
-
-    const result = await createSubscription("starter");
-    if (!result) {
-      setIsLoading(false);
-      return;
-    }
-
-    const checkoutResult = await openCashfreeCheckout(result.paymentSessionId);
-
-    if (checkoutResult.error) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (checkoutResult.redirect) {
-      setIsLoading(false);
-      return;
-    }
-
-    if (checkoutResult.paymentDetails) {
-      const success = await verifyPayment({
-        order_id: result.orderId!,
-      });
-      if (success) {
-        await fetchStatus();
-        onClose();
-        navigate("/payment/success");
-      } else {
-        navigate("/payment/failure");
-      }
-    }
-    setIsLoading(false);
   };
 
   return (

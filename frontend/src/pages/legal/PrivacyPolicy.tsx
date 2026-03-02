@@ -3,7 +3,7 @@ import LegalPageLayout from "../../components/legal/LegalPageLayout";
 
 const PrivacyPolicy: React.FC = () => {
   return (
-    <LegalPageLayout title="Privacy Policy" lastUpdated="February 6, 2026">
+    <LegalPageLayout title="Privacy Policy" lastUpdated="March 3, 2026">
       <h2>1. Information We Collect</h2>
       <p>
         When you use Resumer, we collect the following types of information:

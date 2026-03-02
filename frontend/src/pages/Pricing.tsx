@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Check, Loader2, ArrowLeft, Home, Zap } from "lucide-react";
 import { PLAN_CONFIGS } from "@resumer/shared-types";
 import { useSubscriptionStore } from "../store/Subscription.store";
 import { useAuthStore } from "../store/Auth.store";
-import { initCashfree, openCashfreeCheckout } from "../lib/cashfree";
+import { useCashfreeCheckout } from "../hooks/useCashfreeCheckout";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import Footer from "../components/Footer";
@@ -15,12 +15,9 @@ const Pricing: React.FC = () => {
   const {
     isSubscribing,
     starterOfferClaimed,
-    createSubscription,
-    verifyPayment,
     fetchStatus,
   } = useSubscriptionStore();
-
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { startCheckout, loadingPlan } = useCashfreeCheckout();
 
   useEffect(() => {
     if (authUser) {
@@ -31,50 +28,15 @@ const Pricing: React.FC = () => {
   const handleSubscribe = async (plan: "starter" | "basic" | "pro") => {
     if (!authUser) return;
 
-    setLoadingPlan(plan);
+    const { success, redirected } = await startCheckout(plan);
 
-    // Initialize Cashfree SDK
-    try {
-      await initCashfree();
-    } catch {
-      setLoadingPlan(null);
-      return;
-    }
+    if (redirected) return; // handled by return_url
 
-    // Create order on backend
-    const result = await createSubscription(plan);
-    if (!result) {
-      setLoadingPlan(null);
-      return;
-    }
-
-    // Open Cashfree checkout modal
-    const checkoutResult = await openCashfreeCheckout(result.paymentSessionId);
-
-    if (checkoutResult.error) {
+    if (success) {
+      navigate("/payment/success");
+    } else {
       navigate("/payment/failure");
-      setLoadingPlan(null);
-      return;
     }
-
-    if (checkoutResult.redirect) {
-      // User was redirected — handled by return_url
-      setLoadingPlan(null);
-      return;
-    }
-
-    // Modal completed — verify payment on backend
-    if (checkoutResult.paymentDetails) {
-      const success = await verifyPayment({
-        order_id: result.orderId!,
-      });
-      if (success) {
-        navigate("/payment/success");
-      } else {
-        navigate("/payment/failure");
-      }
-    }
-    setLoadingPlan(null);
   };
 
   // Whether the Pro card shows the one-time ₹9 starter deal
