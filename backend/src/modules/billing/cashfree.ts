@@ -2,10 +2,19 @@ import { Cashfree, CFEnvironment } from "cashfree-pg";
 import ENV from "../../env.js";
 
 /**
- * Cashfree PG client instance (Production)
+ * Resolve Cashfree environment from NODE_ENV.
+ * Non-production deployments use sandbox/test mode.
+ */
+const cfEnv =
+  ENV.NODE_ENV === "production"
+    ? CFEnvironment.PRODUCTION
+    : CFEnvironment.SANDBOX;
+
+/**
+ * Cashfree PG client instance
  */
 const cashfree = new Cashfree(
-  CFEnvironment.PRODUCTION,
+  cfEnv,
   ENV.CASHFREE_APP_ID,
   ENV.CASHFREE_SECRET_KEY,
 );

@@ -55,8 +55,8 @@ const ENV: IEnv = {
   GITHUB_CLIENT_SECRET: `${process.env.GITHUB_CLIENT_SECRET}`,
   GITHUB_CALLBACK_URL: `${process.env.GITHUB_CALLBACK_URL}`,
   // Cashfree
-  CASHFREE_APP_ID: `${process.env.CASHFREE_APP_ID}`,
-  CASHFREE_SECRET_KEY: `${process.env.CASHFREE_SECRET_KEY}`,
+  CASHFREE_APP_ID: process.env.CASHFREE_APP_ID || "",
+  CASHFREE_SECRET_KEY: process.env.CASHFREE_SECRET_KEY || "",
   // Email
   SMTP_HOST: `${process.env.SMTP_HOST}`,
   SMTP_PORT: `${process.env.SMTP_PORT}`,
@@ -65,5 +65,14 @@ const ENV: IEnv = {
   SMTP_FROM: `${process.env.SMTP_FROM}`,
   ADMIN_EMAIL: process.env.ADMIN_EMAIL || "bhaveshsolminde@gmail.com",
 };
+
+// ── Fail-fast: validate critical Cashfree credentials at module load ──
+if (!ENV.CASHFREE_APP_ID || !ENV.CASHFREE_SECRET_KEY) {
+  console.error(
+    "[FATAL] Missing Cashfree credentials. " +
+    "Set CASHFREE_APP_ID and CASHFREE_SECRET_KEY in your .env file.",
+  );
+  process.exit(1);
+}
 
 export default ENV;

@@ -12,6 +12,7 @@
 ### Frontend (Vercel)
 ✅ **Already Added as GitHub Secret:**
 - `VITE_API_URL` → Must point to: `https://resumer-backend-fyapfggzacejf2dv.centralindia-01.azurewebsites.net/api/v1`
+- `VITE_CASHFREE_MODE` → Set to `"production"` for live payments, `"sandbox"` for testing (used by `frontend/src/lib/cashfree.ts`; defaults to `"production"` if unset)
 
 ### Backend (Azure App Service)
 🔴 **CRITICAL - Must Configure in Azure Portal:**
@@ -67,7 +68,7 @@ GITHUB_CALLBACK_URL=https://resumer-backend-fyapfggzacejf2dv.centralindia-01.azu
 ```
 
 #### Cashfree (Payment Gateway)
-```
+```bash
 CASHFREE_APP_ID=your_cashfree_app_id
 CASHFREE_SECRET_KEY=your_cashfree_secret_key
 ```

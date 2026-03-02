@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { cn } from "../lib/utils";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -105,7 +106,7 @@ const Footer: React.FC = () => {
 
         <div className="mt-8 pt-6 border-t flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>&copy; {currentYear} Resumer. All rights reserved.</p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className={cn("flex items-center gap-2 text-xs text-muted-foreground")}>
             <span>Payments by Cashfree</span>
           </div>
         </div>

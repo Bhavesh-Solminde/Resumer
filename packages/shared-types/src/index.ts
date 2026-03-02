@@ -43,6 +43,8 @@ export type {
   ISignupRequest,
   ILoginRequest,
   ISubscriptionStatus,
+  ICreateOrderRequest,
+  IVerifyPaymentRequest,
   ICreateSubscriptionResponse,
   IVerifyPaymentResponse,
   IPaymentLogEntry,

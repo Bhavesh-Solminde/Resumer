@@ -6,7 +6,7 @@
 /**
  * Subscription tier (kept for analytics & UI display)
  */
-export type SubscriptionTier = "free" | "basic" | "pro" | "enterprise";
+export type SubscriptionTier = "free" | "starter" | "basic" | "pro" | "enterprise";
 
 /**
  * Subscription status
@@ -147,6 +147,20 @@ export interface ISubscriptionStatus {
   totalCreditsUsed: number;
   subscriptionTier: SubscriptionTier;
   starterOfferClaimed: boolean;
+}
+
+/**
+ * Create order request payload (frontend → backend)
+ */
+export interface ICreateOrderRequest {
+  plan: "starter" | "basic" | "pro";
+}
+
+/**
+ * Verify payment request payload (frontend → backend)
+ */
+export interface IVerifyPaymentRequest {
+  order_id: string;
 }
 
 /**
