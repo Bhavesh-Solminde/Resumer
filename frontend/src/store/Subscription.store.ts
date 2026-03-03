@@ -31,9 +31,7 @@ interface SubscriptionActions {
   fetchUsageStats: () => Promise<void>;
   createSubscription: (plan: "starter" | "basic" | "pro") => Promise<ICreateSubscriptionResponse | null>;
   verifyPayment: (data: {
-    razorpay_payment_id: string;
-    razorpay_order_id: string;
-    razorpay_signature: string;
+    order_id: string;
   }) => Promise<boolean>;
   updateCredits: (credits: number) => void;
   reset: () => void;

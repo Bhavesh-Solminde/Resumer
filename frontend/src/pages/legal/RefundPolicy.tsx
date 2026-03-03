@@ -43,7 +43,7 @@ const RefundPolicy: React.FC = () => {
       <h2>4. Refund Processing</h2>
       <p>
         Approved refunds will be processed back to the original payment method
-        via Razorpay. Please allow 5-7 business days for the refund to reflect
+        via Cashfree. Please allow 5-7 business days for the refund to reflect
         in your account.
       </p>
 

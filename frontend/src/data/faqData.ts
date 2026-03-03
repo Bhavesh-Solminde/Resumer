@@ -30,9 +30,9 @@ export const faqData: IFaqItem[] = [
     id: "payment-methods",
     question: "What payment methods are accepted?",
     answer:
-      "We accept all major payment methods through Razorpay, including UPI, credit/debit cards (Visa, Mastercard, RuPay), net banking, and popular wallets like Paytm, PhonePe, and Google Pay.",
+      "We accept all major payment methods through Cashfree, including UPI, credit/debit cards (Visa, Mastercard, RuPay), net banking, and popular wallets like Paytm, PhonePe, and Google Pay.",
     category: "Credits & Billing",
-    tags: ["payment", "upi", "card", "razorpay"],
+    tags: ["payment", "upi", "card", "cashfree"],
   },
   {
     id: "refund-policy",
