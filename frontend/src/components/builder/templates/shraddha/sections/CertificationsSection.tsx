@@ -11,9 +11,42 @@ import SectionHeader from "./SectionHeader";
 import { formatDate, DateValue } from "../../../../../lib/dateUtils";
 import type { ICertificationItem } from "@resumer/shared-types";
 
+const parseDateString = (
+  value: string | null | undefined,
+): DateValue | null => {
+  if (!value) return null;
+  if (value === "Present") return null;
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  ];
+
+  const monthNameIndex = months.findIndex((m) => value.startsWith(m));
+  if (monthNameIndex >= 0) {
+    const yearPart = value.replace(months[monthNameIndex], "").trim();
+    const year = Number(yearPart);
+    if (!Number.isNaN(year)) {
+      return { month: monthNameIndex, year };
+    }
+  }
+
+  const parts = value.split("/");
+  if (parts.length === 2) {
+    const monthNum = Number(parts[0]) - 1;
+    const year = Number(parts[1]);
+    if (!Number.isNaN(monthNum) && !Number.isNaN(year)) {
+      return { month: Math.max(0, Math.min(11, monthNum)), year };
+    }
+  }
+
+  return null;
+};
+
 type CertificationItem = Omit<ICertificationItem, "date" | "expiryDate"> & {
   date?: DateValue | string | null;
   expiryDate?: DateValue | string | null;
+  credentialUrl?: string;
 };
 
 interface CertificationsSectionSettings {
@@ -82,6 +115,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
       date: null,
       expiryDate: null,
       credentialId: "",
+      credentialUrl: "",
     };
     updateSectionData(sectionId, { items: [...data, newItem] });
   };
@@ -209,7 +243,9 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                       <MonthYearPicker
                         value={{
                           from:
-                            typeof item.date === "object" ? item.date : null,
+                            typeof item.date === "object"
+                              ? item.date
+                              : parseDateString(item.date as string | null | undefined),
                           to: null,
                         }}
                         onChange={(dates) =>
@@ -248,7 +284,7 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                           from:
                             typeof item.expiryDate === "object"
                               ? item.expiryDate
-                              : null,
+                              : parseDateString(item.expiryDate as string | null | undefined),
                           to: null,
                         }}
                         onChange={(dates) =>
@@ -277,6 +313,20 @@ const CertificationsSection: React.FC<CertificationsSectionProps> = ({
                   />
                 </div>
               )}
+
+              {/* Credential URL */}
+              <div className="flex items-center gap-1">
+                <span className="text-gray-400">Link:</span>
+                <EditableText
+                  value={(item as CertificationItem & { credentialUrl?: string }).credentialUrl || ""}
+                  onChange={(val) =>
+                    handleFieldChange(item.id, "credentialUrl", val)
+                  }
+                  placeholder="Credential URL"
+                  className="text-gray-600"
+                  as="span"
+                />
+              </div>
             </div>
           </div>
         ))}

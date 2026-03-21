@@ -83,6 +83,7 @@ const ResumeEditor: React.FC = () => {
   const { confirmDialog, setConfirmDialog } = useBuildStore();
 
   const hiddenContainerRef = React.useRef<HTMLDivElement>(null);
+  const emptySectionSettingsRef = React.useRef<Record<string, Record<string, boolean>>>({});
   const [paginatedSections, setPaginatedSections] = React.useState<
     PaginatedSection[][]
   >([[]]);
@@ -103,6 +104,9 @@ const ResumeEditor: React.FC = () => {
 
   const style = React.useMemo(() => normalizeStyle(rawStyle), [rawStyle]);
 
+  // Stabilize sectionSettings to prevent re-render loops when store returns undefined
+  const stableSectionSettings = sectionSettings ?? emptySectionSettingsRef.current;
+
   // Pagination Logic
   React.useEffect(() => {
     // Debounce slightly or run immediately?
@@ -121,7 +125,7 @@ const ResumeEditor: React.FC = () => {
       // A4 is 297mm.
       // Create a temporary element to measure 1mm in pixels to be precise for this screen
       const testDiv = document.createElement("div");
-      testDiv.style.height = "297mm";
+      testDiv.style.height = "250mm";
       testDiv.style.position = "absolute";
       testDiv.style.visibility = "hidden";
       document.body.appendChild(testDiv);
@@ -352,7 +356,7 @@ const ResumeEditor: React.FC = () => {
   }, [
     sections,
     template,
-    sectionSettings,
+    stableSectionSettings,
     style?.fontFamily,
     style?.fontSize,
     style?.lineHeight,
@@ -456,8 +460,8 @@ const ResumeEditor: React.FC = () => {
             <div
               key={pageIndex}
               className={cn(
-                "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto overflow-hidden",
-                "min-h-[297mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
+                "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
+                "min-h-[290mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
                 "py-8",
               )}
               style={{
@@ -466,7 +470,9 @@ const ResumeEditor: React.FC = () => {
                 paddingLeft: `${marginsMm}mm`,
                 paddingRight: `${marginsMm}mm`,
                 fontSize: `${fontSizePt}pt`,
-                height: "297mm",
+                height: "290mm",
+                overflowY: "clip",
+                overflowX: "visible",
               }}
             >
               {/* Background Pattern */}

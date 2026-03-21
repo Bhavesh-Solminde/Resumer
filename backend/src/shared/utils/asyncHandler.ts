@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
+import mongoose from "mongoose";
 
 /**
  * Async handler wrapper to avoid try-catch blocks in every controller.
@@ -11,6 +12,17 @@ type AsyncRequestHandler<T = any> = (
   next: NextFunction
 ) => Promise<unknown> | unknown;
 
+/**
+ * Sanitize error information for logging — strips raw input values and
+ * limits output to message + stack to avoid leaking sensitive data.
+ */
+const sanitizeForLogging = (err: unknown): { message: string; stack?: string } => {
+  if (err instanceof Error) {
+    return { message: err.message, stack: err.stack };
+  }
+  return { message: String(err) };
+};
+
 const asyncHandler = <T = unknown>(
   fn: AsyncRequestHandler<T>
 ): RequestHandler => {
@@ -18,51 +30,34 @@ const asyncHandler = <T = unknown>(
     try {
       await fn(req as Request<T>, res, next);
     } catch (err: unknown) {
-      // Log the full error for debugging
-      console.error("❌ Error in async handler:", err);
+      // Log sanitized error information only
+      const sanitized = sanitizeForLogging(err);
+      console.error("❌ Error in async handler:", sanitized.message);
+      if (sanitized.stack) {
+        console.error("Stack:", sanitized.stack);
+      }
 
-      // Handle Mongoose CastError specifically
-      if (
-        err &&
-        typeof err === "object" &&
-        "name" in err &&
-        err.name === "CastError"
-      ) {
-        const castErr = err as {
-          kind?: string;
-          path?: string;
-          value?: unknown;
-        };
+      // Handle Mongoose CastError specifically — route through global error middleware
+      if (err instanceof mongoose.Error.CastError) {
+        const castErr = err as mongoose.Error.CastError;
         console.error(
-          `🔴 Mongoose CastError on field "${castErr.path}": Value ${JSON.stringify(castErr.value)} cannot be cast to ${castErr.kind}`
+          `🔴 Mongoose CastError on field "${castErr.path}"`
         );
-        return res.status(400).json({
-          success: false,
-          message: `Invalid data type for field: ${castErr.path}`,
-        });
+        const error = new Error(`Invalid data type for field: ${castErr.path}`);
+        (error as Error & { statusCode?: number }).statusCode = 400;
+        return next(error);
       }
 
-      // Handle Mongoose ValidationError
-      if (
-        err &&
-        typeof err === "object" &&
-        "name" in err &&
-        err.name === "ValidationError"
-      ) {
-        console.error("🔴 Mongoose ValidationError:", err);
-        return res.status(400).json({
-          success: false,
-          message:
-            (err as { message?: string }).message || "Validation failed",
-        });
+      // Handle Mongoose ValidationError — route through global error middleware
+      if (err instanceof mongoose.Error.ValidationError) {
+        console.error("🔴 Mongoose ValidationError:", sanitized.message);
+        const error = new Error(err.message || "Validation failed");
+        (error as Error & { statusCode?: number }).statusCode = 400;
+        return next(error);
       }
 
-      const error = err as { statusCode?: number; message?: string };
-
-      res.status(error.statusCode || 500).json({
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
+      // Pass all other errors to the global error handler
+      next(err);
     }
   };
 };

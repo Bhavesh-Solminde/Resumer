@@ -25,12 +25,15 @@ You MUST follow this structured execution pattern:
 Call the Planner agent with the user's request. The Planner will return implementation steps.
 
 ### Step 2: Parse Into Phases
-The Planner's response includes **file assignments** for each step. Use these to determine parallelization:
+The Planner's response should include **affected_files** for each step. Use these to determine parallelization:
 
-1. Extract the file list from each step
-2. Steps with **no overlapping files** can run in parallel (same phase)
-3. Steps with **overlapping files** must be sequential (different phases)
-4. Respect explicit dependencies from the plan
+1. Extract the `affected_files` list from each step
+2. **If `affected_files` is missing or empty for a step**, treat that step's file scope as unknown and fall back to **conservative sequential execution** (do not parallelize with other steps)
+3. Steps with valid, **non-overlapping `affected_files`** can run in parallel (same phase)
+4. Steps with **overlapping `affected_files`** must be sequential (different phases)
+5. Respect explicit dependencies from the plan
+
+> ⚠️ **Validation**: If the Planner output is missing `affected_files` on any step, report the gap clearly: *"Step X is missing affected_files — falling back to sequential execution. Re-run the Planner with the required field for optimal parallelization."*
 
 Output your execution plan like this:
 
@@ -58,6 +61,8 @@ For each phase:
 
 ### Step 4: Verify and Report
 After all phases complete, verify the work hangs together and report results.
+
+> **Error Handling**: If any phase fails due to missing or invalid `affected_files`, stop execution and instruct the Planner to re-generate the plan with `affected_files` populated for every step.
 
 ## Parallelization Rules
 

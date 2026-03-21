@@ -1,4 +1,4 @@
-# �� PDF vs Builder UI Testing Checklist
+# PDF vs Builder UI Testing Checklist
 
 ## 1) Overview
 

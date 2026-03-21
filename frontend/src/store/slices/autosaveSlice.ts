@@ -12,6 +12,7 @@
 import React from "react";
 import type { StateCreator } from "zustand";
 import { axiosInstance, getApiErrorMessage } from "../../lib/axios";
+import { formatDate } from "../../lib/dateUtils";
 import { toast } from "react-hot-toast";
 import type { ApiResponse } from "@resumer/shared-types";
 
@@ -425,16 +426,8 @@ function convertDateFieldsToStrings(
         "month" in value &&
         "year" in value
       ) {
-        // Convert { month, year } to "Mon YYYY" format
-        const dateObj = value as { month: number; year: number };
-        const months = [
-          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-        ];
-        converted[field] =
-          dateObj.month >= 0 && dateObj.month < 12
-            ? `${months[dateObj.month]} ${dateObj.year}`
-            : `${dateObj.year}`;
+        // Convert { month, year } to "Mon YYYY" format using shared utility
+        converted[field] = formatDate(value as { month: number; year: number });
       } else if (value === null || value === undefined) {
         // Convert null/undefined to empty string (matches schema default)
         converted[field] = "";

@@ -708,8 +708,12 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
 };
 
 // Certifications Component
-const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const certificationsData = data as CertificationsData;
+  const showIssuer = settings?.showIssuer ?? true;
+  const showDate = settings?.showDate ?? true;
+  const showExpiryDate = settings?.showExpiryDate ?? true;
+  const showCredentialId = settings?.showCredentialId ?? true;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Certifications</Text>
@@ -719,21 +723,21 @@ const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles }) =>
             <View>
               <Text style={styles.experienceTitle}>
                 {item.name}
-                {item.issuer ? ` | ${item.issuer}` : ""}
+                {showIssuer && item.issuer ? ` | ${item.issuer}` : ""}
               </Text>
             </View>
             <View>
-              {item.date && (
+              {showDate && item.date && (
                 <Text style={styles.experienceDate}>{formatDate(item.date)}</Text>
               )}
-              {item.expiryDate && (
+              {showExpiryDate && item.expiryDate && (
                 <Text style={styles.experienceLocation}>
                   {formatDate(item.expiryDate)}
                 </Text>
               )}
             </View>
           </View>
-          {item.credentialId && (
+          {showCredentialId && item.credentialId && (
             <Text style={styles.inlineMeta}>
               Credential ID: {item.credentialId}
             </Text>
@@ -774,8 +778,12 @@ const PDFAchievements: React.FC<SectionComponentProps> = ({ data, styles }) => {
 };
 
 // Volunteering Component
-const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const volunteeringData = data as VolunteeringData;
+  const showOrganization = settings?.showOrganization ?? true;
+  const showPeriod = settings?.showPeriod ?? true;
+  const showDescription = settings?.showDescription ?? true;
+  const showBullets = settings?.showBullets ?? true;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Volunteering</Text>
@@ -784,14 +792,14 @@ const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
           <View style={styles.experienceHeader}>
             <View>
               <Text style={styles.experienceTitle}>{item.title}</Text>
-              {item.organization && (
+              {showOrganization && item.organization && (
                 <Text style={styles.experienceCompany}>
                   {item.organization}
                 </Text>
               )}
             </View>
             <View>
-              {(item.startDate || item.endDate) && (
+              {showPeriod && (item.startDate || item.endDate) && (
                 <Text style={styles.experienceDate}>
                   {formatDate(item.startDate || null)}
                   {item.endDate ? ` - ${formatDate(item.endDate)}` : ""}
@@ -799,10 +807,10 @@ const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
               )}
             </View>
           </View>
-          {item.description && (
+          {showDescription && item.description && (
             <Text style={styles.paragraph}>{item.description}</Text>
           )}
-          {item.bullets && item.bullets.length > 0 && (
+          {showBullets && item.bullets && item.bullets.length > 0 && (
             <View style={styles.bulletList}>
               {item.bullets.map((bullet, bulletIndex) => (
                 <View
