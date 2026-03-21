@@ -400,6 +400,51 @@ export const createAutosaveSlice: StateCreator<
 // Helper: Transform store sections to API content format
 // ============================================================================
 
+/**
+ * Converts DateValue objects to string format for API compatibility
+ * Handles { month: 0-11, year: YYYY } objects from MonthYearPicker
+ */
+function convertDateFieldsToStrings(
+  item: unknown
+): Record<string, unknown> {
+  if (!item || typeof item !== "object") return {};
+
+  const converted = { ...item } as Record<string, unknown>;
+  const dateFields = ["startDate", "endDate", "date", "expiryDate"];
+
+  for (const field of dateFields) {
+    if (field in converted) {
+      const value = converted[field];
+
+      if (value === "Present") {
+        // Keep "Present" as-is
+        continue;
+      } else if (
+        value &&
+        typeof value === "object" &&
+        "month" in value &&
+        "year" in value
+      ) {
+        // Convert { month, year } to "Mon YYYY" format
+        const dateObj = value as { month: number; year: number };
+        const months = [
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        ];
+        converted[field] =
+          dateObj.month >= 0 && dateObj.month < 12
+            ? `${months[dateObj.month]} ${dateObj.year}`
+            : `${dateObj.year}`;
+      } else if (value === null || value === undefined) {
+        // Convert null/undefined to empty string (matches schema default)
+        converted[field] = "";
+      }
+    }
+  }
+
+  return converted;
+}
+
 function transformSectionsToContent(
   sections: unknown,
   sectionOrder: unknown
@@ -423,25 +468,37 @@ function transformSectionsToContent(
         content.summary = data;
         break;
       case "education":
-        content.education = (data as { items?: unknown[] })?.items || [];
+        content.education = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
       case "experience":
-        content.experience = (data as { items?: unknown[] })?.items || [];
+        content.experience = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
       case "projects":
-        content.projects = (data as { items?: unknown[] })?.items || [];
+        content.projects = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
       case "skills":
         content.skills = data;
         break;
       case "certifications":
-        content.certifications = (data as { items?: unknown[] })?.items || [];
+        content.certifications = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
       case "achievements":
-        content.achievements = (data as { items?: unknown[] })?.items || [];
+        content.achievements = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
       case "volunteering":
-        content.volunteering = (data as { items?: unknown[] })?.items || [];
+        content.volunteering = (
+          (data as { items?: unknown[] })?.items || []
+        ).map(convertDateFieldsToStrings);
         break;
     }
   }

@@ -13,6 +13,8 @@ import SkillsSection from "./sections/SkillsSection";
 import SummarySection from "./sections/SummarySection";
 import AchievementsSection from "./sections/AchievementsSection";
 import StrengthsSection from "./sections/StrengthsSection";
+import CertificationsSection from "./sections/CertificationsSection";
+import VolunteeringSection from "./sections/VolunteeringSection";
 
 // Preview component for template selection
 import TemplatePreview from "./TemplatePreview";
@@ -39,6 +41,8 @@ const shraddhaTemplate: Template = {
     summary: SummarySection,
     achievements: AchievementsSection,
     strengths: StrengthsSection,
+    certifications: CertificationsSection,
+    volunteering: VolunteeringSection,
   },
 
   sampleData: sampleData as unknown as Record<string, unknown>,
