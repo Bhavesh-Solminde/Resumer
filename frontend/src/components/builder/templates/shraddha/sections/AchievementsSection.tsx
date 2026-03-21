@@ -57,8 +57,8 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   const handleAddItem = () => {
     const newItem: AchievementItem = {
       id: `ach-${Date.now()}`,
-      title: "",
-      description: "",
+      title: `Achievement ${data.length + 1}`,
+      description: `Description of achievement ${data.length + 1}`,
     };
     updateSectionData(sectionId, { items: [...data, newItem] });
   };
@@ -113,7 +113,6 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
               <ItemToolbar
                 position="left"
                 showCalendar={false}
-                className="-left-14"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
               />
