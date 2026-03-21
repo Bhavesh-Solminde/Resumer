@@ -125,7 +125,7 @@ const ResumeEditor: React.FC = () => {
       // A4 is 297mm.
       // Create a temporary element to measure 1mm in pixels to be precise for this screen
       const testDiv = document.createElement("div");
-      testDiv.style.height = "250mm";
+      testDiv.style.height = "240mm";
       testDiv.style.position = "absolute";
       testDiv.style.visibility = "hidden";
       document.body.appendChild(testDiv);
