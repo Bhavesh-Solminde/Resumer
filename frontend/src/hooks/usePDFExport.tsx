@@ -3,6 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import ResumePDFDocument from "../components/builder/pdf/ResumePDFDocument";
 import toast from "react-hot-toast";
 import type { IStyle } from "@resumer/shared-types";
+import useBuildStore from "../store/Build.store";
 
 // Style interface matching ResumePDFDocument
 type Style = IStyle;
@@ -60,12 +61,8 @@ export const usePDFExport = () => {
         const rawBlob = await pdf(doc).toBlob();
         const blob = new Blob([rawBlob], { type: "application/pdf" });
 
-        // 3. Get the file name from the resume data
-        const headerSection = resumeData.sections.find(
-          (section) => section.type === "header"
-        );
-        const headerData = headerSection?.data as HeaderData | undefined;
-        const name = headerData?.fullName || "Resume";
+        // 3. Get the file name from the build store
+        const name = useBuildStore.getState().resumeTitle || "Resume";
         // Sanitize: remove filesystem-invalid characters, trim, and truncate
         const sanitizedName =
           name
