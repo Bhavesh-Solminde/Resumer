@@ -65,7 +65,7 @@ export const usePDFExport = () => {
           (section) => section.type === "header"
         );
         const headerData = headerSection?.data as HeaderData | undefined;
-        const name = headerData?.fullName?.split(" ")[0] || "Resume";
+        const name = headerData?.fullName || "Resume";
         // Sanitize: remove filesystem-invalid characters, trim, and truncate
         const sanitizedName =
           name

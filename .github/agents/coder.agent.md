@@ -44,7 +44,7 @@ These coding principles are mandatory:
 
 8. Modifications
 - When extending/refactoring, follow existing patterns.
-- Prefer full-file rewrites over micro-edits unless told otherwise.
+- Prefer targeted, minimal edits over full-file rewrites. Reserve full-file rewrites only for explicitly approved migrations or large-scale refactors.
 
 9. Quality
 - Favor deterministic, testable behavior.

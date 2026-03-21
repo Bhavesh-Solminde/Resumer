@@ -3,15 +3,10 @@ import { Award } from "lucide-react";
 import { EditableText, ItemToolbar, EmptyState } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
-
-interface AchievementItem {
-  id: string;
-  title?: string;
-  description?: string;
-}
+import type { IAchievementItem } from "@resumer/shared-types";
 
 interface AchievementsSectionProps {
-  data?: AchievementItem[];
+  data?: IAchievementItem[];
   sectionId?: string;
   themeColor?: string;
   hideHeader?: boolean;
@@ -57,10 +52,11 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   };
 
   const handleAddItem = () => {
-    const newItem: AchievementItem = {
+    const newItem: IAchievementItem = {
       id: `ach-${Date.now()}`,
       title: `Achievement ${data.length + 1}`,
       description: `Description of achievement ${data.length + 1}`,
+      date: "",
     };
     updateSectionData(sectionId, { items: [...data, newItem] });
   };
