@@ -72,7 +72,7 @@ export const usePDFExport = () => {
         
         // Use local date for the filename
         const date = new Date().toISOString().split("T")[0];
-        const fileName = `resume_${sanitizedName}_${date}.pdf`;
+        const fileName = `${sanitizedName}.pdf`;
 
         // 4. Trigger manual download using the required anchor pattern
         const blobURL = URL.createObjectURL(blob);
