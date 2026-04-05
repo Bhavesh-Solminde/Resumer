@@ -66,6 +66,7 @@ export interface ISummaryData {
 
 export interface IExperienceItem extends IItemBase {
   title: string;
+  position?: string;
   company: string;
   location: string;
   startDate: string;
@@ -76,6 +77,7 @@ export interface IExperienceItem extends IItemBase {
 
 export interface IEducationItem extends IItemBase {
   degree: string;
+  field?: string;
   institution: string;
   location: string;
   startDate: string;
@@ -101,6 +103,7 @@ export interface ICertificationItem extends IItemBase {
   date: string;
   expiryDate?: string;
   credentialId: string;
+  credentialUrl?: string;
 }
 
 export interface IVolunteeringItem extends IItemBase {

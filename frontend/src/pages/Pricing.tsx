@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Check, Loader2, ArrowLeft, Home, Zap } from "lucide-react";
 import { PLAN_CONFIGS } from "@resumer/shared-types";
 import { useSubscriptionStore } from "../store/Subscription.store";
 import { useAuthStore } from "../store/Auth.store";
-import { loadRazorpayScript, openRazorpayCheckout } from "../lib/razorpay";
+import { useCashfreeCheckout } from "../hooks/useCashfreeCheckout";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import Footer from "../components/Footer";
@@ -15,12 +15,9 @@ const Pricing: React.FC = () => {
   const {
     isSubscribing,
     starterOfferClaimed,
-    createSubscription,
-    verifyPayment,
     fetchStatus,
   } = useSubscriptionStore();
-
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { startCheckout, loadingPlan } = useCashfreeCheckout();
 
   useEffect(() => {
     if (authUser) {
@@ -31,44 +28,15 @@ const Pricing: React.FC = () => {
   const handleSubscribe = async (plan: "starter" | "basic" | "pro") => {
     if (!authUser) return;
 
-    setLoadingPlan(plan);
+    const { success, redirected } = await startCheckout(plan);
 
-    // Load Razorpay script
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setLoadingPlan(null);
-      return;
+    if (redirected) return; // handled by return_url
+
+    if (success) {
+      navigate("/payment/success");
+    } else {
+      navigate("/payment/failure");
     }
-
-    // Create subscription on backend
-    const result = await createSubscription(plan);
-    if (!result) {
-      setLoadingPlan(null);
-      return;
-    }
-
-    // Open Razorpay checkout
-    openRazorpayCheckout({
-      keyId: result.razorpayKeyId,
-      orderId: result.orderId,
-      amount: result.amount,
-      planName: PLAN_CONFIGS[plan].name,
-      userName: authUser.fullName,
-      userEmail: authUser.email,
-      onSuccess: async (response) => {
-        const success = await verifyPayment(response);
-        if (success) {
-          navigate("/payment/success");
-        } else {
-          navigate("/payment/failure");
-        }
-        setLoadingPlan(null);
-      },
-      onDismiss: () => {
-        navigate("/payment/failure");
-        setLoadingPlan(null);
-      },
-    });
   };
 
   // Whether the Pro card shows the one-time ₹9 starter deal

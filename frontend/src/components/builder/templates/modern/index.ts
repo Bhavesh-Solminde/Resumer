@@ -10,6 +10,8 @@ import ProjectsSection from "./sections/ProjectsSection";
 import SkillsSection from "./sections/SkillsSection";
 import SummarySection from "./sections/SummarySection";
 import AchievementsSection from "./sections/AchievementsSection";
+import CertificationsSection from "./sections/CertificationsSection";
+import VolunteeringSection from "./sections/VolunteeringSection";
 
 import TemplatePreview from "./TemplatePreview";
 import { sampleData } from "./sampleData";
@@ -31,6 +33,8 @@ const modernTemplate: Template = {
     skills: SkillsSection,
     summary: SummarySection,
     achievements: AchievementsSection,
+    certifications: CertificationsSection,
+    volunteering: VolunteeringSection,
   },
 
   sampleData: sampleData as unknown as Record<string, unknown>,

@@ -15,6 +15,7 @@ import AddSectionModal from "../components/builder/modals/AddSectionModal";
 import RearrangeModal from "../components/builder/modals/RearrangeModal";
 import TemplatesModal from "../components/builder/modals/TemplatesModal";
 import BuildHistoryDialog from "../components/builder/BuildHistoryDialog";
+import ExportWarningDialog, { hasSeenExportWarning } from "../components/builder/ExportWarningDialog";
 
 const ResumeBuilder: React.FC = () => {
   const {
@@ -41,6 +42,9 @@ const ResumeBuilder: React.FC = () => {
 
   // History dialog state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Export warning state (shown once before first PDF download)
+  const [showExportWarning, setShowExportWarning] = useState(false);
 
   // Force light theme on the builder page
   useEffect(() => {
@@ -99,7 +103,14 @@ const ResumeBuilder: React.FC = () => {
   }, [unsavedChanges, saveImmediately, cancelPendingAutosave]);
 
   const handleExportPDF = () => {
-    // Create resumeData object from store state for PDF export
+    if (!hasSeenExportWarning()) {
+      setShowExportWarning(true);
+      return;
+    }
+    doExport();
+  };
+
+  const doExport = useCallback(() => {
     const resumeData = {
       sections,
       sectionOrder,
@@ -108,7 +119,7 @@ const ResumeBuilder: React.FC = () => {
       template,
     };
     exportToPDF(resumeData);
-  };
+  }, [sections, sectionOrder, sectionSettings, style, template, exportToPDF]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -158,6 +169,16 @@ const ResumeBuilder: React.FC = () => {
           }}
         />
       )}
+
+      {/* Export Warning Dialog */}
+      <ExportWarningDialog
+        open={showExportWarning}
+        onConfirm={() => {
+          setShowExportWarning(false);
+          doExport();
+        }}
+        onCancel={() => setShowExportWarning(false)}
+      />
     </div>
   );
 };

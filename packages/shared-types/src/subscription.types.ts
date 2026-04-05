@@ -6,7 +6,7 @@
 /**
  * Subscription tier (kept for analytics & UI display)
  */
-export type SubscriptionTier = "free" | "basic" | "pro" | "enterprise";
+export type SubscriptionTier = "free" | "starter" | "basic" | "pro" | "enterprise";
 
 /**
  * Subscription status
@@ -150,11 +150,25 @@ export interface ISubscriptionStatus {
 }
 
 /**
- * Create subscription response (Order-based — one-time payment)
+ * Create order request payload (frontend → backend)
+ */
+export interface ICreateOrderRequest {
+  plan: "starter" | "basic" | "pro";
+}
+
+/**
+ * Verify payment request payload (frontend → backend)
+ */
+export interface IVerifyPaymentRequest {
+  order_id: string;
+}
+
+/**
+ * Create subscription response (Order-based — one-time payment via Cashfree)
  */
 export interface ICreateSubscriptionResponse {
   orderId: string;
-  razorpayKeyId: string;
+  paymentSessionId: string;
   plan: "starter" | "basic" | "pro";
   amount: number;
   currency: string;
@@ -173,7 +187,8 @@ export interface IVerifyPaymentResponse {
  */
 export interface IPaymentLogEntry {
   _id: string;
-  razorpay_payment_id: string;
+  cf_payment_id: string | null;
+  cf_order_id: string | null;
   amount: number;
   currency: string;
   status: "success" | "failed" | "pending" | "refunded";

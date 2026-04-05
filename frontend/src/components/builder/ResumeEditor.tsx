@@ -83,6 +83,7 @@ const ResumeEditor: React.FC = () => {
   const { confirmDialog, setConfirmDialog } = useBuildStore();
 
   const hiddenContainerRef = React.useRef<HTMLDivElement>(null);
+  const emptySectionSettingsRef = React.useRef<Record<string, Record<string, boolean>>>({});
   const [paginatedSections, setPaginatedSections] = React.useState<
     PaginatedSection[][]
   >([[]]);
@@ -103,6 +104,9 @@ const ResumeEditor: React.FC = () => {
 
   const style = React.useMemo(() => normalizeStyle(rawStyle), [rawStyle]);
 
+  // Stabilize sectionSettings to prevent re-render loops when store returns undefined
+  const stableSectionSettings = sectionSettings ?? emptySectionSettingsRef.current;
+
   // Pagination Logic
   React.useEffect(() => {
     // Debounce slightly or run immediately?
@@ -121,7 +125,7 @@ const ResumeEditor: React.FC = () => {
       // A4 is 297mm.
       // Create a temporary element to measure 1mm in pixels to be precise for this screen
       const testDiv = document.createElement("div");
-      testDiv.style.height = "297mm";
+      testDiv.style.height = "240mm";
       testDiv.style.position = "absolute";
       testDiv.style.visibility = "hidden";
       document.body.appendChild(testDiv);
@@ -316,19 +320,49 @@ const ResumeEditor: React.FC = () => {
       setPaginatedSections(pages);
     };
 
-    // Observer allows us to re-measure if a section's internal content changes size (e.g. image loads, text wrap)
+    // Schedule measurement on the next animation frame so DOM/layout is fully committed.
+    // This avoids stale heights during rapid live edits.
+    let rafId: number | null = null;
+    const scheduleMeasure = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        measureAndPaginate();
+        rafId = null;
+      });
+    };
+
+    // Observer allows us to re-measure if content changes size (e.g. text wrap, image loads)
     const observer = new ResizeObserver(() => {
-      measureAndPaginate();
+      scheduleMeasure();
     });
 
+    // Observe the container and each direct section wrapper.
+    // Container observation helps catch aggregate flow changes.
+    observer.observe(hiddenContainerRef.current);
     Array.from(hiddenContainerRef.current.children).forEach((child) => {
       observer.observe(child);
     });
 
-    measureAndPaginate();
+    scheduleMeasure();
 
-    return () => observer.disconnect();
-  }, [sections, style]); // Re-run when structure changes
+    return () => {
+      observer.disconnect();
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, [
+    sections,
+    template,
+    stableSectionSettings,
+    style?.fontFamily,
+    style?.fontSize,
+    style?.lineHeight,
+    style?.pageMargins,
+    style?.sectionSpacing,
+  ]);
 
   // Normalize data format for template sections
 
@@ -427,7 +461,7 @@ const ResumeEditor: React.FC = () => {
               key={pageIndex}
               className={cn(
                 "relative bg-white dark:bg-card shadow-2xl rounded-sm mx-auto",
-                "min-h-[297mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
+                "min-h-[290mm] w-full max-w-[210mm]", // min-h ensures it looks like a page even if empty
                 "py-8",
               )}
               style={{
@@ -436,7 +470,9 @@ const ResumeEditor: React.FC = () => {
                 paddingLeft: `${marginsMm}mm`,
                 paddingRight: `${marginsMm}mm`,
                 fontSize: `${fontSizePt}pt`,
-                height: "297mm",
+                height: "290mm",
+                overflowY: "clip",
+                overflowX: "visible",
               }}
             >
               {/* Background Pattern */}

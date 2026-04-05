@@ -30,6 +30,7 @@ interface SummaryData {
 
 interface ExperienceItem {
   id?: string;
+  position?: string;
   title?: string;
   company?: string;
   startDate?: DateLike;
@@ -46,10 +47,12 @@ interface ExperienceData {
 interface EducationItem {
   id?: string;
   degree?: string;
+  field?: string;
   institution?: string;
   startDate?: DateLike;
   endDate?: DateLike;
   location?: string;
+  gpa?: string;
   description?: string;
 }
 
@@ -86,7 +89,15 @@ interface ProjectsData {
 }
 
 interface CertificationsData {
-  items?: ICertificationItem[];
+  items?: Array<
+    Omit<ICertificationItem, "date" | "expiryDate"> & {
+      date?: DateLike;
+      expiryDate?: DateLike;
+      link?: string;
+      url?: string;
+      credentialUrl?: string;
+    }
+  >;
 }
 
 interface AchievementsData {
@@ -315,18 +326,17 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
       marginBottom: resolveSectionSpacingPt(theme.sectionSpacing),
     },
     sectionTitle: {
-      fontSize: 11,
+      fontSize: 10.5,
       fontWeight: "bold",
       fontFamily: fontFamily,
       color: primaryColor,
       textTransform: "uppercase",
-      letterSpacing: 1,
+      letterSpacing: 0.25,
       marginBottom: 8,
+      padding: 0,
       paddingBottom: 4,
-      borderBottomWidth: layout.sectionBorderStyle === "bottom" ? 1 : 0,
+      borderBottomWidth: 1,
       borderBottomColor: primaryColor,
-      backgroundColor: isShraddha ? colors.headerBg : "white",
-      padding: isShraddha ? 6 : 0,
     },
     paragraph: {
       fontSize: 10,
@@ -336,7 +346,7 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
     bulletList: {
       marginTop: 4,
       marginLeft: 6,
-      gap: 2,
+      gap: 3,
     },
     bulletItem: {
       flexDirection: "row",
@@ -350,7 +360,7 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
     },
     bulletText: {
       fontSize: 10,
-      lineHeight: 1.4,
+      lineHeight: 1.6,
       color: colors.text,
       flexShrink: 1,
     },
@@ -369,7 +379,7 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
     },
     experienceCompany: {
       fontSize: 10,
-      color: colors.text,
+      color: isShraddha ? primaryColor : colors.text,
     },
     experienceDate: {
       fontSize: 9,
@@ -384,24 +394,22 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
     skillsContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 6,
+      marginTop: 2,
     },
     skillBadge: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: isShraddha ? 4 : 12,
-      borderWidth: 1,
-      borderColor: primaryColor,
-      fontSize: 9,
-      color: primaryColor,
-      backgroundColor: isShraddha ? colors.headerBg : "transparent",
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      borderRadius: 0,
+      borderWidth: 0,
+      borderColor: "transparent",
+      fontSize: 10,
+      color: colors.text,
+      backgroundColor: "transparent",
     },
     skillGroupTitle: {
       fontSize: 10,
-      fontWeight: "bold",
+      fontWeight: 700,
       color: primaryColor,
-      marginTop: 4,
-      marginBottom: 4,
     },
     inlineMeta: {
       fontSize: 9,
@@ -433,29 +441,28 @@ const createStyles = (theme: Theme, templateId: string = "basic"): PDFStyles => 
 // Header Component
 const PDFHeader: React.FC<SectionComponentProps> = ({ data, styles }) => {
   const headerData = data as HeaderData;
+  
+  // Build contact items array, then join with pipe separators
+  const contactItems: string[] = [];
+  if (headerData.email) contactItems.push(headerData.email);
+  if (headerData.phone) contactItems.push(headerData.phone);
+  if (headerData.location) contactItems.push(headerData.location);
+  if (headerData.linkedin) contactItems.push(headerData.linkedin);
+  if (headerData.website) contactItems.push(headerData.website);
+
   return (
     <View style={styles.header}>
       <Text style={styles.name}>{headerData.fullName || "Your Name"}</Text>
       <Text style={styles.title}>
         {headerData.title || "Professional Title"}
       </Text>
-      <View style={styles.contactInfo}>
-        {headerData.email && (
-          <Text style={styles.contactItem}>{headerData.email}</Text>
-        )}
-        {headerData.phone && (
-          <Text style={styles.contactItem}>• {headerData.phone}</Text>
-        )}
-        {headerData.location && (
-          <Text style={styles.contactItem}>• {headerData.location}</Text>
-        )}
-        {headerData.linkedin && (
-          <Text style={styles.contactItem}>• {headerData.linkedin}</Text>
-        )}
-        {headerData.website && (
-          <Text style={styles.contactItem}>• {headerData.website}</Text>
-        )}
-      </View>
+      {contactItems.length > 0 && (
+        <View style={styles.contactInfo}>
+          <Text style={styles.contactItem}>
+            {contactItems.join("  |  ")}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -493,7 +500,9 @@ const PDFExperience: React.FC<SectionComponentProps> = ({
         >
           <View style={styles.experienceHeader}>
             <View>
-              <Text style={styles.experienceTitle}>{item.title}</Text>
+              <Text style={styles.experienceTitle}>
+                {item.position || item.title}
+              </Text>
               {showCompany && (
                 <Text style={styles.experienceCompany}>{item.company}</Text>
               )}
@@ -539,8 +548,10 @@ const PDFEducation: React.FC<SectionComponentProps> = ({
   settings,
 }) => {
   const educationData = data as EducationData;
+  const showInstitution = settings?.showInstitution ?? true;
   const showLocation = settings?.showLocation ?? true;
   const showPeriod = settings?.showPeriod ?? true;
+  const showGPA = settings?.showGPA ?? true;
   const showDescription = settings?.showDescription ?? false;
   return (
     <View style={styles.section}>
@@ -549,8 +560,16 @@ const PDFEducation: React.FC<SectionComponentProps> = ({
         <View key={item.id || index} style={styles.experienceItem} wrap={false}>
           <View style={styles.experienceHeader}>
             <View>
-              <Text style={styles.experienceTitle}>{item.degree}</Text>
-              <Text style={styles.experienceCompany}>{item.institution}</Text>
+              {showInstitution && (
+                <Text style={styles.experienceTitle}>{item.institution}</Text>
+              )}
+              <Text style={styles.experienceCompany}>
+                {item.degree}
+                {item.field ? ` in ${item.field}` : ""}
+              </Text>
+              {showGPA && item.gpa && (
+                <Text style={styles.inlineMeta}>GPA: {item.gpa}</Text>
+              )}
             </View>
             <View>
               {showPeriod && (
@@ -576,9 +595,7 @@ const PDFEducation: React.FC<SectionComponentProps> = ({
 // Skills Component
 const PDFSkills: React.FC<SectionComponentProps> = ({ data, styles }) => {
   const skillsData = data as SkillsData;
-  const categories = (skillsData.categories || []).filter(
-    (category) => category.isVisible !== false,
-  );
+  const categories = skillsData.categories || [];
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{skillsData.title || "Skills"}</Text>
@@ -586,10 +603,12 @@ const PDFSkills: React.FC<SectionComponentProps> = ({ data, styles }) => {
         <View>
           {categories.map((category, index) => (
             <View key={`${category.name}-${index}`}>
-              <Text style={styles.skillGroupTitle}>{category.name}</Text>
               <View style={styles.skillsContainer}>
                 <Text style={styles.paragraph}>
-                  {category.items.join(", ")}
+                  {category.isVisible !== false && (
+                    <Text style={styles.skillGroupTitle}>{category.name}: </Text>
+                  )}
+                  {category.items?.join(", ")}
                 </Text>
               </View>
             </View>
@@ -689,35 +708,47 @@ const PDFProjects: React.FC<SectionComponentProps> = ({
 };
 
 // Certifications Component
-const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFCertifications: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const certificationsData = data as CertificationsData;
+  const showIssuer = settings?.showIssuer ?? true;
+  const showDate = settings?.showDate ?? true;
+  const showExpiryDate = settings?.showExpiryDate ?? true;
+  const showCredentialId = settings?.showCredentialId ?? true;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Certifications</Text>
       {certificationsData.items?.map((item, index) => (
-        <View key={item.id || index} style={styles.experienceItem}>
+        <View key={item.id || index} style={styles.experienceItem} wrap={false}>
           <View style={styles.experienceHeader}>
             <View>
-              <Text style={styles.experienceTitle}>{item.name}</Text>
-              {item.issuer && (
-                <Text style={styles.experienceCompany}>{item.issuer}</Text>
-              )}
+              <Text style={styles.experienceTitle}>
+                {item.name}
+                {showIssuer && item.issuer ? ` | ${item.issuer}` : ""}
+              </Text>
             </View>
             <View>
-              {item.date && (
-                <Text style={styles.experienceDate}>{item.date}</Text>
+              {showDate && item.date && (
+                <Text style={styles.experienceDate}>{formatDate(item.date)}</Text>
               )}
-              {item.expiryDate && (
+              {showExpiryDate && item.expiryDate && (
                 <Text style={styles.experienceLocation}>
-                  {item.expiryDate}
+                  {formatDate(item.expiryDate)}
                 </Text>
               )}
             </View>
           </View>
-          {item.credentialId && (
+          {showCredentialId && item.credentialId && (
             <Text style={styles.inlineMeta}>
               Credential ID: {item.credentialId}
             </Text>
+          )}
+          {(item.credentialUrl || item.url || item.link) && (
+            <Link
+              src={ensureProtocol(item.credentialUrl || item.url || item.link || "")}
+              style={styles.linkText}
+            >
+              Credential Link
+            </Link>
           )}
         </View>
       ))}
@@ -747,8 +778,12 @@ const PDFAchievements: React.FC<SectionComponentProps> = ({ data, styles }) => {
 };
 
 // Volunteering Component
-const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
+const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles, settings }) => {
   const volunteeringData = data as VolunteeringData;
+  const showOrganization = settings?.showOrganization ?? true;
+  const showPeriod = settings?.showPeriod ?? true;
+  const showDescription = settings?.showDescription ?? true;
+  const showBullets = settings?.showBullets ?? true;
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Volunteering</Text>
@@ -757,14 +792,14 @@ const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
           <View style={styles.experienceHeader}>
             <View>
               <Text style={styles.experienceTitle}>{item.title}</Text>
-              {item.organization && (
+              {showOrganization && item.organization && (
                 <Text style={styles.experienceCompany}>
                   {item.organization}
                 </Text>
               )}
             </View>
             <View>
-              {(item.startDate || item.endDate) && (
+              {showPeriod && (item.startDate || item.endDate) && (
                 <Text style={styles.experienceDate}>
                   {formatDate(item.startDate || null)}
                   {item.endDate ? ` - ${formatDate(item.endDate)}` : ""}
@@ -772,10 +807,10 @@ const PDFVolunteering: React.FC<SectionComponentProps> = ({ data, styles }) => {
               )}
             </View>
           </View>
-          {item.description && (
+          {showDescription && item.description && (
             <Text style={styles.paragraph}>{item.description}</Text>
           )}
-          {item.bullets && item.bullets.length > 0 && (
+          {showBullets && item.bullets && item.bullets.length > 0 && (
             <View style={styles.bulletList}>
               {item.bullets.map((bullet, bulletIndex) => (
                 <View

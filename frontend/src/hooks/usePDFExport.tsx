@@ -3,6 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import ResumePDFDocument from "../components/builder/pdf/ResumePDFDocument";
 import toast from "react-hot-toast";
 import type { IStyle } from "@resumer/shared-types";
+import useBuildStore from "../store/Build.store";
 
 // Style interface matching ResumePDFDocument
 type Style = IStyle;
@@ -56,36 +57,33 @@ export const usePDFExport = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const doc = <ResumePDFDocument data={resumeData as any} />;
 
-        // 2. Generate the blob using the imperative API
-        const blob = await pdf(doc).toBlob();
+        // 2. Generate the blob using the imperative API and ensure the correct type
+        const rawBlob = await pdf(doc).toBlob();
+        const blob = new Blob([rawBlob], { type: "application/pdf" });
 
-        // 3. Get the file name from the resume data
-        const headerSection = resumeData.sections.find(
-          (section) => section.type === "header"
-        );
-        const headerData = headerSection?.data as HeaderData | undefined;
-        const rawName = headerData?.fullName?.split(" ")[0] || "";
+        // 3. Get the file name from the build store
+        const name = useBuildStore.getState().resumeTitle || "Resume";
         // Sanitize: remove filesystem-invalid characters, trim, and truncate
         const sanitizedName =
-          rawName
+          name
             .replace(/[/\\:*?"<>|]/g, "")
             .trim()
             .slice(0, 50) || "Resume";
-        const fileName = `resume_${sanitizedName}_${
-          new Date().toISOString().split("T")[0]
-        }.pdf`;
+        
+        // Use local date for the filename
+        const date = new Date().toISOString().split("T")[0];
+        const fileName = `${sanitizedName}.pdf`;
 
-        // 4. Trigger manual download
-        const url = URL.createObjectURL(blob);
+        // 4. Trigger manual download using the required anchor pattern
+        const blobURL = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = url;
+        link.href = blobURL;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-
-        // 5. Clean up the URL object
-        setTimeout(() => URL.revokeObjectURL(url), 100);
+        // Defer revoke so the browser has time to start the download
+        setTimeout(() => URL.revokeObjectURL(blobURL), 1000);
 
         toast.success("PDF downloaded successfully!", { id: toastId });
       } catch (error) {

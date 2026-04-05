@@ -3,15 +3,10 @@ import { Award } from "lucide-react";
 import { EditableText, ItemToolbar, EmptyState } from "../../../shared";
 import useBuildStore from "../../../../../store/Build.store";
 import SectionHeader from "./SectionHeader";
-
-interface AchievementItem {
-  id: string;
-  title?: string;
-  description?: string;
-}
+import type { IAchievementItem } from "@resumer/shared-types";
 
 interface AchievementsSectionProps {
-  data?: AchievementItem[];
+  data?: IAchievementItem[];
   sectionId?: string;
   themeColor?: string;
   hideHeader?: boolean;
@@ -57,10 +52,11 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
   };
 
   const handleAddItem = () => {
-    const newItem: AchievementItem = {
+    const newItem: IAchievementItem = {
       id: `ach-${Date.now()}`,
-      title: "",
-      description: "",
+      title: `Achievement ${data.length + 1}`,
+      description: `Description of achievement ${data.length + 1}`,
+      date: new Date().getFullYear().toString(),
     };
     updateSectionData(sectionId, { items: [...data, newItem] });
   };
@@ -118,34 +114,49 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
               <ItemToolbar
                 position="left"
                 showCalendar={false}
-                className="-left-1"
                 onAddEntry={handleAddItem}
                 onDelete={() => handleDeleteItem(item.id)}
                 onDeleteSection={() => removeSectionWithConfirm(sectionId!, "achievements")}
               />
             )}
 
-            <EditableText
-              value={item.title || ""}
-              onChange={(val) => handleFieldChange(item.id, "title", val)}
-              placeholder="Achievement"
-              className="text-gray-800 wrap-break-word"
-              as="span"
-            />
-            {item.description && (
-              <>
-                <span className="text-gray-500"> - </span>
-                <EditableText
-                  value={item.description}
-                  onChange={(val) =>
-                    handleFieldChange(item.id, "description", val)
-                  }
-                  placeholder="Description"
-                  className="text-sm text-gray-600"
-                  as="span"
-                />
-              </>
-            )}
+            <div className="flex flex-wrap items-baseline gap-1">
+              <EditableText
+                value={item.title || ""}
+                onChange={(val) => handleFieldChange(item.id, "title", val)}
+                placeholder="Achievement"
+                className="text-gray-800 wrap-break-word font-medium"
+                as="span"
+              />
+              
+              {item.date !== undefined && (
+                <>
+                  <span className="text-gray-400">|</span>
+                  <EditableText
+                    value={item.date}
+                    onChange={(val) => handleFieldChange(item.id, "date", val)}
+                    placeholder="Date"
+                    className="text-sm text-gray-500 italic"
+                    as="span"
+                  />
+                </>
+              )}
+
+              {item.description && (
+                <>
+                  <span className="text-gray-500">-</span>
+                  <EditableText
+                    value={item.description}
+                    onChange={(val) =>
+                      handleFieldChange(item.id, "description", val)
+                    }
+                    placeholder="Description"
+                    className="text-sm text-gray-600"
+                    as="span"
+                  />
+                </>
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -161,3 +172,4 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({
 };
 
 export default AchievementsSection;
+

@@ -20,6 +20,7 @@
     "@google/generative-ai": "^0.24.1",
     "@resumer/shared-types": "workspace:*",
     "bcrypt": "^6.0.0",
+    "cashfree-pg": "^5.1.0",
     "cloudinary": "^2.8.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -35,7 +36,6 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pdf-parse": "^1.1.1",
-    "razorpay": "^2.9.6",
     "streamifier": "^0.1.1",
     "uuid": "^13.0.0"
   },

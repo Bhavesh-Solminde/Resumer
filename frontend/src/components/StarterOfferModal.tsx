@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Sparkles, X, Loader2, Gift } from "lucide-react";
 import { Button } from "./ui/button";
 import { PLAN_CONFIGS } from "@resumer/shared-types";
-import { useSubscriptionStore } from "../store/Subscription.store";
 import { useAuthStore } from "../store/Auth.store";
-import { loadRazorpayScript, openRazorpayCheckout } from "../lib/razorpay";
+import { useCashfreeCheckout } from "../hooks/useCashfreeCheckout";
 import { useNavigate } from "react-router-dom";
 
 interface StarterOfferModalProps {
@@ -14,9 +13,8 @@ interface StarterOfferModalProps {
 
 const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) => {
   const { authUser } = useAuthStore();
-  const { createSubscription, verifyPayment, fetchStatus } = useSubscriptionStore();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { startCheckout, isLoading } = useCashfreeCheckout();
 
   if (!open) return null;
 
@@ -24,42 +22,17 @@ const StarterOfferModal: React.FC<StarterOfferModalProps> = ({ open, onClose }) 
 
   const handleClaim = async () => {
     if (!authUser) return;
-    setIsLoading(true);
 
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      setIsLoading(false);
-      return;
+    const { success, redirected } = await startCheckout("starter");
+
+    if (redirected) return; // handled by return_url
+
+    if (success) {
+      onClose();
+      navigate("/payment/success");
+    } else {
+      navigate("/payment/failure");
     }
-
-    const result = await createSubscription("starter");
-    if (!result) {
-      setIsLoading(false);
-      return;
-    }
-
-    openRazorpayCheckout({
-      keyId: result.razorpayKeyId,
-      orderId: result.orderId,
-      amount: result.amount,
-      planName: starterPlan.name,
-      userName: authUser.fullName,
-      userEmail: authUser.email,
-      onSuccess: async (response) => {
-        const success = await verifyPayment(response);
-        if (success) {
-          await fetchStatus();
-          onClose();
-          navigate("/payment/success");
-        } else {
-          navigate("/payment/failure");
-        }
-        setIsLoading(false);
-      },
-      onDismiss: () => {
-        setIsLoading(false);
-      },
-    });
   };
 
   return (
